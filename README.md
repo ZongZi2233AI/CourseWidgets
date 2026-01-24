@@ -64,15 +64,17 @@ Made With https://github.com/XiaomiMiMo/MiMo-V2-Flash
 - Dart SDK: 3.10.7+
 - Android Studio / VS Code
 - Xcode (macOS/iOS 开发)
-- Visual Studio (Windows 开发)
+- Visual Studio 2026/微软大战代码 (Windows 开发)
 - AGP9.0+
-- 
+- kotlin2.3+
+- java 21
+
 ### 安装步骤
 
 1. **克隆仓库**
 ```bash
-git clone https://github.com/yourusername/coursewidgets.git
-cd coursewidgets
+git clone https://github.com/ZongZi2233AI/CourseWidgets.git
+cd CourseWidgets
 ```
 
 2. **安装依赖**
@@ -278,7 +280,7 @@ chore: 构建/工具链更新
 - Provider: MIT
 
 ## 📮 联系方式
-- **问题反馈**: [GitHub Issues](https://github.com/yourusername/coursewidgets/issues)
+- **问题反馈**: [GitHub Issues](https://github.com/ZongZi2233AI/CourseWidgets/issues)
 
 ## 🗺️ 路线图
 
