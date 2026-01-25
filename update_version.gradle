@@ -1,0 +1,26 @@
+/// 版本同步脚本
+/// 这个脚本用于从Dart版本常量同步到Android配置
+
+def versionFile = new File(project.rootDir, "../lib/constants/version.dart")
+def versionContent = versionFile.text
+
+// 解析Dart常量
+def appVersion = versionContent.find(/const String appVersion = '([^']+)'/) { match, version -> version }
+def buildNumber = versionContent.find(/const int buildNumber = (\d+)/) { match, number -> number }
+
+if (appVersion && buildNumber) {
+    println "从Dart常量读取版本: $appVersion ($buildNumber)"
+    
+    // 更新Android配置
+    def buildGradleFile = new File(project.rootDir, "android/app/build.gradle.kts")
+    def buildGradleContent = buildGradleFile.text
+    
+    // 替换版本号
+    buildGradleContent = buildGradleContent.replaceAll(/versionCode = \d+/, "versionCode = $buildNumber")
+    buildGradleContent = buildGradleContent.replaceAll(/versionName = "[^"]+"/, "versionName = \"$appVersion\"")
+    
+    buildGradleFile.text = buildGradleContent
+    println "Android配置已更新"
+} else {
+    println "无法解析Dart版本常量"
+}

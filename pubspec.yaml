@@ -1,0 +1,143 @@
+name: coursewidgets
+description: "A university course schedule application."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 2.2.3+10002203
+
+environment:
+  sdk: ^3.10.7
+  flutter: ^3.38.7
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+  
+  # 数据处理和文件操作
+  file_selector: ^1.1.0
+  
+  # MMKV - 高性能键值存储（替代SharedPreferences）
+  mmkv: ^2.3.0
+
+  
+  # 图片处理 - 莫奈取色
+  image: ^4.3.0
+  material_color_utilities: ^0.11.1
+  
+  # 数据库
+  sqflite: ^2.4.2
+  sqflite_common_ffi: ^2.4.0+2
+  path: ^1.9.0
+  
+  # ICS解析和重复规则
+  icalendar_parser: ^2.1.0
+  rrule: ^0.2.14
+  
+  # 日期处理和时区
+  intl: ^0.20.2
+  timezone: ^0.10.1
+  
+  # Windows系统托盘
+  system_tray: ^2.0.3
+  
+  # 通知提醒
+  flutter_local_notifications: ^20.0.0-dev.3
+  permission_handler: ^12.0.1
+  
+  # 状态管理
+  provider: ^6.1.5+1
+  
+  # Windows Fluent UI
+  fluent_ui: ^4.13.0
+  
+  # Windows窗口管理
+  window_manager: ^0.5.1
+  
+  # 圆角处理
+  figma_squircle: ^0.6.3
+  liquid_glass_renderer: ^0.2.0-dev.4
+  liquid_glass_widgets: ^0.2.1-dev.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^6.0.0
+
+  # JSON序列化生成
+  json_serializable: ^6.9.1
+  build_runner: ^2.4.13
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/calendar.ics
+    - assets/icon.png
+    - assets/app_icon.ico
+    # 导航栏图标
+    - assets/ios-settings.png
+    - assets/ios-calendar.png
+    - assets/ios-main.png
+    - assets/ios-settings.ico
+    - assets/ios-calendar.ico
+    - assets/ios-main.ico
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/to/resolution-aware-images
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/to/asset-from-package
+
+  # Custom fonts configuration
+  fonts:
+    # 英文字体 - 用于英文、数字和符号
+    - family: SFPro
+      fonts:
+        - asset: assets/fonts/SF-Pro.ttf
+    
+    # 中文字体 - 用于中文、日文、韩文等CJK字符
+    - family: PingFangSC
+      fonts:
+        - asset: assets/fonts/PingFangSC-Semibold.otf
+          weight: 600
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package
+# v2.1.10 移除 shared_preferences 依赖覆盖
