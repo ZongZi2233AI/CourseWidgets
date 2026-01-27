@@ -318,6 +318,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_app_group_directory:
+    dependency: transitive
+    description:
+      name: flutter_app_group_directory
+      sha256: "680ef9b2dee84c237cd7bb7fc78bc45867b32556a8a5f0de61278078b9fefd05"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -330,34 +338,34 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: d207d6f3b09cbd38955461f523d4f3c37e52662d02848194f7c4325c9cb27eb5
+      sha256: "76cd20bcfa72fabe50ea27eeaf165527f446f55d3033021462084b87805b4cac"
       url: "https://pub.dev"
     source: hosted
-    version: "20.0.0-dev.4"
+    version: "20.0.0"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
       name: flutter_local_notifications_linux
-      sha256: ad4a6815d037c1648bf50414a5071fbc2097e5dfb796c7847ec8b33f155599ea
+      sha256: dce0116868cedd2cdf768af0365fc37ff1cbef7c02c4f51d0587482e625868d0
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.0-dev.2"
+    version: "7.0.0"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
-      sha256: "80b17e8e79f2361dbbc69960f831eb5de3fc7762502a20e6327b24a9ce458d8a"
+      sha256: "23de31678a48c084169d7ae95866df9de5c9d2a44be3e5915a2ff067aeeba899"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.0-dev.2"
+    version: "10.0.0"
   flutter_local_notifications_windows:
     dependency: transitive
     description:
       name: flutter_local_notifications_windows
-      sha256: aa1bc3f7f74b89abd40f23d73ecd8faf4dc78818b92351e3c065b9b8d192f44b
+      sha256: "7ddd964fa85b6a23e96956c5b63ef55cdb9e5947b71b95712204db42ad46da61"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0-dev.3"
+    version: "2.0.0"
   flutter_localizations:
     dependency: transitive
     description: flutter
@@ -521,10 +529,17 @@ packages:
     dependency: "direct main"
     description:
       name: liquid_glass_widgets
-      sha256: ce725f69e2cf71684ec734ec185abd50a049538c62879872300ce6881176558a
+      sha256: "34f788bb49321c48ee1c9a17614d97d5c018c4264f2378e7bc21057311315700"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.1-dev.7"
+    version: "0.2.1-dev.8"
+  live_activities:
+    dependency: "direct main"
+    description:
+      path: "plugins/live_activities-2.4.6"
+      relative: true
+    source: path
+    version: "2.4.6"
   logging:
     dependency: transitive
     description:
@@ -926,10 +941,10 @@ packages:
     dependency: transitive
     description:
       name: source_gen
-      sha256: "585bc140f20da42c584ece2df28f4d9ef2566955332b626f655957b3a8c8ad54"
+      sha256: "1d562a3c1f713904ebbed50d2760217fd8a51ca170ac4b05b0db490699dbac17"
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.2"
+    version: "4.2.0"
   source_helper:
     dependency: transitive
     description:
@@ -998,10 +1013,10 @@ packages:
     dependency: transitive
     description:
       name: sqlite3
-      sha256: "00e5e65f8e9b556ed3d999ad310881c956ffb656ed96bea487a4c50ffdff6d14"
+      sha256: c6cfe9b1cc159c9eb8ba174b533a60b5126f9db8c6e34efb127d2bc04bc45034
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.3"
+    version: "3.1.4"
   stack_trace:
     dependency: transitive
     description:

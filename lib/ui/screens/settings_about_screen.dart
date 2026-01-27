@@ -213,73 +213,48 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
   }
 
   Widget _buildPremiumGlassDemo() {
-    return GestureDetector(
+    return GlassButton.custom(
       onTap: () {
         HapticFeedback.heavyImpact();
       },
-      child: SizedBox(
-        height: 120,
-        child: Stack(
+      width: double.infinity,
+      height: 120,
+      style: GlassButtonStyle.filled,
+      quality: GlassQuality.premium,
+      settings: LiquidGlassSettings(
+        glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
+        blur: 25,
+        thickness: 35,
+        refractiveIndex: 2.2,
+        lightIntensity: 1.2,
+        ambientStrength: 1.1,
+      ),
+      shape: const LiquidRoundedSuperellipse(borderRadius: 28),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppThemeColors.babyPink.withValues(alpha: 0.3),
-                      AppThemeColors.softCoral.withValues(alpha: 0.3),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                ),
+            const Icon(
+              CupertinoIcons.hand_point_right_fill,
+              color: Colors.white,
+              size: 32,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Touch me',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.0,
               ),
             ),
-            LiquidGlassLayer(
-              settings: LiquidGlassSettings(
-                glassColor: Colors.white.withValues(alpha: 0.1),
-                blur: 0,
-                thickness: 30,
-                refractiveIndex: 2.0,
-                lightIntensity: 1.0,
-                ambientStrength: 1.0,
-              ),
-              child: LiquidGlass(
-                shape: LiquidRoundedSuperellipse(borderRadius: 28),
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          CupertinoIcons.hand_point_right_fill,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Touch me',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Premium Liquid Glass Demo',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.white.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            const SizedBox(height: 4),
+            Text(
+              'Premium Liquid Glass Demo',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.white.withValues(alpha: 0.8),
               ),
             ),
           ],

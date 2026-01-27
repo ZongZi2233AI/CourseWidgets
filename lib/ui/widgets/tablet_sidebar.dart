@@ -2,8 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../constants/theme_constants.dart';
+import '../../constants/version.dart';
+import '../../utils/glass_settings_helper.dart';
 
-/// 平板模式侧边栏
+/// [v2.2.8] 平板模式侧边栏 - 使用全局玻璃设置系统
 class TabletSideBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTabSelected;
@@ -18,22 +20,17 @@ class TabletSideBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // [v2.2.2] 导航栏改为圆角矩形，四周留白
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16), // 四周留白
+        padding: const EdgeInsets.all(16),
         child: GlassPanel(
-          shape: const LiquidRoundedSuperellipse(borderRadius: 32), // 圆角矩形
+          shape: const LiquidRoundedSuperellipse(borderRadius: 32),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          settings: LiquidGlassSettings(
-            glassColor: Colors.white.withValues(alpha: 0.05),
-            blur: 20,
-            thickness: 0.8,
-          ),
+          settings: GlassSettingsHelper.getSidebarSettings(),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // 不占满全高
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Logo - 缩小尺寸
+              // Logo
               Container(
                 width: 40,
                 height: 40,
@@ -72,13 +69,13 @@ class TabletSideBar extends StatelessWidget {
               
               const Spacer(),
               
-              // 版本信息
+              // [v2.2.8] 版本信息 - 使用常量
               Container(
                 padding: const EdgeInsets.all(6),
-                child: const Text(
-                  'v2.2.2',
+                child: Text(
+                  'v$appVersion',
                   style: TextStyle(
-                    color: Colors.white38,
+                    color: GlassSettingsHelper.getDisabledTextColor(),
                     fontSize: 9,
                   ),
                 ),
@@ -99,11 +96,11 @@ class TabletSideBar extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 50, // [v2.2.1] 从 56 减小到 50
+        width: 50,
         height: 50,
         decoration: isSelected
             ? BoxDecoration(
-                borderRadius: BorderRadius.circular(14), // [v2.2.1] 从 16 减小到 14
+                borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
                     color: AppThemeColors.babyPink.withValues(alpha: 0.4),
@@ -118,18 +115,15 @@ class TabletSideBar extends StatelessWidget {
           width: 50,
           height: 50,
           style: GlassButtonStyle.filled,
-          settings: LiquidGlassSettings(
-            glassColor: isSelected
-                ? AppThemeColors.babyPink.withValues(alpha: 0.3)
-                : Colors.white.withValues(alpha: 0.05),
-            blur: 0,
-            thickness: 10,
+          settings: GlassSettingsHelper.getButtonSettings(
+            isSelected: isSelected,
+            selectedColor: AppThemeColors.babyPink,
           ),
-          shape: const LiquidRoundedSuperellipse(borderRadius: 14), // [v2.2.1] 从 16 减小到 14
+          shape: const LiquidRoundedSuperellipse(borderRadius: 14),
           child: Icon(
             isSelected && selectedIcon != null ? selectedIcon : icon,
             color: isSelected ? Colors.white : Colors.white60,
-            size: 22, // [v2.2.1] 从 24 减小到 22
+            size: 22,
           ),
         ),
       ),

@@ -394,6 +394,18 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                       color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
+                  if (course.teacher.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      course.teacher,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 2),
                   Text(
                     course.timeStr,

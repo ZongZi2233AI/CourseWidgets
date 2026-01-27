@@ -1,0 +1,57 @@
+// [v2.2.8 AGP 9.0修复] Flutter 插件 library 使用传统语法
+group = "com.example.live_activities"
+version = "1.0-SNAPSHOT"
+
+// [AGP 9.0] 移除 buildscript，不需要手动配置 Kotlin
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// [AGP 9.0] 使用传统的 apply plugin 语法（Flutter 插件要求）
+apply plugin: "com.android.library"
+// [AGP 9.0] 不要手动应用 kotlin-android，AGP 9.0 会自动应用
+
+android {
+    namespace = "com.example.live_activities"
+    compileSdk = 35
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+        test.java.srcDirs += "src/test/kotlin"
+    }
+
+    defaultConfig {
+        minSdk = flutter.minSdkVersion
+    }
+
+    dependencies {
+        implementation("com.google.firebase:firebase-messaging:24.0.0")
+        testImplementation("org.jetbrains.kotlin:kotlin-test")
+        testImplementation("org.mockito:mockito-core:5.0.0")
+    }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+
+            testLogging {
+               events "passed", "skipped", "failed", "standardOut", "standardError"
+               outputs.upToDateWhen {false}
+               showStandardStreams = true
+            }
+        }
+    }
+}
+
+// [AGP 9.0] 使用 kotlin {} 块配置 JVM 目标（与主项目一致）
+kotlin {
+    jvmToolchain(21)
+}

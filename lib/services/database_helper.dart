@@ -56,6 +56,20 @@ class DatabaseHelper {
 
   /// 确保所有必要的表都存在
   Future<void> _ensureTablesExist(Database db) async {
+    // 检查 courses 表是否有 teacher 字段
+    try {
+      final result = await db.rawQuery('PRAGMA table_info(courses)');
+      final hasTeacherField = result.any((column) => column['name'] == 'teacher');
+      
+      if (!hasTeacherField) {
+        // 添加 teacher 字段
+        await db.execute('ALTER TABLE courses ADD COLUMN teacher TEXT');
+        debugPrint('✅ 已添加 teacher 字段到 courses 表');
+      }
+    } catch (e) {
+      debugPrint('检查 teacher 字段失败: $e');
+    }
+    
     // 检查并创建历史记录表
     final historyTableExists = await db.rawQuery(
       "SELECT name FROM sqlite_master WHERE type='table' AND name='schedule_history'"

@@ -24,11 +24,16 @@ class AndroidLiquidGlassMain extends StatefulWidget {
 
 class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
   int _currentIndex = 0;
+  bool _isLoading = true; // 添加加载状态
   
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    _loadData();
+  }
+  
+  Future<void> _loadData() async {
+    try {
       final provider = context.read<ScheduleProvider>();
       await provider.loadSavedData();
       
@@ -53,7 +58,16 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
       // 获取下一节课并启动实时通知
       final nextCourse = provider.getNextCourse();
       await liveService.startLiveUpdate(nextCourse);
-    });
+      
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      debugPrint('❌ 加载数据失败: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
   
   @override
@@ -65,6 +79,18 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
 
   @override
   Widget build(BuildContext context) {
+    // [v2.2.8修复] 显示加载状态
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+    
     final isTablet = ResponsiveUtils.isTabletMode(context);
     
     if (isTablet) {
@@ -353,16 +379,20 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
                   size: 28,
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  "CourseWidgets",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
+                const Expanded(
+                  child: Text(
+                    "CourseWidgets",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
                 liquid.LiquidCard(
                   borderRadius: 12,
                   padding: 6,
@@ -407,72 +437,90 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
           );
         }
 
+        // [v2.2.8修复] 始终启用滚动，移除禁用逻辑
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          physics: const BouncingScrollPhysics(),
+          // [v2.2.8修复] 增加缓存范围，防止滚动时降级渲染
+          cacheExtent: 200,
           itemCount: courses.length,
           itemBuilder: (context, index) {
             final course = courses[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: liquid.LiquidCard(
-                borderRadius: 28,
-                padding: 20,
-                glassColor: Colors.white.withValues(alpha: 0.03),
-                quality: GlassQuality.standard,
-                onTap: () => _showCourseDetailDialog(course),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppThemeColors.babyPink.withValues(alpha: 0.8),
-                            AppThemeColors.softCoral.withValues(alpha: 0.8),
+            // [v2.2.8修复] 使用 RepaintBoundary 隔离重绘，防止滚动时玻璃效果消失
+            return RepaintBoundary(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: liquid.LiquidCard(
+                  borderRadius: 28,
+                  padding: 20,
+                  glassColor: Colors.white.withValues(alpha: 0.03),
+                  quality: GlassQuality.standard,
+                  onTap: () => _showCourseDetailDialog(course),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppThemeColors.babyPink.withValues(alpha: 0.8),
+                              AppThemeColors.softCoral.withValues(alpha: 0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        alignment: Alignment.center,
+                        child: Center(
+                          child: Text(
+                            course.timeStr.split('-')[0],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              course.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 17,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              course.location,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 14,
+                              ),
+                            ),
+                            // [v2.2.5修复] 显示教师信息
+                            if (course.teacher.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                course.teacher,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(20),
                       ),
-                      alignment: Alignment.center,
-                      child: Center(
-                        child: Text(
-                          course.timeStr.split('-')[0],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            course.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 17,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            course.location,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
@@ -495,6 +543,8 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
             _buildDetailRow('课程', course.name),
             const SizedBox(height: 8),
             _buildDetailRow('地点', course.location),
+            const SizedBox(height: 8),
+            _buildDetailRow('教师', course.teacher),
             const SizedBox(height: 8),
             _buildDetailRow('时间', course.timeStr),
           ],

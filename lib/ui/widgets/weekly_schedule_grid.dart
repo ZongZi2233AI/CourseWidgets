@@ -304,6 +304,9 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
                   )
                 : ListView.builder(
                     padding: EdgeInsets.zero,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    // [v2.2.8修复] 增加缓存范围，防止滚动时降级渲染
+                    cacheExtent: 100,
                     itemCount: courses.length,
                     itemBuilder: (context, index) {
                       final course = courses[index];
@@ -321,82 +324,111 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
   
   /// 课程卡片
   Widget _buildCourseCard(BuildContext context, CourseEvent course) {
-    return GestureDetector(
-      onTap: () => _showCourseDetail(context, course),
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppThemeColors.babyPink.withValues(alpha: 0.2),
-              AppThemeColors.softCoral.withValues(alpha: 0.2),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 节次
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppThemeColors.babyPink.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                course.timeStr.split('-')[0],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            
-            // 课程名
-            Text(
-              course.name,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            
-            // 地点
-            Row(
-              children: [
-                Icon(
-                  CupertinoIcons.location_solid,
-                  color: Colors.white.withValues(alpha: 0.6),
-                  size: 10,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    course.location,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontSize: 11,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+    // [v2.2.8修复] 使用 RepaintBoundary 隔离重绘，防止滚动时玻璃效果消失
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () => _showCourseDetail(context, course),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppThemeColors.babyPink.withValues(alpha: 0.2),
+                AppThemeColors.softCoral.withValues(alpha: 0.2),
               ],
             ),
-          ],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 节次
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppThemeColors.babyPink.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  course.timeStr.split('-')[0],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              
+              // 课程名
+              Text(
+                course.name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              
+              // 地点
+              Row(
+                children: [
+                  Icon(
+                    CupertinoIcons.location_solid,
+                    color: Colors.white.withValues(alpha: 0.6),
+                    size: 10,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      course.location,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              
+              // 教师
+              if (course.teacher.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(
+                      CupertinoIcons.person_solid,
+                      color: Colors.white.withValues(alpha: 0.6),
+                      size: 10,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        course.teacher,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 11,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -415,6 +447,8 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
             _buildDetailRow('课程', course.name),
             const SizedBox(height: 8),
             _buildDetailRow('地点', course.location),
+            const SizedBox(height: 8),
+            _buildDetailRow('教师', course.teacher),
             const SizedBox(height: 8),
             _buildDetailRow('时间', course.timeStr),
           ],

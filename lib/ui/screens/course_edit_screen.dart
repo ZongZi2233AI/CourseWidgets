@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../models/course_event.dart';
@@ -7,7 +8,8 @@ import '../../providers/schedule_provider.dart';
 import '../../services/database_helper.dart';
 import '../../constants/theme_constants.dart';
 import '../widgets/liquid_components.dart';
-import '../widgets/liquid_glass_pickers.dart'; // [修复5] 导入液态玻璃选择器
+import '../widgets/liquid_glass_pickers.dart';
+import '../widgets/liquid_toast.dart';
 
 class CourseEditScreen extends StatefulWidget {
   final CourseEvent? course; 
@@ -97,7 +99,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                         borderRadius: 24,
                         padding: 20,
                         useFakeGlass: true, 
-                        glassColor: Colors.white.withOpacity(0.02),
+                        glassColor: Colors.white.withValues(alpha: 0.02),
                         child: Column(
                           children: [
                             LiquidInput(controller: _nameController, label: '课程名称', icon: CupertinoIcons.book, placeholder: '例如：高等数学'),
@@ -116,7 +118,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                         borderRadius: 24,
                         padding: 20,
                         useFakeGlass: true,
-                        glassColor: Colors.white.withOpacity(0.02),
+                        glassColor: Colors.white.withValues(alpha: 0.02),
                         child: Column(
                           children: [
                             Row(
@@ -235,7 +237,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     final startTimeParts = _startTimeController.text.split(':');
     final endTimeParts = _endTimeController.text.split(':');
     if (startTimeParts.length != 2 || endTimeParts.length != 2) {
-      _showAlert('错误', '时间格式错误，请使用 HH:MM 格式');
+      LiquidToast.error(context, '时间格式错误，请使用 HH:MM 格式');
       return;
     }
     
@@ -245,7 +247,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     final endMinute = int.tryParse(endTimeParts[1]);
     
     if (startHour == null || startMinute == null || endHour == null || endMinute == null) {
-      _showAlert('错误', '时间格式错误');
+      LiquidToast.error(context, '时间格式错误');
       return;
     }
     
@@ -254,7 +256,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     final endTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, endHour, endMinute);
     
     if (endTime.isBefore(startTime)) {
-      _showAlert('错误', '结束时间必须晚于开始时间');
+      LiquidToast.error(context, '结束时间必须晚于开始时间');
       return;
     }
     
@@ -269,37 +271,79 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     
     final db = await DatabaseHelper.instance.database;
     
-    if (widget.course == null) {
-      await db.insert('courses', course.toMap());
-      _showAlert('成功', '课程添加成功');
-    } else {
-      await db.update('courses', course.toMap(), where: 'id = ?', whereArgs: [course.id]);
-      _showAlert('成功', '课程更新成功');
-    }
-    
-    if (mounted) {
-      context.read<ScheduleProvider>().loadSavedData();
-      Navigator.pop(context);
+    try {
+      if (widget.course == null) {
+        await db.insert('courses', course.toMap());
+        HapticFeedback.mediumImpact();
+        if (mounted) {
+          LiquidToast.success(context, '课程添加成功');
+          await context.read<ScheduleProvider>().loadSavedData();
+          // 延迟退出，让用户看到 Toast
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) Navigator.pop(context);
+          });
+        }
+      } else {
+        await db.update('courses', course.toMap(), where: 'id = ?', whereArgs: [course.id]);
+        HapticFeedback.mediumImpact();
+        if (mounted) {
+          LiquidToast.success(context, '课程更新成功');
+          await context.read<ScheduleProvider>().loadSavedData();
+          // 延迟退出，让用户看到 Toast
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted) Navigator.pop(context);
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        LiquidToast.error(context, '保存失败: $e');
+      }
     }
   }
   
   Future<void> _deleteCourse() async {
     if (widget.course == null) return;
     
-    final db = await DatabaseHelper.instance.database;
-    await db.delete('courses', where: 'id = ?', whereArgs: [widget.course!.id]);
-    
-    if (mounted) {
-      context.read<ScheduleProvider>().loadSavedData();
-      _showAlert('成功', '课程已删除');
-      Navigator.pop(context);
-    }
-  }
-  
-  void _showAlert(String title, String content) {
-    showDialog(
+    // 确认删除
+    final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => LiquidGlassDialog(title: title, content: Text(content)),
+      builder: (_) => LiquidGlassDialog(
+        title: '确认删除',
+        content: const Text('确定要删除这门课程吗？'),
+        actions: [
+          GlassDialogAction(
+            label: '取消',
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          GlassDialogAction(
+            label: '删除',
+            isPrimary: true,
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
     );
+    
+    if (confirm != true) return;
+    
+    try {
+      final db = await DatabaseHelper.instance.database;
+      await db.delete('courses', where: 'id = ?', whereArgs: [widget.course!.id]);
+      
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        LiquidToast.success(context, '课程已删除');
+        await context.read<ScheduleProvider>().loadSavedData();
+        // 延迟退出，让用户看到 Toast
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted) Navigator.pop(context);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        LiquidToast.error(context, '删除失败: $e');
+      }
+    }
   }
 }

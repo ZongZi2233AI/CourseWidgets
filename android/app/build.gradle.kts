@@ -26,8 +26,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 34  // Android 14
         targetSdk = 36  // Android 16
-        versionCode = 10002203
-        versionName = "2.2.3"
+        versionCode = 10002208
+        versionName = "2.2.8"
         
         // 移除abiFilters，使用splits进行ABI拆分
     }

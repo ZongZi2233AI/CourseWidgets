@@ -257,7 +257,33 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
                         ),
                       ),
                       const SizedBox(width: 20),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(course.name, style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 16)), Text(course.location, style: TextStyle(color: Colors.white60))])),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              course.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              course.location,
+                              style: const TextStyle(color: Colors.white60),
+                            ),
+                            if (course.teacher.isNotEmpty)
+                              Text(
+                                course.teacher,
+                                style: const TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 12,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -272,7 +298,14 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
       context: context,
       builder: liquid.LiquidGlassDialog(
         title: '课程详情',
-        content: Column(children: [_detailRow('课程', course.name), _detailRow('地点', course.location), _detailRow('时间', course.timeStr)]),
+        content: Column(
+          children: [
+            _detailRow('课程', course.name),
+            _detailRow('地点', course.location),
+            _detailRow('教师', course.teacher),
+            _detailRow('时间', course.timeStr),
+          ],
+        ),
         actions: [
           GlassDialogAction(
             label: '编辑',

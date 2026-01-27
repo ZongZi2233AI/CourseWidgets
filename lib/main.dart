@@ -11,9 +11,11 @@ import 'providers/schedule_provider.dart';
 import 'services/windows_tray_service.dart';
 import 'services/storage_service.dart';
 import 'services/theme_service.dart';
+import 'services/onboarding_service.dart';
 import 'ui/screens/schedule_screen.dart';
 import 'ui/screens/android_liquid_glass_main.dart';
 import 'ui/screens/windows_custom_window.dart';
+import 'ui/screens/onboarding_screen.dart';
 import 'dart:async';
 
 bool globalUseDarkMode = false; 
@@ -23,11 +25,47 @@ Future<void> loadGlobalBackground() async {
   try {
     final storage = StorageService();
     final savedPath = storage.getString(StorageService.keyBackgroundPath);
-    if (savedPath != null && await File(savedPath).exists()) {
-      globalBackgroundPath.value = savedPath;
+    
+    // 检查是否有用户自定义壁纸
+    if (savedPath != null && savedPath.isNotEmpty) {
+      // 如果是 asset 路径，直接使用
+      if (savedPath.startsWith('asset:')) {
+        globalBackgroundPath.value = savedPath;
+        debugPrint('✅ 加载默认壁纸: $savedPath');
+        return;
+      }
+      
+      // 如果是文件路径，检查文件是否存在
+      if (await File(savedPath).exists()) {
+        globalBackgroundPath.value = savedPath;
+        debugPrint('✅ 加载用户壁纸: $savedPath');
+        return;
+      }
     }
+    
+    // 没有保存的壁纸或文件不存在，使用默认壁纸
+    String defaultWallpaper;
+    if (Platform.isAndroid || Platform.isIOS) {
+      // 手机端使用浅色壁纸
+      defaultWallpaper = 'asset:assets/mobile wallpaper light.png';
+    } else {
+      // 平板和 Windows/macOS/Linux 使用 tahoe 壁纸
+      defaultWallpaper = 'asset:assets/tahoe.jpg';
+    }
+    
+    globalBackgroundPath.value = defaultWallpaper;
+    debugPrint('✅ 使用默认壁纸: $defaultWallpaper');
   } catch (e) {
-    debugPrint('Bg Error: $e');
+    debugPrint('❌ 加载壁纸错误: $e');
+    // 出错时也使用默认壁纸
+    String defaultWallpaper;
+    if (Platform.isAndroid || Platform.isIOS) {
+      defaultWallpaper = 'asset:assets/mobile wallpaper light.png';
+    } else {
+      defaultWallpaper = 'asset:assets/tahoe.jpg';
+    }
+    globalBackgroundPath.value = defaultWallpaper;
+    debugPrint('✅ 使用默认壁纸 (fallback): $defaultWallpaper');
   }
 }
 
@@ -75,14 +113,61 @@ void main() async {
   // [v2.1.7] Windows课程提醒将在WindowsCustomWindow中启动
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final OnboardingService _onboardingService = OnboardingService();
+  bool _showOnboarding = false;
+  bool _isChecking = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    setState(() {
+      _showOnboarding = _onboardingService.shouldShowOnboarding;
+      _isChecking = false;
+    });
+  }
+
+  void _completeOnboarding() {
+    setState(() {
+      _showOnboarding = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isChecking) {
+      // 加载中
+      return material.MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: material.Scaffold(
+          backgroundColor: Colors.black,
+          body: const Center(
+            child: material.CircularProgressIndicator(
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+    }
+
     return ValueListenableBuilder<String?>(
       valueListenable: globalBackgroundPath,
       builder: (context, backgroundPath, _) {
+        // [v2.2.8修复] 添加调试信息
+        debugPrint('🎨 当前背景路径: $backgroundPath');
+        
         return material.MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: material.ThemeData(
@@ -97,15 +182,57 @@ class MyApp extends StatelessWidget {
           ),
           builder: (context, child) {
             // 构建背景组件
-            Widget backgroundWidget = AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              decoration: BoxDecoration(
-                image: backgroundPath != null
-                    ? DecorationImage(image: FileImage(File(backgroundPath)), fit: BoxFit.cover, colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.2), BlendMode.darken))
-                    : null,
-                gradient: backgroundPath == null ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFE0C3FC), Color(0xFF8EC5FC)]) : null,
-              ),
-            );
+            Widget backgroundWidget;
+            
+            if (backgroundPath != null && backgroundPath.isNotEmpty) {
+              // 检查是否是 asset 路径
+              if (backgroundPath.startsWith('asset:')) {
+                final assetPath = backgroundPath.substring(6); // 移除 'asset:' 前缀
+                debugPrint('🎨 使用 Asset 背景: $assetPath');
+                backgroundWidget = AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(assetPath),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withValues(alpha: 0.2),
+                        BlendMode.darken,
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                // 用户自定义的文件路径
+                debugPrint('🎨 使用文件背景: $backgroundPath');
+                backgroundWidget = AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: FileImage(File(backgroundPath)),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withValues(alpha: 0.2),
+                        BlendMode.darken,
+                      ),
+                    ),
+                  ),
+                );
+              }
+            } else {
+              // 没有背景时使用渐变
+              debugPrint('🎨 使用渐变背景 (fallback)');
+              backgroundWidget = AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFE0C3FC), Color(0xFF8EC5FC)],
+                  ),
+                ),
+              );
+            }
 
             // 【核心修复】如果是 Windows，强制裁切背景为超椭圆
             // 这样背景图就不会溢出到圆角之外，实现真正的窗口圆角效果
@@ -121,7 +248,9 @@ class MyApp extends StatelessWidget {
               content: child ?? const SizedBox(),
             );
           },
-          home: _getHomeParams(),
+          home: _showOnboarding
+              ? OnboardingScreen(onComplete: _completeOnboarding)
+              : _getHomeParams(),
         );
       },
     );

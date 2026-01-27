@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.2.3+10002203
+version: 2.2.8+10002208
 
 environment:
   sdk: ^3.10.7
@@ -67,6 +67,9 @@ dependencies:
   flutter_local_notifications: ^20.0.0-dev.3
   permission_handler: ^12.0.1
   
+  # Live Activities (iOS/Android)
+  live_activities: ^2.4.6
+  
   # 状态管理
   provider: ^6.1.5+1
   
@@ -111,6 +114,9 @@ flutter:
     - assets/calendar.ics
     - assets/icon.png
     - assets/app_icon.ico
+    # 背景壁纸
+    - assets/tahoe.jpg
+    - assets/mobile wallpaper light.png
     # 导航栏图标
     - assets/ios-settings.png
     - assets/ios-calendar.png
@@ -140,4 +146,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-# v2.1.10 移除 shared_preferences 依赖覆盖
+
+# [v2.2.8修复] AGP 9.0 兼容性修复
+# live_activities 包的 build.gradle 与 AGP 9.0 冲突
+# 使用本地修复版本覆盖
+dependency_overrides:
+  live_activities:
+    path: plugins/live_activities-2.4.6

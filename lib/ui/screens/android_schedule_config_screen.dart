@@ -135,8 +135,12 @@ class _AndroidScheduleConfigScreenState extends State<AndroidScheduleConfigScree
   void dispose() {
     _semesterDateController.dispose();
     _breakTimeController.dispose();
-    for (var controller in _startControllers) controller.dispose();
-    for (var controller in _durationControllers) controller.dispose();
+    for (var controller in _startControllers) {
+      controller.dispose();
+    }
+    for (var controller in _durationControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -151,7 +155,7 @@ class _AndroidScheduleConfigScreenState extends State<AndroidScheduleConfigScree
         settings: LiquidGlassSettings(
           thickness: 0.8,
           blur: 12.0,
-          glassColor: Colors.white.withOpacity(0.1),
+          glassColor: Colors.white.withValues(alpha: 0.1),
         ),
         child: Column(
           children: [
@@ -274,14 +278,16 @@ class _AndroidScheduleConfigScreenState extends State<AndroidScheduleConfigScree
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1)),
+                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
               ),
               child: TextField(
                 controller: _startControllers[index],
                 style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w600),
-                decoration: const InputDecoration.collapsed(hintText: ''),
+                decoration: const InputDecoration.collapsed(
+                  hintText: '',
+                ),
                 textAlign: TextAlign.center,
                 keyboardType: TextInputType.number,
               ),
@@ -293,14 +299,16 @@ class _AndroidScheduleConfigScreenState extends State<AndroidScheduleConfigScree
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1)),
+                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
               ),
               child: TextField(
                 controller: _durationControllers[index],
                 style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w600),
-                decoration: const InputDecoration.collapsed(hintText: ''),
+                decoration: const InputDecoration.collapsed(
+                  hintText: '',
+                ),
                 textAlign: TextAlign.center,
                 keyboardType: TextInputType.number,
               ),

@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-// 版本管理
-const String appVersion = '2.2.3';
-const int buildNumber = 10002203;
+// [v2.2.8] 版本管理
+const String appVersion = '2.2.8';
+const int buildNumber = 10002208;
 const String copyright = '© 2025-2026 CourseWidgets. All rights reserved.';
 
 // 全局状态

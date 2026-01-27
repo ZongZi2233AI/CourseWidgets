@@ -45,17 +45,31 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      shape: LiquidRoundedSuperellipse(borderRadius: 24),
-      settings: LiquidGlassSettings(
-        glassColor: Colors.black.withValues(alpha: 0.3),
-        blur: 20,
-        thickness: 15,
-      ),
-      child: Container(
-        height: 250,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Row(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isLandscape = screenWidth > screenHeight;
+    
+    // 横屏时限制最大宽度和高度
+    final maxWidth = isLandscape ? screenWidth * 0.6 : screenWidth;
+    final maxHeight = isLandscape ? screenHeight * 0.5 : 250.0;
+    
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: maxWidth,
+          maxHeight: maxHeight,
+        ),
+        child: GlassContainer(
+          shape: LiquidRoundedSuperellipse(borderRadius: 24),
+          settings: LiquidGlassSettings(
+            glassColor: Colors.black.withValues(alpha: 0.3),
+            blur: 20,
+            thickness: 15,
+          ),
+          child: Container(
+            height: maxHeight,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
           children: [
             // 月份选择
             Expanded(
@@ -144,6 +158,8 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
           ],
         ),
       ),
+        ),
+      ),
     );
   }
 }
@@ -161,17 +177,31 @@ class LiquidGlassWeekdayPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      shape: LiquidRoundedSuperellipse(borderRadius: 24),
-      settings: LiquidGlassSettings(
-        glassColor: Colors.black.withValues(alpha: 0.3),
-        blur: 20,
-        thickness: 15,
-      ),
-      child: Container(
-        height: 250,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: CupertinoPicker(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isLandscape = screenWidth > screenHeight;
+    
+    // 横屏时限制最大宽度和高度
+    final maxWidth = isLandscape ? screenWidth * 0.5 : screenWidth;
+    final maxHeight = isLandscape ? screenHeight * 0.5 : 250.0;
+    
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: maxWidth,
+          maxHeight: maxHeight,
+        ),
+        child: GlassContainer(
+          shape: LiquidRoundedSuperellipse(borderRadius: 24),
+          settings: LiquidGlassSettings(
+            glassColor: Colors.black.withValues(alpha: 0.3),
+            blur: 20,
+            thickness: 15,
+          ),
+          child: Container(
+            height: maxHeight,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: CupertinoPicker(
           scrollController: FixedExtentScrollController(
             initialItem: initialWeekday - 1,
           ),
@@ -197,6 +227,8 @@ class LiquidGlassWeekdayPicker extends StatelessWidget {
               ),
             ),
           )).toList(),
+        ),
+      ),
         ),
       ),
     );

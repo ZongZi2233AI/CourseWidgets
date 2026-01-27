@@ -14,8 +14,27 @@
 
 </div>
 Made With https://github.com/XiaomiMiMo/MiMo-V2-Flash
-# 声明：本软件除开源代码完全使用MiMo-V2-Flash开发（几乎本文档和license也由ai构建），Windows部分使用Claude Sonnet 4.5开发，图标和部分复杂实现指导使用Gemini3.0Pro
 
+## 声明：本软件除开源代码完全使用MiMo-V2-Flash开发（几乎本文档和license也由ai构建），Windows部分使用Claude Sonnet 4.5开发，图标和部分复杂实现指导使用Gemini3.0Pro
+
+## v2.2.5-v2.2.8正在开发
+  - 当前进度，v2.2.8 90%
+
+## v2.2.4 已完成优化
+  - 1.Windows toast通知还是material不是新的toast（已修复）
+  - 2.Windows设置界面点方块没用只能点箭头（已修复）
+  - 3.默认背景不好看，将在assets预设横屏和竖屏两种壁纸（已修复，但是Windows端出现新的问题故暂时不发布release和更新代码）
+  - 4.touch me没有使用预渲染（可能AI忘了），并且存在渲染bug和没有触控反馈等（已修复但是出现新的问题）
+  - 5.Windows托盘仍存在问题（正在开发）
+  - 6.实时通知开发中（ai不知道api）（正在开发）
+  - 7.Windows端大小化动画仍然消失（正在开发）
+  - 8.将Android 端导航栏活动标签页以ico和字体变蓝区分（依赖api不支持，考虑重构）
+  - 10.添加课程是否成功没有toast通知反馈和退出（已修复）
+  - 11.主界面触控拉伸拖动课程块时，课程会变得完全透明没有模糊和玻璃效果，可能是因为监听滑动降级之类的策略？（开发中）
+  - 12.编辑课程保存也没有toast通知和退出（已修复）
+  - 13.手动添加和编辑的课程，在主页面和其他显示课程信息的地方不会显示教师名称（修复中）
+
+  
 ## ✨ 特性
 
 ### 🎨 液态玻璃设计
@@ -40,6 +59,7 @@ Made With https://github.com/XiaomiMiMo/MiMo-V2-Flash
 - 课程开始前自动提醒（安卓似乎可以实现）
 - 通知点击直达课程详情（emmm没试过）
 - 系统托盘集成（Windows/macOS）（暂未实现，代码存在问题）
+  
 
 ### 🎯 多平台支持
 - ✅ Android

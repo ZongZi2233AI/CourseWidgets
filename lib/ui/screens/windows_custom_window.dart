@@ -22,7 +22,6 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     with WindowListener {
   int _selectedIndex = 0;
   bool _isMaximized = false;
-  bool _shouldReallyClose = false;
 
   @override
   void initState() {
@@ -32,12 +31,14 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     
     // [v2.2.0修复5] 初始化托盘服务
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      
       final tray = WindowsTrayService();
       await tray.initialize();
       
       // 启动课程提醒
       final provider = context.read<ScheduleProvider>();
-      tray.startCourseReminderTimer(provider);
+      tray.startCourseReminder(provider);
       
       debugPrint('✅ 托盘服务已初始化');
     });
@@ -54,9 +55,14 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     // 设置最小窗口大小
     await windowManager.setMinimumSize(const Size(800, 600));
     
-    // [修复3] 启用窗口动画 - 设置窗口属性
+    // [v2.2.8修复] 启用窗口动画 - 设置窗口属性
     await windowManager.setAsFrameless();
     await windowManager.setHasShadow(true);
+    
+    // [v2.2.8修复] 尝试启用窗口动画效果
+    // 注意：window_manager 本身不提供动画API，动画由系统DWM控制
+    // 确保窗口不是完全透明，这样系统才能正确渲染动画
+    await windowManager.setBackgroundColor(Colors.black.withValues(alpha: 0.01));
     
     // 强制设置窗口大小和位置
     await windowManager.setSize(const Size(1024, 768));
@@ -93,10 +99,6 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   /// [v2.2.0修复5] 窗口关闭 - 最小化到托盘
   @override
   Future<void> onWindowClose() async {
-    if (_shouldReallyClose) {
-      return;
-    }
-    
     // 隐藏到托盘
     await windowManager.hide();
     debugPrint('窗口已最小化到托盘');
@@ -114,9 +116,12 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Container(
+        body: AnimatedContainer(
+          // [v2.2.8修复] 添加动画过渡，平滑最大化/还原效果
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
           decoration: BoxDecoration(
-            // [v2.2.1修复] 移除不透明遮罩，使用极淡的背景
+            // [v2.2.8修复] 确保窗口有可见的背景色
             color: Colors.black.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(borderRadius),
           ),
