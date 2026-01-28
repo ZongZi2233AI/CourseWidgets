@@ -177,6 +177,7 @@ class _LiquidToastWidgetState extends State<_LiquidToastWidget>
                           color: Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
                         ),
                       ),
                     ),

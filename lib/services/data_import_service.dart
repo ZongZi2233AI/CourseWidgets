@@ -307,4 +307,28 @@ class DataImportService {
   Future<List<int>> getAvailableWeeks(DateTime startDate) async {
     return await DatabaseHelper.instance.getAvailableWeeks(startDate);
   }
+
+  /// [v2.2.9] 删除单节课程
+  Future<bool> deleteCourse(CourseEvent course) async {
+    try {
+      await DatabaseHelper.instance.deleteCourse(course.startTime);
+      debugPrint('已删除课程: ${course.name}');
+      return true;
+    } catch (e) {
+      debugPrint('删除课程失败: $e');
+      return false;
+    }
+  }
+
+  /// [v2.2.9] 删除所有同名课程
+  Future<bool> deleteAllCoursesWithName(String courseName) async {
+    try {
+      await DatabaseHelper.instance.deleteAllCoursesWithName(courseName);
+      debugPrint('已删除所有课程: $courseName');
+      return true;
+    } catch (e) {
+      debugPrint('删除所有课程失败: $e');
+      return false;
+    }
+  }
 }

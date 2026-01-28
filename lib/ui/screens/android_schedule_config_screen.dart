@@ -166,10 +166,7 @@ class _AndroidScheduleConfigScreenState extends State<AndroidScheduleConfigScree
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
-                      onPressed: () => Navigator.pop(context),
-                    ),
+                    // [v2.2.9修复] 引导页面不需要返回按钮
                     Text('课时配置', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor)),
                     const Spacer(),
                     liquid.LiquidButton(

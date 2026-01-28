@@ -220,19 +220,10 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
       width: double.infinity,
       height: 120,
       style: GlassButtonStyle.filled,
-      quality: GlassQuality.premium,
-      settings: LiquidGlassSettings(
-        glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
-        blur: 25,
-        thickness: 35,
-        refractiveIndex: 2.2,
-        lightIntensity: 1.2,
-        ambientStrength: 1.1,
-      ),
       shape: const LiquidRoundedSuperellipse(borderRadius: 28),
       child: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
               CupertinoIcons.hand_point_right_fill,

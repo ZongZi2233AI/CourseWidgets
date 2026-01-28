@@ -4,8 +4,10 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../providers/schedule_provider.dart';
 import '../../models/course_event.dart';
 import '../../constants/theme_constants.dart';
+import '../../services/data_import_service.dart';
 import '../../utils/responsive_utils.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import '../widgets/glass_context_menu.dart';
 import 'course_edit_screen.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -19,6 +21,7 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
   DateTime _currentMonth = DateTime.now();
   DateTime? _selectedDate = DateTime.now();
   bool _isMonthView = true;
+  final DataImportService _importService = DataImportService();
 
   @override
   void initState() {
@@ -119,26 +122,29 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
 
   // 仅修改 _buildHeader
   Widget _buildHeader() {
-    return liquid.LiquidCard(
-      padding: 12, borderRadius: 24, styleType: liquid.LiquidStyleType.micro, glassColor: Colors.white.withOpacity(0.02), 
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-        children: [
-          IconButton(icon: const Icon(CupertinoIcons.left_chevron, color: Colors.white), onPressed: () => _changeMonth(-1)), 
-          Text('${_currentMonth.year}年${_currentMonth.month}月', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)), 
-          IconButton(icon: const Icon(CupertinoIcons.right_chevron, color: Colors.white), onPressed: () => _changeMonth(1)), 
-          SizedBox(
-            width: 80, 
-            child: liquid.LiquidButton(
-              text: _isMonthView ? '收起' : '展开', 
-              onTap: _toggleViewMode, 
-              // [修复] 亮色
-              color: Colors.cyanAccent.withOpacity(0.9),
-              isOutline: true, // 使用轮廓模式更通透
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: liquid.LiquidCard(
+        padding: 12, borderRadius: 24, styleType: liquid.LiquidStyleType.micro, glassColor: Colors.white.withValues(alpha: 0.02), 
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+          children: [
+            IconButton(icon: const Icon(CupertinoIcons.left_chevron, color: Colors.white), onPressed: () => _changeMonth(-1)), 
+            Text('${_currentMonth.year}年${_currentMonth.month}月', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)), 
+            IconButton(icon: const Icon(CupertinoIcons.right_chevron, color: Colors.white), onPressed: () => _changeMonth(1)), 
+            SizedBox(
+              width: 80, 
+              child: liquid.LiquidButton(
+                text: _isMonthView ? '收起' : '展开', 
+                onTap: _toggleViewMode, 
+                // [修复] 亮色
+                color: Colors.cyanAccent.withValues(alpha: 0.9),
+                isOutline: true, // 使用轮廓模式更通透
+              )
             )
-          )
-        ]
-      )
+          ]
+        )
+      ),
     );
   }
 // ...
@@ -149,26 +155,40 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
       final firstDay = _firstDayOfMonth;
       final daysInMonth = _lastDayOfMonth.day;
       final firstWeekday = firstDay.weekday; 
-      for (int i = 1; i < firstWeekday; i++) days.add(DateTime(firstDay.year, firstDay.month, 1 - (firstWeekday - i)));
-      for (int i = 1; i <= daysInMonth; i++) days.add(DateTime(firstDay.year, firstDay.month, i));
-      while (days.length % 7 != 0) { final lastDate = days.last; days.add(DateTime(lastDate.year, lastDate.month, lastDate.day + 1)); }
+      for (int i = 1; i < firstWeekday; i++) {
+        days.add(DateTime(firstDay.year, firstDay.month, 1 - (firstWeekday - i)));
+      }
+      for (int i = 1; i <= daysInMonth; i++) {
+        days.add(DateTime(firstDay.year, firstDay.month, i));
+      }
+      while (days.length % 7 != 0) { 
+        final lastDate = days.last; 
+        days.add(DateTime(lastDate.year, lastDate.month, lastDate.day + 1)); 
+      }
     } else {
       final target = _selectedDate ?? DateTime.now();
       final monday = target.subtract(Duration(days: target.weekday - 1));
-      for (int i = 0; i < 7; i++) days.add(monday.add(Duration(days: i)));
+      for (int i = 0; i < 7; i++) {
+        days.add(monday.add(Duration(days: i)));
+      }
     }
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      height: _isMonthView ? 360 : 80,
+      height: _isMonthView ? 320 : 70, // 减小高度
       child: Column(
         children: [
-          if (_isMonthView) Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(children: ['一','二','三','四','五','六','日'].map((d) => Expanded(child: Center(child: Text(d, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white54))))).toList())),
+          if (_isMonthView) Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(children: ['一','二','三','四','五','六','日'].map((d) => Expanded(child: Center(child: Text(d, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white54))))).toList())),
           Expanded(
             child: GridView.builder(
               padding: EdgeInsets.zero,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, childAspectRatio: _isMonthView ? 0.9 : 1.1, mainAxisSpacing: 8, crossAxisSpacing: 8),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7, 
+                childAspectRatio: _isMonthView ? 1.0 : 1.2, // 调整比例
+                mainAxisSpacing: 6, 
+                crossAxisSpacing: 6
+              ),
               itemCount: days.length,
               itemBuilder: (context, index) {
                  final date = days[index];
@@ -185,10 +205,10 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
 
   Widget _buildDayCell(DateTime date, bool isSelected, bool hasCourses, bool isToday) {
     Widget content = Stack(alignment: Alignment.center, children: [
-        if (isToday && !isSelected) Container(decoration: BoxDecoration(border: Border.all(color: AppThemeColors.babyPink.withOpacity(0.5), width: 1.5), borderRadius: BorderRadius.circular(14))),
+        if (isToday && !isSelected) Container(decoration: BoxDecoration(border: Border.all(color: AppThemeColors.babyPink.withValues(alpha: 0.5), width: 1.5), borderRadius: BorderRadius.circular(12))),
         Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('${date.day}', style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontWeight: FontWeight.bold)),
-            if (hasCourses) Container(width: 5, height: 5, color: AppThemeColors.softCoral),
+            Text('${date.day}', style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontWeight: FontWeight.bold, fontSize: 13)),
+            if (hasCourses) Container(width: 4, height: 4, decoration: BoxDecoration(color: AppThemeColors.softCoral, shape: BoxShape.circle)),
         ]),
     ]);
 
@@ -196,9 +216,9 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
       // 修复长条白块：给选中项一个固定的正方形区域，防止被拉伸
       return Center(
         child: SizedBox(
-          width: 40, height: 40,
+          width: 36, height: 36, // 减小尺寸
           child: liquid.LiquidCard(
-            borderRadius: 14,
+            borderRadius: 12,
             isSelected: true,
             padding: 0,
             styleType: liquid.LiquidStyleType.micro, // 使用 micro 样式 (低光照防白块)
@@ -222,104 +242,127 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
     final courses = _getCoursesForDate(_selectedDate!, provider.courses);
     courses.sort((a, b) => a.startTime.compareTo(b.startTime));
     
-    return liquid.LiquidCard(
-      padding: 0,
-      borderRadius: 28,
-      child: courses.isEmpty 
-        ? Center(child: Text('该日无课', style: TextStyle(color: Colors.white38)))
-        : ListView.builder(
-            padding: const EdgeInsets.all(16),
-            physics: const BouncingScrollPhysics(),
-            itemCount: courses.length,
-            itemBuilder: (context, index) {
-              final course = courses[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: liquid.LiquidCard(
-                  onTap: () => _showCourseDetailDialog(course),
-                  borderRadius: 20,
-                  padding: 16,
-                  styleType: liquid.LiquidStyleType.micro,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 60, height: 60,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppThemeColors.babyPink.withOpacity(0.8), AppThemeColors.softCoral.withOpacity(0.8)]), 
-                          borderRadius: BorderRadius.circular(16)
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16), // 添加水平边距
+      child: liquid.LiquidCard(
+        padding: 0,
+        borderRadius: 28,
+        child: courses.isEmpty 
+          ? Center(child: Text('该日无课', style: TextStyle(color: Colors.white38)))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              physics: const BouncingScrollPhysics(),
+              itemCount: courses.length,
+              itemBuilder: (context, index) {
+                final course = courses[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: liquid.LiquidCard(
+                    borderRadius: 20,
+                    padding: 14,
+                    styleType: liquid.LiquidStyleType.micro,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 50, height: 50,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppThemeColors.babyPink.withValues(alpha: 0.8), AppThemeColors.softCoral.withValues(alpha: 0.8)]), 
+                            borderRadius: BorderRadius.circular(14)
+                          ),
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(course.timeStr.split('-')[0], style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900)),
+                            ],
+                          ),
                         ),
-                        alignment: Alignment.center, // 修复：居中
-                        child: Column( // 修复：垂直居中
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(course.timeStr.split('-')[0], style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              course.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              course.location,
-                              style: const TextStyle(color: Colors.white60),
-                            ),
-                            if (course.teacher.isNotEmpty)
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                course.teacher,
+                                course.name,
                                 style: const TextStyle(
-                                  color: Colors.white60,
-                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  fontSize: 15,
                                 ),
                               ),
-                          ],
+                              Text(
+                                course.location,
+                                style: const TextStyle(color: Colors.white60, fontSize: 12),
+                              ),
+                              if (course.teacher.isNotEmpty)
+                                Text(
+                                  course.teacher,
+                                  style: const TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        // [v2.2.9] 使用自定义 GlassContextMenu
+                        GlassContextMenu(
+                          items: [
+                            GlassContextMenuItem(
+                              title: '编辑课程',
+                              icon: CupertinoIcons.pencil,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (_) => CourseEditScreen(course: course),
+                                  ),
+                                );
+                              },
+                            ),
+                            GlassContextMenuItem(
+                              title: '删除本节课程',
+                              icon: CupertinoIcons.delete,
+                              isDestructive: true,
+                              onTap: () async {
+                                final provider = Provider.of<ScheduleProvider>(context, listen: false);
+                                await _importService.deleteCourse(course);
+                                await provider.loadSavedData();
+                                if (mounted) liquid.showLiquidToast(context, '已删除本节课程');
+                              },
+                            ),
+                            GlassContextMenuItem(
+                              title: '删除所有本课程',
+                              icon: CupertinoIcons.trash,
+                              isDestructive: true,
+                              onTap: () async {
+                                final provider = Provider.of<ScheduleProvider>(context, listen: false);
+                                await _importService.deleteAllCoursesWithName(course.name);
+                                await provider.loadSavedData();
+                                if (mounted) liquid.showLiquidToast(context, '已删除所有${course.name}课程');
+                              },
+                            ),
+                          ],
+                          trigger: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.ellipsis_vertical,
+                              color: Colors.white70,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-    );
-  }
-
-  void _showCourseDetailDialog(CourseEvent course) {
-    liquid.showLiquidDialog(
-      context: context,
-      builder: liquid.LiquidGlassDialog(
-        title: '课程详情',
-        content: Column(
-          children: [
-            _detailRow('课程', course.name),
-            _detailRow('地点', course.location),
-            _detailRow('教师', course.teacher),
-            _detailRow('时间', course.timeStr),
-          ],
-        ),
-        actions: [
-          GlassDialogAction(
-            label: '编辑',
-            onPressed: () { 
-              Navigator.pop(context); 
-              Navigator.push(context, CupertinoPageRoute(builder: (context) => CourseEditScreen(course: course))); 
-            },
-          ),
-          GlassDialogAction(
-            label: '关闭',
-            isPrimary: true,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
+                );
+              },
+            ),
       ),
     );
   }

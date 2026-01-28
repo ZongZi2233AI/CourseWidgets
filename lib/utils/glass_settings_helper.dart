@@ -15,7 +15,7 @@ class GlassSettingsHelper {
     // 深色模式：黑色玻璃，中等透明度（像晚上的玻璃窗）
     // 浅色模式：白色玻璃，低透明度
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: 0.35)
+        ? Colors.black.withValues(alpha: 0.4)  // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: 0.08);
     
     return LiquidGlassSettings(
@@ -30,7 +30,7 @@ class GlassSettingsHelper {
     double? alpha,
   }) {
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: alpha ?? 0.3)
+        ? Colors.black.withValues(alpha: alpha ?? 0.35)  // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: alpha ?? 0.05);
     
     return LiquidGlassSettings(
@@ -51,12 +51,12 @@ class GlassSettingsHelper {
       // 选中状态：使用主题色
       final baseColor = selectedColor ?? Colors.blue;
       glassColor = globalUseDarkMode
-          ? baseColor.withValues(alpha: 0.4)
+          ? baseColor.withValues(alpha: 0.45)  // [v2.2.9修复] 增加深色模式透明度
           : baseColor.withValues(alpha: 0.3);
     } else {
       // 未选中状态
       glassColor = globalUseDarkMode
-          ? Colors.white.withValues(alpha: 0.08)
+          ? Colors.white.withValues(alpha: 0.1)  // [v2.2.9修复] 增加深色模式透明度
           : Colors.white.withValues(alpha: 0.05);
     }
     
@@ -70,7 +70,7 @@ class GlassSettingsHelper {
   /// 获取对话框玻璃设置
   static LiquidGlassSettings getDialogSettings() {
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: 0.45)
+        ? Colors.black.withValues(alpha: 0.5)  // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: 0.15);
     
     return LiquidGlassSettings(
@@ -83,7 +83,7 @@ class GlassSettingsHelper {
   /// 获取输入框玻璃设置
   static LiquidGlassSettings getInputSettings() {
     final glassColor = globalUseDarkMode
-        ? Colors.white.withValues(alpha: 0.1)
+        ? Colors.white.withValues(alpha: 0.12)  // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: 0.05);
     
     return LiquidGlassSettings(
@@ -96,7 +96,7 @@ class GlassSettingsHelper {
   /// 获取底部导航栏玻璃设置
   static LiquidGlassSettings getBottomBarSettings() {
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: 0.5)
+        ? Colors.black.withValues(alpha: 0.55)  // [v2.2.9修复] 增加深色模式透明度
         : Colors.black.withValues(alpha: 0.4);
     
     return LiquidGlassSettings(
@@ -109,7 +109,7 @@ class GlassSettingsHelper {
   /// 获取侧边栏玻璃设置
   static LiquidGlassSettings getSidebarSettings() {
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: 0.4)
+        ? Colors.black.withValues(alpha: 0.45)  // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: 0.05);
     
     return LiquidGlassSettings(

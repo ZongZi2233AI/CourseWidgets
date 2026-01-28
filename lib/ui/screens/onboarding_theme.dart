@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_selector/file_selector.dart';
+import 'dart:io';
 import '../../constants/theme_constants.dart';
 import '../../main.dart';
 import '../../services/storage_service.dart';
+import '../../services/theme_service.dart' as theme;
 import '../../utils/glass_settings_helper.dart';
 import '../widgets/liquid_components.dart' as liquid;
 import '../widgets/liquid_toast.dart';
 
-/// [v2.2.8] 引导页面 - 主题设置
+/// [v2.2.9] 引导页面 - 主题设置
+/// 与通用设置保持一致：默认/系统/莫奈三种模式
 class OnboardingTheme extends StatefulWidget {
   final VoidCallback onComplete;
   final VoidCallback onBack;
@@ -25,18 +28,9 @@ class OnboardingTheme extends StatefulWidget {
 
 class _OnboardingThemeState extends State<OnboardingTheme> {
   final StorageService _storage = StorageService();
+  final theme.ThemeService _themeService = theme.ThemeService();
   
-  // 主题色选项
-  final List<Color> _themeColors = [
-    AppThemeColors.babyPink,
-    AppThemeColors.softCoral,
-    AppThemeColors.paleApricot,
-    Colors.blue,
-    Colors.purple,
-    Colors.green,
-  ];
-  
-  int _selectedColorIndex = 0;
+  theme.ThemeMode _selectedThemeMode = theme.ThemeMode.defaultMode;
 
   @override
   Widget build(BuildContext context) {
@@ -49,30 +43,34 @@ class _OnboardingThemeState extends State<OnboardingTheme> {
             bottom: false,
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: liquid.LiquidCard(
-                borderRadius: 24,
-                padding: 20,
-                glassColor: GlassSettingsHelper.getCardSettings().glassColor,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '个性化',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: GlassSettingsHelper.getTextColor(),
+              child: Center( // 居中标题
+                child: liquid.LiquidCard(
+                  borderRadius: 24,
+                  padding: 20,
+                  glassColor: GlassSettingsHelper.getCardSettings().glassColor,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center, // 居中对齐
+                    children: [
+                      Text(
+                        '个性化',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: GlassSettingsHelper.getTextColor(),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '选择你喜欢的主题色和背景',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: GlassSettingsHelper.getSecondaryTextColor(),
+                      const SizedBox(height: 8),
+                      Text(
+                        '选择你喜欢的主题色和背景',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: GlassSettingsHelper.getSecondaryTextColor(),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -84,7 +82,7 @@ class _OnboardingThemeState extends State<OnboardingTheme> {
               padding: const EdgeInsets.all(20),
               physics: const BouncingScrollPhysics(),
               children: [
-                // 主题色选择
+                // 主题色模式选择
                 liquid.LiquidCard(
                   borderRadius: 24,
                   padding: 20,
@@ -101,52 +99,34 @@ class _OnboardingThemeState extends State<OnboardingTheme> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: List.generate(_themeColors.length, (index) {
-                          final color = _themeColors[index];
-                          final isSelected = index == _selectedColorIndex;
-                          
-                          return GestureDetector(
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              setState(() => _selectedColorIndex = index);
-                            },
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    color,
-                                    color.withValues(alpha: 0.6),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                border: isSelected
-                                    ? Border.all(color: Colors.white, width: 3)
-                                    : null,
-                                boxShadow: isSelected
-                                    ? [
-                                        BoxShadow(
-                                          color: color.withValues(alpha: 0.5),
-                                          blurRadius: 20,
-                                          spreadRadius: 2,
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: isSelected
-                                  ? const Icon(
-                                      Icons.check_rounded,
-                                      color: Colors.white,
-                                      size: 30,
-                                    )
-                                  : null,
-                            ),
-                          );
-                        }),
+                      
+                      // 默认主题
+                      _buildThemeModeOption(
+                        theme.ThemeMode.defaultMode,
+                        '默认主题',
+                        '使用应用默认的嫩粉色主题',
+                        Icons.palette,
+                      ),
+                      
+                      const SizedBox(height: 12),
+                      
+                      // 系统主题（仅 Android）
+                      if (Platform.isAndroid) ...[
+                        _buildThemeModeOption(
+                          theme.ThemeMode.system,
+                          '系统主题',
+                          'Android 12+ Material You 动态颜色',
+                          Icons.phone_android,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      
+                      // 莫奈取色
+                      _buildThemeModeOption(
+                        theme.ThemeMode.monet,
+                        '莫奈取色',
+                        '从背景图片提取主题色',
+                        Icons.color_lens,
                       ),
                     ],
                   ),
@@ -201,7 +181,7 @@ class _OnboardingThemeState extends State<OnboardingTheme> {
                   liquid.LiquidButton(
                     text: '进入课程表',
                     onTap: _completeOnboarding,
-                    color: _themeColors[_selectedColorIndex],
+                    color: AppThemeColors.babyPink,
                   ),
                   const SizedBox(height: 12),
                   liquid.LiquidButton(
@@ -218,21 +198,154 @@ class _OnboardingThemeState extends State<OnboardingTheme> {
     );
   }
 
+  Widget _buildThemeModeOption(
+    theme.ThemeMode mode,
+    String title,
+    String subtitle,
+    IconData icon,
+  ) {
+    final isSelected = _selectedThemeMode == mode;
+    
+    return GestureDetector(
+      onTap: () async {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedThemeMode = mode);
+        
+        // [v2.2.9修复] 立即应用主题色
+        await _themeService.setThemeMode(mode);
+        
+        if (mode == theme.ThemeMode.system && Platform.isAndroid && mounted) {
+          await _themeService.applySystemTheme(context);
+        } else if (mode == theme.ThemeMode.monet && globalBackgroundPath.value != null) {
+          await _themeService.extractColorsFromImage(globalBackgroundPath.value!);
+        }
+        
+        if (mounted) {
+          setState(() {}); // 刷新 UI
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? LinearGradient(
+                  colors: [
+                    AppThemeColors.babyPink.withValues(alpha: 0.3),
+                    AppThemeColors.softCoral.withValues(alpha: 0.3),
+                  ],
+                )
+              : null,
+          border: Border.all(
+            color: isSelected
+                ? AppThemeColors.babyPink.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: isSelected
+                    ? LinearGradient(
+                        colors: [
+                          AppThemeColors.babyPink,
+                          AppThemeColors.softCoral,
+                        ],
+                      )
+                    : null,
+                color: isSelected ? null : Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: GlassSettingsHelper.getTextColor(),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: GlassSettingsHelper.getSecondaryTextColor(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: AppThemeColors.babyPink,
+                size: 24,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickBackgroundImage() async {
     try {
-      const XTypeGroup typeGroup = XTypeGroup(
-        label: 'images',
-        extensions: ['jpg', 'jpeg', 'png'],
-      );
-      
-      final XFile? file = await openFile(acceptedTypeGroups: [typeGroup]);
-      
-      if (file != null && mounted) {
-        // 保存背景路径
-        await _storage.setString(StorageService.keyBackgroundPath, file.path);
-        globalBackgroundPath.value = file.path;
+      if (Platform.isAndroid) {
+        // Android 14+ Photo Picker
+        const platform = MethodChannel('com.zongzi.schedule/image_picker');
+        final String? imagePath = await platform.invokeMethod('pickImage');
         
-        LiquidToast.success(context, '背景已更新');
+        if (imagePath != null && mounted) {
+          globalBackgroundPath.value = imagePath;
+          await _storage.setString(StorageService.keyBackgroundPath, imagePath);
+          
+          // 如果是莫奈取色模式，立即提取颜色
+          if (_selectedThemeMode == theme.ThemeMode.monet) {
+            await _themeService.extractColorsFromImage(imagePath);
+            setState(() {});
+          }
+          
+          if (mounted) {
+            LiquidToast.success(context, '背景已更新');
+          }
+        }
+      } else {
+        // Windows/macOS/Linux
+        const XTypeGroup typeGroup = XTypeGroup(
+          label: 'images',
+          extensions: ['jpg', 'jpeg', 'png', 'bmp', 'webp'],
+        );
+        
+        final XFile? file = await openFile(acceptedTypeGroups: [typeGroup]);
+        
+        if (file != null && mounted) {
+          globalBackgroundPath.value = file.path;
+          await _storage.setString(StorageService.keyBackgroundPath, file.path);
+          
+          // 如果是莫奈取色模式，立即提取颜色
+          if (_selectedThemeMode == theme.ThemeMode.monet) {
+            await _themeService.extractColorsFromImage(file.path);
+            setState(() {});
+          }
+          
+          if (mounted) {
+            LiquidToast.success(context, '背景已更新');
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -244,8 +357,15 @@ class _OnboardingThemeState extends State<OnboardingTheme> {
   Future<void> _completeOnboarding() async {
     HapticFeedback.heavyImpact();
     
-    // 保存主题色（TODO: 实现主题色系统）
-    // await _storage.setInt('theme_color_index', _selectedColorIndex);
+    // 保存主题色模式
+    await _themeService.setThemeMode(_selectedThemeMode);
+    
+    // 应用主题色
+    if (_selectedThemeMode == theme.ThemeMode.system && Platform.isAndroid && mounted) {
+      await _themeService.applySystemTheme(context);
+    } else if (_selectedThemeMode == theme.ThemeMode.monet && globalBackgroundPath.value != null) {
+      await _themeService.extractColorsFromImage(globalBackgroundPath.value!);
+    }
     
     // 完成引导
     widget.onComplete();

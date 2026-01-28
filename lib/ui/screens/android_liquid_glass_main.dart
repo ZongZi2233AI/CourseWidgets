@@ -4,15 +4,16 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../providers/schedule_provider.dart';
-import '../../models/course_event.dart';
 import '../../constants/version.dart';
 import '../../constants/theme_constants.dart';
 import '../../services/live_notification_service_v2.dart';
+import '../../services/data_import_service.dart';
 import '../../utils/responsive_utils.dart';
 import 'course_edit_screen.dart';
 import 'calendar_view_screen.dart';
 import 'settings_main_screen.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import '../widgets/glass_context_menu.dart';
 import '../widgets/tablet_sidebar.dart';
 import '../widgets/weekly_schedule_grid.dart';
 
@@ -25,6 +26,7 @@ class AndroidLiquidGlassMain extends StatefulWidget {
 class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
   int _currentIndex = 0;
   bool _isLoading = true; // 添加加载状态
+  final DataImportService _importService = DataImportService();
   
   @override
   void initState() {
@@ -46,12 +48,6 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
         // 切换到课程页面
         if (mounted) {
           setState(() => _currentIndex = 0);
-          // 显示课程详情对话框
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (mounted) {
-              _showCourseDetailDialog(course);
-            }
-          });
         }
       });
       
@@ -189,10 +185,11 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
         },
         glassSettings: LiquidGlassSettings(
           glassColor: Colors.black.withValues(alpha: 0.4),
-          blur: 20,
-          thickness: 15,
+          blur: 30, // [v2.2.9] 增加模糊度提升质量
+          thickness: 25, // [v2.2.9] 增加厚度提升质量
+          refractiveIndex: 2.0, // [v2.2.9] 增加折射率
         ),
-        quality: GlassQuality.standard,
+        quality: GlassQuality.premium, // [v2.2.9] 使用 premium 质量提升刷新率
         indicatorColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
         tabs: [
           GlassBottomBarTab(
@@ -455,7 +452,6 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
                   padding: 20,
                   glassColor: Colors.white.withValues(alpha: 0.03),
                   quality: GlassQuality.standard,
-                  onTap: () => _showCourseDetailDialog(course),
                   child: Row(
                     children: [
                       Container(
@@ -505,7 +501,6 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
                                 fontSize: 14,
                               ),
                             ),
-                            // [v2.2.5修复] 显示教师信息
                             if (course.teacher.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Text(
@@ -519,6 +514,58 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
                           ],
                         ),
                       ),
+                      // [v2.2.9] 使用自定义 GlassContextMenu
+                      GlassContextMenu(
+                        items: [
+                          GlassContextMenuItem(
+                            title: '编辑课程',
+                            icon: CupertinoIcons.pencil,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                CupertinoPageRoute(
+                                  builder: (_) => CourseEditScreen(course: course),
+                                ),
+                              );
+                            },
+                          ),
+                          GlassContextMenuItem(
+                            title: '删除本节课程',
+                            icon: CupertinoIcons.delete,
+                            isDestructive: true,
+                            onTap: () async {
+                              final provider = Provider.of<ScheduleProvider>(context, listen: false);
+                              await _importService.deleteCourse(course);
+                              await provider.loadSavedData();
+                              if (mounted) liquid.showLiquidToast(context, '已删除本节课程');
+                            },
+                          ),
+                          GlassContextMenuItem(
+                            title: '删除所有本课程',
+                            icon: CupertinoIcons.trash,
+                            isDestructive: true,
+                            onTap: () async {
+                              final provider = Provider.of<ScheduleProvider>(context, listen: false);
+                              await _importService.deleteAllCoursesWithName(course.name);
+                              await provider.loadSavedData();
+                              if (mounted) liquid.showLiquidToast(context, '已删除所有${course.name}课程');
+                            },
+                          ),
+                        ],
+                        trigger: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.ellipsis_vertical,
+                            color: Colors.white70,
+                            size: 18,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -527,72 +574,6 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
           },
         );
       },
-    );
-  }
-
-  // [修复2] Dialog 使用更大的圆角
-  void _showCourseDetailDialog(CourseEvent course) {
-    liquid.showLiquidDialog(
-      context: context,
-      builder: liquid.LiquidGlassDialog(
-        title: '课程详情',
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildDetailRow('课程', course.name),
-            const SizedBox(height: 8),
-            _buildDetailRow('地点', course.location),
-            const SizedBox(height: 8),
-            _buildDetailRow('教师', course.teacher),
-            const SizedBox(height: 8),
-            _buildDetailRow('时间', course.timeStr),
-          ],
-        ),
-        actions: [
-          GlassDialogAction(
-            label: '编辑',
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CourseEditScreen(course: course),
-                ),
-              );
-            },
-          ),
-          GlassDialogAction(
-            label: '关闭',
-            isPrimary: true,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 50,
-          child: Text(
-            '$label:',
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.white70,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-      ],
     );
   }
 }

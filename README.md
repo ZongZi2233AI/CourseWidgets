@@ -1,4 +1,4 @@
-# CourseWidgets（完全使用AI生成，将在几天内开源本软件）
+# CourseWidgets（Made with XiaomiMiMo-V2-Flash）
 
 <div align="center">
 
@@ -17,10 +17,23 @@ Made With https://github.com/XiaomiMiMo/MiMo-V2-Flash
 
 ## 声明：本软件除开源代码完全使用MiMo-V2-Flash开发（几乎本文档和license也由ai构建），Windows部分使用Claude Sonnet 4.5开发，图标和部分复杂实现指导使用Gemini3.0Pro
 
-## v2.2.5-v2.2.8正在开发
-  - 当前进度，v2.2.8 90%
+## v2.2.9 升级计划
+- 1.平板端开学日期日历选择器全屏显示问题
+- 2.引导界面的首页开始使用和设置-关于软件中Touch Me两处位置被修改后渲染错误（Windows端正常）
+- 3.Toast通知里也有黄色下划线 例如导入测试数据x条成功的通知
+- 4.新的实时通知和进度条通知和remoteview存在未按设置提前通知情况，和后台关闭后无法通知的情况（可能需要使用后台周期保活常驻或firebase（fcm）），再加入桌面小组件功能来进行保活和数据更新
+- 5.自适应液态玻璃透明度适配深色模式开关（重构软件深色模式）
+- 6.日历界面（手机端）的日历和课程卡片过大问题，左右溢出屏幕，课程卡片下方越过导航栏安全距离，缩小以上控件尺寸
+- 7.逐渐移除掉丑陋的对话框设计，将首页课程卡片和日历的课程卡片点按弹出对话框选择编辑和关闭两个按钮，改成GlassMenu - iOS 26 morphing context menu
+- 8.设置界面进入二级或者三级页面还有退出时容易出现轻微掉帧卡顿和动画过快不流畅问题，本项将优化动画帧率
+- 9.引导界面的主题色设置应该和通用设置中的主题色三个选项一样，而应该只有自选颜色，然后给通用设置-主题色设置也加入自选主题色功能
+- 10.主题色设置重构，加入自选色，三个选项使用第七项issue的glass menu实现
+- 11.对话框深色模式适配
 
-## v2.2.4 已完成优化
+## v2.2.5-v2.2.8开发完成
+  - 当前进度，100%
+  - 代码已更新，部分修改将在未来同步更新至2.2.9版本
+## v2.2.5 已完成优化
   - 1.Windows toast通知还是material不是新的toast（已修复）
   - 2.Windows设置界面点方块没用只能点箭头（已修复）
   - 3.默认背景不好看，将在assets预设横屏和竖屏两种壁纸（已修复，但是Windows端出现新的问题故暂时不发布release和更新代码）
@@ -36,6 +49,9 @@ Made With https://github.com/XiaomiMiMo/MiMo-V2-Flash
 
   
 ## ✨ 特性
+- 演示1
+  ![CourseWidgets Android](/2(1).gif)
+  ![CourseWidgets Android](/2(2).gif)
 
 ### 🎨 液态玻璃设计
 - 模拟Liquid Glass Design的UI样式

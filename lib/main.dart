@@ -12,6 +12,7 @@ import 'services/windows_tray_service.dart';
 import 'services/storage_service.dart';
 import 'services/theme_service.dart';
 import 'services/onboarding_service.dart';
+import 'services/background_task_service.dart'; // [v2.2.9] 后台任务服务
 import 'ui/screens/schedule_screen.dart';
 import 'ui/screens/android_liquid_glass_main.dart';
 import 'ui/screens/windows_custom_window.dart';
@@ -79,6 +80,17 @@ void main() async {
   await ThemeService().initialize();
   
   await LiquidGlassWidgets.initialize();
+  
+  // [v2.2.9] 初始化后台任务服务（仅 Android）
+  if (Platform.isAndroid) {
+    try {
+      await BackgroundTaskService.initialize();
+      await BackgroundTaskService.registerPeriodicTask();
+      debugPrint('✅ 后台任务服务已启动');
+    } catch (e) {
+      debugPrint('❌ 后台任务服务启动失败: $e');
+    }
+  }
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
@@ -196,7 +208,10 @@ class _MyAppState extends State<MyApp> {
                       image: AssetImage(assetPath),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
-                        Colors.black.withValues(alpha: 0.2),
+                        // [v2.2.9修复] 深色模式降低背景亮度
+                        globalUseDarkMode 
+                            ? Colors.black.withValues(alpha: 0.5) 
+                            : Colors.black.withValues(alpha: 0.2),
                         BlendMode.darken,
                       ),
                     ),
@@ -212,7 +227,10 @@ class _MyAppState extends State<MyApp> {
                       image: FileImage(File(backgroundPath)),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
-                        Colors.black.withValues(alpha: 0.2),
+                        // [v2.2.9修复] 深色模式降低背景亮度
+                        globalUseDarkMode 
+                            ? Colors.black.withValues(alpha: 0.5) 
+                            : Colors.black.withValues(alpha: 0.2),
                         BlendMode.darken,
                       ),
                     ),
@@ -224,11 +242,13 @@ class _MyAppState extends State<MyApp> {
               debugPrint('🎨 使用渐变背景 (fallback)');
               backgroundWidget = AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFFE0C3FC), Color(0xFF8EC5FC)],
+                    colors: globalUseDarkMode
+                        ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+                        : [const Color(0xFFE0C3FC), const Color(0xFF8EC5FC)],
                   ),
                 ),
               );

@@ -233,6 +233,26 @@ class DatabaseHelper {
     await db.delete('courses');
   }
 
+  /// [v2.2.9] 删除单节课程（根据开始时间）
+  Future<void> deleteCourse(int startTime) async {
+    final db = await database;
+    await db.delete(
+      'courses',
+      where: 'startTime = ?',
+      whereArgs: [startTime],
+    );
+  }
+
+  /// [v2.2.9] 删除所有同名课程
+  Future<void> deleteAllCoursesWithName(String courseName) async {
+    final db = await database;
+    await db.delete(
+      'courses',
+      where: 'name = ?',
+      whereArgs: [courseName],
+    );
+  }
+
   /// 关闭数据库
   Future<void> close() async {
     if (_database != null) {

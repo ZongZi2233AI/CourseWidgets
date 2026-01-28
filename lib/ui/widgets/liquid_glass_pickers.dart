@@ -93,6 +93,7 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
                       ),
                     ),
                   ),
@@ -121,6 +122,7 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
                       ),
                     ),
                   ),
@@ -149,6 +151,7 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
                       ),
                     ),
                   ),
@@ -224,6 +227,7 @@ class LiquidGlassWeekdayPicker extends StatelessWidget {
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
+                decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
               ),
             ),
           )).toList(),

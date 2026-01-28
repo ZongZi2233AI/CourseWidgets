@@ -67,6 +67,9 @@ dependencies:
   flutter_local_notifications: ^20.0.0-dev.3
   permission_handler: ^12.0.1
   
+  # [v2.2.9] 后台任务管理
+  workmanager: ^0.9.0+3
+  
   # Live Activities (iOS/Android)
   live_activities: ^2.4.6
   
@@ -153,3 +156,6 @@ flutter:
 dependency_overrides:
   live_activities:
     path: plugins/live_activities-2.4.6
+  # [v2.2.9修复] workmanager_android AGP 9.0 兼容性修复
+  workmanager_android:
+    path: plugins/workmanager_android-0.9.0+2

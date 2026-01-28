@@ -7,6 +7,7 @@ import 'dart:io';
 import '../../constants/theme_constants.dart';
 import '../../services/storage_service.dart';
 import '../../services/theme_service.dart' as theme;
+import '../../utils/glass_settings_helper.dart';
 import '../../main.dart'; 
 import '../widgets/liquid_components.dart' as liquid;
 
@@ -130,45 +131,63 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
     }
   }
 
-  void _showThemeModeDialog() {
-    liquid.showLiquidDialog(
+  void _showThemeModeBottomSheet() {
+    showCupertinoModalPopup(
       context: context,
-      builder: liquid.LiquidGlassDialog(
-        title: '主题色设置',
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildThemeModeOption(
-              theme.ThemeMode.defaultMode,
-              '默认主题',
-              '使用应用默认的嫩粉色主题',
-              CupertinoIcons.paintbrush,
-            ),
-            const SizedBox(height: 12),
-            if (Platform.isAndroid) ...[
-              _buildThemeModeOption(
-                theme.ThemeMode.system,
-                '系统主题',
-                'Android 12+ Material You 动态颜色',
-                CupertinoIcons.device_phone_portrait,
+      builder: (BuildContext context) => GlassSheet(
+        settings: GlassSettingsHelper.getDialogSettings(),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 标题
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  '主题色设置',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: GlassSettingsHelper.getTextColor(),
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
+              
+              // 选项列表
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    _buildThemeModeOption(
+                      theme.ThemeMode.defaultMode,
+                      '默认主题',
+                      '使用应用默认的嫩粉色主题',
+                      CupertinoIcons.paintbrush,
+                    ),
+                    const SizedBox(height: 12),
+                    if (Platform.isAndroid) ...[
+                      _buildThemeModeOption(
+                        theme.ThemeMode.system,
+                        '系统主题',
+                        'Android 12+ Material You 动态颜色',
+                        CupertinoIcons.device_phone_portrait,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    _buildThemeModeOption(
+                      theme.ThemeMode.monet,
+                      '莫奈取色',
+                      '从背景图片提取主题色',
+                      CupertinoIcons.photo,
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 20),
             ],
-            _buildThemeModeOption(
-              theme.ThemeMode.monet,
-              '莫奈取色',
-              '从背景图片提取主题色',
-              CupertinoIcons.photo,
-            ),
-          ],
-        ),
-        actions: [
-          GlassDialogAction(
-            label: '关闭',
-            isPrimary: true,
-            onPressed: () => Navigator.pop(context),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -178,6 +197,7 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
     
     return GestureDetector(
       onTap: () async {
+        HapticFeedback.selectionClick();
         setState(() => _currentThemeMode = mode);
         await _themeService.setThemeMode(mode);
         
@@ -191,24 +211,41 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
         if (mounted) Navigator.pop(context);
         _showToast('主题已切换');
       },
-      child: liquid.LiquidCard(
-        borderRadius: 16,
-        padding: 12,
-        glassColor: isSelected 
-            ? AppThemeColors.babyPink.withValues(alpha: 0.2)
-            : Colors.white.withValues(alpha: 0.05),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? LinearGradient(
+                  colors: [
+                    AppThemeColors.babyPink.withValues(alpha: 0.3),
+                    AppThemeColors.softCoral.withValues(alpha: 0.3),
+                  ],
+                )
+              : null,
+          color: isSelected ? null : GlassSettingsHelper.getCardSettings().glassColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? AppThemeColors.babyPink.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
         child: Row(
           children: [
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppThemeColors.babyPink.withValues(alpha: 0.3),
-                    AppThemeColors.softCoral.withValues(alpha: 0.3),
-                  ],
-                ),
+                gradient: isSelected
+                    ? LinearGradient(
+                        colors: [
+                          AppThemeColors.babyPink.withValues(alpha: 0.3),
+                          AppThemeColors.softCoral.withValues(alpha: 0.3),
+                        ],
+                      )
+                    : null,
+                color: isSelected ? null : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: Colors.white, size: 20),
@@ -220,8 +257,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: GlassSettingsHelper.getTextColor(),
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -230,7 +267,7 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: GlassSettingsHelper.getSecondaryTextColor(),
                       fontSize: 12,
                     ),
                   ),
@@ -301,7 +338,7 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
               _buildActionCard(
                 '主题色设置', 
                 CupertinoIcons.color_filter, 
-                _showThemeModeDialog,
+                _showThemeModeBottomSheet,
                 subtitle: _getThemeModeText(),
               ),
               

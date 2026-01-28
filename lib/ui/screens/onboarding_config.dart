@@ -26,30 +26,34 @@ class OnboardingConfig extends StatelessWidget {
             bottom: false,
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: liquid.LiquidCard(
-                borderRadius: 24,
-                padding: 20,
-                glassColor: GlassSettingsHelper.getCardSettings().glassColor,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '课时配置',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: GlassSettingsHelper.getTextColor(),
+              child: Center( // 居中标题
+                child: liquid.LiquidCard(
+                  borderRadius: 24,
+                  padding: 20,
+                  glassColor: GlassSettingsHelper.getCardSettings().glassColor,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center, // 居中对齐
+                    children: [
+                      Text(
+                        '课时配置',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: GlassSettingsHelper.getTextColor(),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '设置开学日期和课程时间',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: GlassSettingsHelper.getSecondaryTextColor(),
+                      const SizedBox(height: 8),
+                      Text(
+                        '设置开学日期和课程时间',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: GlassSettingsHelper.getSecondaryTextColor(),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

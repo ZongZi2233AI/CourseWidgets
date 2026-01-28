@@ -7,6 +7,8 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart'; // [v2.2.2] 导入FakeGlass
 import 'package:figma_squircle/figma_squircle.dart';
 import '../../constants/theme_constants.dart';
+import '../../utils/glass_settings_helper.dart';
+import '../../main.dart';
 
 enum LiquidStyleType { standard, micro, active }
 
@@ -81,14 +83,23 @@ class LiquidCard extends StatelessWidget {
       return _buildDesktopFallback();
     }
 
-    double blur = 15.0;
-    if (styleType == LiquidStyleType.micro || isPanel) blur = 0.0;
+    // [v2.2.9修复] 使用 GlassSettingsHelper 获取玻璃设置
+    final settings = glassColor != null
+        ? LiquidGlassSettings(
+            thickness: styleType == LiquidStyleType.micro ? 10.0 : 20.0,
+            blur: (styleType == LiquidStyleType.micro || isPanel) ? 0.0 : 15.0,
+            glassColor: glassColor!,
+            refractiveIndex: 1.2,
+            lightIntensity: 0.6,
+            ambientStrength: 0.8,
+          )
+        : (styleType == LiquidStyleType.micro
+            ? GlassSettingsHelper.getCardSettings()
+            : GlassSettingsHelper.getStandardSettings());
 
-    Color effectiveColor = glassColor ?? Colors.transparent;
+    Color effectiveColor = glassColor ?? settings.glassColor;
     if (isSelected) {
-      effectiveColor = const Color(0x20FF9A9E);
-    } else if (styleType == LiquidStyleType.micro && effectiveColor == Colors.transparent) {
-      effectiveColor = Colors.white.withOpacity(0.05);
+      effectiveColor = AppThemeColors.babyPink.withValues(alpha: globalUseDarkMode ? 0.4 : 0.2);
     }
 
     return GestureDetector(
@@ -101,12 +112,12 @@ class LiquidCard extends StatelessWidget {
           child: GlassContainer(
             shape: LiquidRoundedSuperellipse(borderRadius: borderRadius),
             settings: LiquidGlassSettings(
-              thickness: styleType == LiquidStyleType.micro ? 10.0 : 20.0,
-              blur: blur,
+              thickness: settings.thickness,
+              blur: settings.blur,
               glassColor: effectiveColor,
-              refractiveIndex: 1.2,
-              lightIntensity: 0.6,
-              ambientStrength: 0.8,
+              refractiveIndex: settings.refractiveIndex,
+              lightIntensity: settings.lightIntensity,
+              ambientStrength: settings.ambientStrength,
             ),
             quality: quality,
             child: Padding(padding: EdgeInsets.all(padding), child: child),

@@ -45,11 +45,17 @@ class ThemeService {
       );
     }
 
-    // 加载保存的自定义颜色
-    final savedColor = _storage.getInt(StorageService.keyCustomThemeColor);
-    if (savedColor != null && _themeMode == ThemeMode.monet) {
-      _primaryColor = Color(savedColor);
-      _secondaryColor = _generateSecondaryColor(_primaryColor);
+    // [v2.2.9修复] 根据保存的模式恢复颜色
+    if (_themeMode == ThemeMode.monet) {
+      final savedColor = _storage.getInt(StorageService.keyCustomThemeColor);
+      if (savedColor != null) {
+        _primaryColor = Color(savedColor);
+        _secondaryColor = _generateSecondaryColor(_primaryColor);
+        debugPrint('✅ 恢复莫奈取色: $_primaryColor');
+      }
+    } else if (_themeMode == ThemeMode.defaultMode) {
+      _primaryColor = defaultPrimaryColor;
+      _secondaryColor = defaultSecondaryColor;
     }
 
     debugPrint('主题服务初始化完成: $_themeMode');

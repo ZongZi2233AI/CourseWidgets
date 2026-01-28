@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:liquid_glass_renderer/experimental.dart';
 import '../../constants/theme_constants.dart';
 
-/// [v2.2.8] 引导页面 - 欢迎页
-/// Logo 动画 + "开始使用" 按钮
+/// [v2.2.9] 引导页面 - 欢迎页
+/// Logo 动画 + Glassify 文字效果 + "开始使用" 按钮
 class OnboardingWelcome extends StatefulWidget {
   final VoidCallback onNext;
   
@@ -21,6 +22,7 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _logoAnimation;
+  late Animation<double> _textAnimation;
   late Animation<double> _buttonAnimation;
 
   @override
@@ -28,17 +30,26 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
     super.initState();
     
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
     
     // Logo 向上移动动画
     _logoAnimation = Tween<double>(
       begin: 0.0,
-      end: -100.0,
+      end: -120.0,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
+      curve: const Interval(0.0, 0.5, curve: Curves.easeOutCubic),
+    ));
+    
+    // 文字淡入动画
+    _textAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
     ));
     
     // 按钮淡入动画
@@ -47,7 +58,7 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
     ));
     
     // 启动动画
@@ -77,6 +88,17 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
                 ),
               ),
               
+              // "欢迎使用" Glassify 文字
+              Center(
+                child: Transform.translate(
+                  offset: const Offset(0, 80),
+                  child: Opacity(
+                    opacity: _textAnimation.value,
+                    child: _buildGlassifyText(),
+                  ),
+                ),
+              ),
+              
               // "开始使用" 按钮
               Positioned(
                 left: 40,
@@ -96,59 +118,79 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
 
   Widget _buildLogoGlass() {
     return GlassContainer(
+      width: 200,
+      height: 200,
       shape: const LiquidRoundedSuperellipse(borderRadius: 48),
-      settings: LiquidGlassSettings(
-        glassColor: Colors.white.withValues(alpha: 0.0), // 完全透明
-        blur: 0,
-        thickness: 50, // 厚度拉满
-        refractiveIndex: 2.5,
-        lightIntensity: 1.5,
-        ambientStrength: 1.2,
-      ),
-      child: Container(
-        width: 200,
-        height: 200,
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // App Icon
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppThemeColors.babyPink,
-                    AppThemeColors.softCoral,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppThemeColors.babyPink.withValues(alpha: 0.5),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                  ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // App Icon
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppThemeColors.babyPink,
+                  AppThemeColors.softCoral,
                 ],
               ),
-              child: const Icon(
-                Icons.school_rounded,
-                color: Colors.white,
-                size: 40,
-              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppThemeColors.babyPink.withValues(alpha: 0.5),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            
-            // App Name
-            const Text(
-              'CourseWidgets',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: 1.0,
-              ),
+            child: const Icon(
+              Icons.school_rounded,
+              color: Colors.white,
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 20),
+          
+          // App Name
+          const Text(
+            'CourseWidgets',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassifyText() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.3),
+            Colors.white.withValues(alpha: 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const Text(
+        '欢迎使用',
+        style: TextStyle(
+          fontSize: 48, // 增大字体
+          fontWeight: FontWeight.w900,
+          color: Colors.white, // 确保白色
+          letterSpacing: 6.0,
+          shadows: [
+            Shadow(
+              color: Colors.black54,
+              offset: Offset(0, 4),
+              blurRadius: 8,
             ),
           ],
         ),
@@ -165,11 +207,10 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
       width: double.infinity,
       height: 60,
       style: GlassButtonStyle.filled,
-      quality: GlassQuality.premium, // 质量拉满
       settings: LiquidGlassSettings(
-        glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3), // 使用主题色
-        blur: 20,
-        thickness: 15,
+        glassColor: AppThemeColors.babyPink.withValues(alpha: 0.2),
+        blur: 15, // 添加模糊
+        thickness: 20, // 添加厚度
       ),
       shape: const LiquidRoundedSuperellipse(borderRadius: 24),
       child: const Center(

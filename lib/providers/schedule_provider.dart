@@ -159,30 +159,38 @@ class ScheduleProvider with ChangeNotifier {
 
   /// 设置当前周次
   void setCurrentWeek(int week) {
-    _currentWeek = week;
-    notifyListeners();
+    if (_currentWeek != week) {
+      _currentWeek = week;
+      debugPrint('📅 切换到第 $week 周');
+      notifyListeners();
+    }
   }
 
   /// 设置当前星期
   void setCurrentDay(int day) {
-    if (day >= 1 && day <= 7) {
+    if (day >= 1 && day <= 7 && _currentDay != day) {
       _currentDay = day;
+      debugPrint('📅 切换到星期 $day');
       notifyListeners();
     }
   }
 
   /// 获取当前周次的所有课程
   List<CourseEvent> getCurrentWeekCourses() {
-    return _courses.where((course) {
+    final weekCourses = _courses.where((course) {
       final week = course.getWeekNumber(_semesterStartDate);
       return week == _currentWeek;
     }).toList();
+    debugPrint('📚 第 $_currentWeek 周共有 ${weekCourses.length} 节课');
+    return weekCourses;
   }
 
   /// 获取当前选中日期的课程
   List<CourseEvent> getCurrentDayCourses() {
     final weekCourses = getCurrentWeekCourses();
-    return weekCourses.where((course) => course.weekday == _currentDay).toList();
+    final dayCourses = weekCourses.where((course) => course.weekday == _currentDay).toList();
+    debugPrint('📚 星期 $_currentDay 共有 ${dayCourses.length} 节课');
+    return dayCourses;
   }
   
   /// 获取指定星期的课程（用于平板模式的周视图）
