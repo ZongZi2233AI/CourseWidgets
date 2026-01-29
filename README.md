@@ -2,13 +2,16 @@
 
 <div align="center">
 
+![CourseWidgets Logo](assets/icon.png)
+
 **液态玻璃设计的大学课程表应用**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[](https://flutter.dev)
-[](https://dart.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.38.7+-02569B?logo=flutter)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.10.7+-0175C2?logo=dart)](https://dart.dev)
 
 [English](README_EN.md) | 简体中文
+
 
 </div>
 Made With XiaomiMiMoV2FLASH(https://github.com/XiaomiMiMo/MiMo-V2-Flash)
