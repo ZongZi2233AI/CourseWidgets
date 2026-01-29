@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/course_event.dart';
 import '../services/data_import_service.dart';
+import '../services/storage_service.dart'; // [v2.3.0] 用于清除配置数据
 import '../models/schedule_config.dart';
 import '../services/database_helper.dart';
 
@@ -150,11 +151,26 @@ class ScheduleProvider with ChangeNotifier {
 
   /// 清除数据
   Future<void> clearData() async {
+    // 清除数据库中的课程数据
     await _importService.clearAllData();
+    
+    // [v2.3.0修复] 清除 MMKV 中的课程相关配置
+    final storage = StorageService();
+    await storage.remove('semester_start_date');
+    await storage.remove('schedule_config');
+    await storage.remove('current_week');
+    await storage.remove('current_day');
+    
+    // 重置状态
     _courses = [];
     _currentWeek = 1;
     _currentDay = 1;
+    _semesterStartDate = DateTime(2025, 9, 1);
+    _currentConfig = ScheduleConfigModel.defaultConfig();
+    
     notifyListeners();
+    
+    debugPrint('✅ 所有数据已清除（包括数据库和配置）');
   }
 
   /// 设置当前周次

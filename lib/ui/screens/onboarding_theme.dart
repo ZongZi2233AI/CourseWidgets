@@ -357,17 +357,33 @@ class _OnboardingThemeState extends State<OnboardingTheme> {
   Future<void> _completeOnboarding() async {
     HapticFeedback.heavyImpact();
     
-    // 保存主题色模式
-    await _themeService.setThemeMode(_selectedThemeMode);
-    
-    // 应用主题色
-    if (_selectedThemeMode == theme.ThemeMode.system && Platform.isAndroid && mounted) {
-      await _themeService.applySystemTheme(context);
-    } else if (_selectedThemeMode == theme.ThemeMode.monet && globalBackgroundPath.value != null) {
-      await _themeService.extractColorsFromImage(globalBackgroundPath.value!);
+    try {
+      // [v2.3.0修复] 确保主题色模式已保存
+      await _themeService.setThemeMode(_selectedThemeMode);
+      debugPrint('✅ 主题色模式已保存: $_selectedThemeMode');
+      
+      // 应用主题色
+      if (_selectedThemeMode == theme.ThemeMode.system && Platform.isAndroid) {
+        if (mounted) {
+          await _themeService.applySystemTheme(context);
+          debugPrint('✅ 系统主题已应用');
+        }
+      } else if (_selectedThemeMode == theme.ThemeMode.monet && globalBackgroundPath.value != null) {
+        await _themeService.extractColorsFromImage(globalBackgroundPath.value!);
+        debugPrint('✅ 莫奈取色已应用');
+      }
+      // 默认主题不需要额外操作，已经在 setThemeMode 中处理
+      
+      // 等待一小段时间确保设置已保存
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // 完成引导
+      widget.onComplete();
+    } catch (e) {
+      debugPrint('❌ 完成引导失败: $e');
+      if (mounted) {
+        LiquidToast.error(context, '设置保存失败: $e');
+      }
     }
-    
-    // 完成引导
-    widget.onComplete();
   }
 }

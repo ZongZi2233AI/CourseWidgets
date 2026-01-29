@@ -8,6 +8,7 @@ import '../../constants/theme_constants.dart';
 import '../../services/storage_service.dart';
 import '../../services/theme_service.dart' as theme;
 import '../../utils/glass_settings_helper.dart';
+import '../../utils/glass_opacity_manager.dart'; // [v2.3.0] 玻璃透明度管理器
 import '../../main.dart'; 
 import '../widgets/liquid_components.dart' as liquid;
 
@@ -60,12 +61,22 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
     if (value) {
       await _storage.setBool(StorageService.keyAdaptiveDarkMode, false);
     }
+    // [v2.3.0] 同步更新玻璃透明度管理器
+    GlassOpacityManager().setDarkMode(value);
   }
 
   void _toggleAdaptiveMode(bool value) async {
     setState(() {
       _adaptiveDarkMode = value;
-      if (value) globalUseDarkMode = false; 
+      if (value) {
+        // 自适应模式：跟随系统
+        final brightness = MediaQuery.of(context).platformBrightness;
+        globalUseDarkMode = brightness == Brightness.dark;
+        GlassOpacityManager().setDarkMode(brightness == Brightness.dark);
+      } else {
+        globalUseDarkMode = false;
+        GlassOpacityManager().setDarkMode(false);
+      }
     });
     await _storage.setBool(StorageService.keyAdaptiveDarkMode, value);
     if (value) {
@@ -305,7 +316,9 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('通用设置', style: TextStyle(color: _textColor, fontWeight: FontWeight.bold)),
-        leading: IconButton(icon: Icon(CupertinoIcons.back, color: _textColor), onPressed: () => Navigator.pop(context)),
+        // [v2.3.0修复] 移除自定义 leading，使用默认返回按钮以保留动画
+        automaticallyImplyLeading: true,
+        iconTheme: IconThemeData(color: _textColor),
       ),
       body: LiquidGlassLayer(
         settings: LiquidGlassSettings(

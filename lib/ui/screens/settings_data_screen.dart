@@ -6,6 +6,7 @@ import '../../providers/schedule_provider.dart';
 import '../../services/data_import_service.dart';
 import '../../constants/theme_constants.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import '../widgets/liquid_toast.dart';
 
 class SettingsDataScreen extends StatelessWidget {
   const SettingsDataScreen({super.key});
@@ -232,42 +233,40 @@ class SettingsDataScreen extends StatelessWidget {
   }
 
   Widget _buildActionCard(String title, String subtitle, IconData icon, Color color, VoidCallback onTap) {
+    // [v2.3.0修复] 使用 GestureDetector 确保整个卡片可点击
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: liquid.LiquidCard(
+      child: GestureDetector(
         onTap: onTap,
-        padding: 16,
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1), 
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: color.withOpacity(0.3)),
+        behavior: HitTestBehavior.opaque,
+        child: liquid.LiquidCard(
+          padding: 16,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1), 
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withValues(alpha: 0.3)),
+                ),
+                child: Icon(icon, color: color, size: 24),
               ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.white54),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.white54),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // [v2.3.0修复] 使用 LiquidToast 替代 SnackBar
   void _showToast(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message), 
-        backgroundColor: AppThemeColors.babyPink,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      )
-    );
+    LiquidToast.success(context, message);
   }
 
   void _confirmClear(BuildContext context, ScheduleProvider provider) {

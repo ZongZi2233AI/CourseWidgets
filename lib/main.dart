@@ -13,6 +13,7 @@ import 'services/storage_service.dart';
 import 'services/theme_service.dart';
 import 'services/onboarding_service.dart';
 import 'services/background_task_service.dart'; // [v2.2.9] 后台任务服务
+import 'utils/glass_opacity_manager.dart'; // [v2.3.0] 玻璃透明度管理器
 import 'ui/screens/schedule_screen.dart';
 import 'ui/screens/android_liquid_glass_main.dart';
 import 'ui/screens/windows_custom_window.dart';
@@ -145,6 +146,23 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _checkOnboarding() async {
     await Future.delayed(const Duration(milliseconds: 100));
+    
+    // [v2.3.0] 初始化玻璃透明度管理器
+    final storage = StorageService();
+    final darkMode = storage.getBool(StorageService.keyDarkMode) ?? false;
+    final adaptiveMode = storage.getBool(StorageService.keyAdaptiveDarkMode) ?? false;
+    
+    if (adaptiveMode) {
+      // 自适应模式：跟随系统
+      final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+      GlassOpacityManager().setDarkMode(brightness == Brightness.dark);
+      globalUseDarkMode = brightness == Brightness.dark;
+    } else {
+      // 手动模式
+      GlassOpacityManager().setDarkMode(darkMode);
+      globalUseDarkMode = darkMode;
+    }
+    
     setState(() {
       _showOnboarding = _onboardingService.shouldShowOnboarding;
       _isChecking = false;

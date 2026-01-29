@@ -48,8 +48,18 @@ class IcsParser {
     List<CourseEvent> instances = [];
 
     // --- A. 提取基础信息 ---
-    final summary = eventData['summary']?.toString() ?? '未知课程';
-    final location = eventData['location']?.toString() ?? '未知地点';
+    // [v2.3.0修复] 清理换行符和额外空格
+    final summary = (eventData['summary']?.toString() ?? '未知课程')
+        .replaceAll('\n', ' ')
+        .replaceAll('\r', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    
+    final location = (eventData['location']?.toString() ?? '未知地点')
+        .replaceAll('\n', ' ')
+        .replaceAll('\r', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
     
     // 尝试从 Description 提取老师 (格式: "课程 教室 老师")
     // 或者从 CATEGORIES 提取
@@ -89,6 +99,13 @@ class IcsParser {
         }
       }
     }
+    
+    // [v2.3.0修复] 清理教师字段的换行符和额外空格
+    teacher = teacher
+        .replaceAll('\n', ' ')
+        .replaceAll('\r', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
 
     // --- B. 处理时间 (UTC -> Local) ---
     final dtStartObj = eventData['dtstart'];

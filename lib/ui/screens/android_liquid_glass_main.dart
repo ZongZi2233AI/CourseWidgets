@@ -418,30 +418,36 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
   }
 
   Widget _buildSchedulePage() {
+    // [v2.2.9修复] 使用 Consumer 包裹整个页面，确保周次/星期变化时刷新
     return Consumer<ScheduleProvider>(
       builder: (context, provider, _) {
         final courses = provider.getCurrentDayCourses();
-        if (courses.isEmpty) {
-          return Center(
-            child: Text(
-              '今天没有课',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-        }
-
-        // [v2.2.8修复] 始终启用滚动，移除禁用逻辑
+        
+        // [v2.2.9修复] 添加 key 强制重建
         return ListView.builder(
+          key: ValueKey('schedule_${provider.currentWeek}_${provider.currentDay}'),
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
           physics: const BouncingScrollPhysics(),
-          // [v2.2.8修复] 增加缓存范围，防止滚动时降级渲染
           cacheExtent: 200,
-          itemCount: courses.length,
+          itemCount: courses.isEmpty ? 1 : courses.length,
           itemBuilder: (context, index) {
+            // 没有课程时显示提示
+            if (courses.isEmpty) {
+              return SizedBox(
+                height: MediaQuery.of(context).size.height * 0.5,
+                child: Center(
+                  child: Text(
+                    '今天没有课',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              );
+            }
+
             final course = courses[index];
             // [v2.2.8修复] 使用 RepaintBoundary 隔离重绘，防止滚动时玻璃效果消失
             return RepaintBoundary(

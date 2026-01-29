@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:liquid_glass_renderer/experimental.dart';
+import 'dart:io' show Platform;
 import '../../constants/theme_constants.dart';
 
 /// [v2.2.9] 引导页面 - 欢迎页
@@ -117,38 +119,33 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
   }
 
   Widget _buildLogoGlass() {
-    return GlassContainer(
+    // [v2.3.0修复] 使用 assets 中的应用图标，降低 glassify 厚度
+    return Container(
       width: 200,
       height: 200,
-      shape: const LiquidRoundedSuperellipse(borderRadius: 48),
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(48),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 2,
+        ),
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // App Icon
-          Container(
+          // [v2.3.0修复] 使用 assets 中的应用图标
+          Image.asset(
+            'assets/icon.png',
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppThemeColors.babyPink,
-                  AppThemeColors.softCoral,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: AppThemeColors.babyPink.withValues(alpha: 0.5),
-                  blurRadius: 30,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.school_rounded,
-              color: Colors.white,
-              size: 40,
-            ),
+            fit: BoxFit.contain,
           ),
           const SizedBox(height: 20),
           
@@ -168,29 +165,66 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
   }
 
   Widget _buildGlassifyText() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withValues(alpha: 0.3),
-            Colors.white.withValues(alpha: 0.1),
-          ],
+    // [v2.2.9] 使用 Glassify 为文字添加玻璃效果
+    // Windows 端降级为普通 Container (性能优化)
+    // 参考: https://pub.dev/documentation/liquid_glass_renderer/latest/experimental/Glassify-class.html
+    
+    final isWindows = !kIsWeb && Platform.isWindows;
+    
+    if (isWindows) {
+      // Windows 降级版本 - 使用简单的渐变背景
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.25),
+              Colors.white.withValues(alpha: 0.15),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
         ),
-        borderRadius: BorderRadius.circular(24),
+        child: const Text(
+          '欢迎使用',
+          style: TextStyle(
+            fontSize: 72,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            letterSpacing: 8.0,
+            shadows: [
+              Shadow(
+                color: Colors.black26,
+                offset: Offset(0, 2),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // Android/iOS - 使用 Glassify 效果
+    return Glassify(
+      settings: const LiquidGlassSettings(
+        thickness: 8, // 保持在 20px 以下以获得最佳效果
+        glassColor: Color(0x44FFFFFF), // 半透明白色
       ),
       child: const Text(
         '欢迎使用',
         style: TextStyle(
-          fontSize: 48, // 增大字体
+          fontSize: 72, // 大字体以展示玻璃效果
           fontWeight: FontWeight.w900,
-          color: Colors.white, // 确保白色
-          letterSpacing: 6.0,
+          color: Colors.white,
+          letterSpacing: 8.0,
           shadows: [
             Shadow(
-              color: Colors.black54,
-              offset: Offset(0, 4),
-              blurRadius: 8,
+              color: Colors.black26,
+              offset: Offset(0, 2),
+              blurRadius: 4,
             ),
           ],
         ),

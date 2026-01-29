@@ -246,45 +246,104 @@ Future<DateTime?> showLiquidGlassDatePicker({
 }) async {
   DateTime? selectedDate = initialDate;
   
-  await showCupertinoModalPopup(
-    context: context,
-    builder: (ctx) => Container(
-      margin: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LiquidGlassDatePicker(
-            initialDate: initialDate,
-            onDateChanged: (date) {
-              selectedDate = date;
-            },
+  // [v2.2.9修复] 平板端使用对话框而非底部弹窗
+  final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
+  
+  if (isTablet) {
+    // 平板模式 - 使用居中对话框
+    await showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 400,
+            maxHeight: 500,
           ),
-          const SizedBox(height: 12),
-          GlassButton.custom(
-            onTap: () => Navigator.pop(ctx),
-            width: double.infinity,
-            height: 48,
-            style: GlassButtonStyle.filled,
-            settings: LiquidGlassSettings(
-              glassColor: AppThemeColors.babyPink.withValues(alpha: 0.8),
-              blur: 0,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LiquidGlassDatePicker(
+                initialDate: initialDate,
+                onDateChanged: (date) {
+                  selectedDate = date;
+                },
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GlassButton.custom(
+                  onTap: () => Navigator.pop(ctx),
+                  width: double.infinity,
+                  height: 48,
+                  style: GlassButtonStyle.filled,
+                  settings: LiquidGlassSettings(
+                    glassColor: AppThemeColors.babyPink.withValues(alpha: 0.8),
+                    blur: 0,
+                  ),
+                  shape: LiquidRoundedSuperellipse(borderRadius: 16),
+                  child: const Center(
+                    child: Text(
+                      '确定',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  } else {
+    // 手机模式 - 使用底部弹窗
+    await showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => Container(
+        margin: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LiquidGlassDatePicker(
+              initialDate: initialDate,
+              onDateChanged: (date) {
+                selectedDate = date;
+              },
             ),
-            shape: LiquidRoundedSuperellipse(borderRadius: 16),
-            child: const Center(
-              child: Text(
-                '确定',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+            const SizedBox(height: 12),
+            GlassButton.custom(
+              onTap: () => Navigator.pop(ctx),
+              width: double.infinity,
+              height: 48,
+              style: GlassButtonStyle.filled,
+              settings: LiquidGlassSettings(
+                glassColor: AppThemeColors.babyPink.withValues(alpha: 0.8),
+                blur: 0,
+              ),
+              shape: LiquidRoundedSuperellipse(borderRadius: 16),
+              child: const Center(
+                child: Text(
+                  '确定',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
+  
+  return selectedDate;
   
   return selectedDate;
 }

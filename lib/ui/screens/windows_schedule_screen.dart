@@ -263,7 +263,9 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
 
   /// 本周课程网格 - 星期和课程分别作为独立container
   Widget _buildWeekGrid(ScheduleProvider provider) {
+    // [v2.2.9修复] 添加 key 强制重建
     return AdaptiveLiquidGlassLayer(
+      key: ValueKey('week_grid_${provider.currentWeek}'),
       settings: LiquidGlassSettings(
         glassColor: Colors.white.withValues(alpha: 0.03),
         blur: 8,

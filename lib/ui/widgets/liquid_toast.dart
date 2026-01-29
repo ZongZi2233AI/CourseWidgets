@@ -171,13 +171,19 @@ class _LiquidToastWidgetState extends State<_LiquidToastWidget>
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        widget.message,
+                      child: DefaultTextStyle(
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
+                          decoration: TextDecoration.none, // [v2.3.0修复] 移除下划线
+                          fontFamily: 'PingFangSC',
+                        ),
+                        child: Text(
+                          widget.message,
+                          style: const TextStyle(
+                            decoration: TextDecoration.none, // [v2.3.0修复] 双重保险移除下划线
+                          ),
                         ),
                       ),
                     ),
