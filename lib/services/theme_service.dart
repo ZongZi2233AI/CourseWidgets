@@ -10,6 +10,7 @@ enum ThemeMode {
   defaultMode, // 默认主题色（嫩粉色+柔珊瑚）
   system,      // 系统主题色（Android 12+ Material You）
   monet,       // 莫奈取色（从背景图片提取）
+  custom,      // 自定义主题色
 }
 
 /// 主题服务 - 管理应用主题色
@@ -70,16 +71,34 @@ class ThemeService {
       case ThemeMode.defaultMode:
         _primaryColor = defaultPrimaryColor;
         _secondaryColor = defaultSecondaryColor;
+        // [v2.3.0修复] 保存默认颜色到存储
+        // 使用 toARGB32() 方法（Flutter 3.33+ 推荐）
+        await _storage.setInt(StorageService.keyCustomThemeColor, _primaryColor.toARGB32());
+        debugPrint('✅ 默认主题已设置: $_primaryColor (ARGB: ${_primaryColor.toARGB32()})');
         break;
       case ThemeMode.system:
         // 系统主题色将在 applySystemTheme 中设置
+        debugPrint('✅ 系统主题模式已设置，等待 applySystemTheme 调用');
         break;
       case ThemeMode.monet:
         // 莫奈取色将在 extractColorsFromImage 中设置
+        debugPrint('✅ 莫奈取色模式已设置，等待 extractColorsFromImage 调用');
+        break;
+      case ThemeMode.custom:
+        // 自定义主题色将在 setCustomColor 中设置
+        debugPrint('✅ 自定义主题色模式已设置，等待 setCustomColor 调用');
         break;
     }
     
-    debugPrint('主题模式已切换: $mode');
+    debugPrint('✅ 主题模式已切换: $mode, 颜色: $_primaryColor');
+  }
+
+  /// [v2.3.0] 设置自定义主题色
+  Future<void> setCustomColor(Color color) async {
+    _primaryColor = color;
+    _secondaryColor = _generateSecondaryColor(color);
+    await _storage.setInt(StorageService.keyCustomThemeColor, _primaryColor.toARGB32());
+    debugPrint('✅ 自定义主题色已设置: $_primaryColor');
   }
 
   /// 应用系统主题色（Android 12+ Material You）

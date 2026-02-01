@@ -141,47 +141,11 @@ class _SettingsMainScreenState extends State<SettingsMainScreen> {
   }
 
   void _navigateTo(Widget screen) {
-    // [v2.3.0修复] 添加完整的进入和退出动画
+    // [v2.3.0修复] 使用 MaterialPageRoute 提供原生流畅动画
     Navigator.push(
       context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => screen,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // 进入动画：从右侧滑入
-          const enterBegin = Offset(1.0, 0.0);
-          const enterEnd = Offset.zero;
-          final enterTween = Tween(begin: enterBegin, end: enterEnd).chain(
-            CurveTween(curve: Curves.easeOutCubic),
-          );
-          final enterAnimation = animation.drive(enterTween);
-          
-          // 退出动画：向左侧滑出并淡出
-          const exitBegin = Offset.zero;
-          const exitEnd = Offset(-0.3, 0.0); // 轻微向左移动
-          final exitTween = Tween(begin: exitBegin, end: exitEnd).chain(
-            CurveTween(curve: Curves.easeInCubic),
-          );
-          final exitAnimation = secondaryAnimation.drive(exitTween);
-          
-          // 淡出动画
-          final fadeOutTween = Tween<double>(begin: 1.0, end: 0.0).chain(
-            CurveTween(curve: Curves.easeIn),
-          );
-          final fadeOutAnimation = secondaryAnimation.drive(fadeOutTween);
-          
-          return SlideTransition(
-            position: enterAnimation,
-            child: SlideTransition(
-              position: exitAnimation,
-              child: FadeTransition(
-                opacity: fadeOutAnimation,
-                child: child,
-              ),
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 350), // 进入动画时长
-        reverseTransitionDuration: const Duration(milliseconds: 300), // 退出动画时长
+      MaterialPageRoute(
+        builder: (context) => screen,
       ),
     );
   }

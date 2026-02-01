@@ -107,9 +107,28 @@ class HtmlDataParser {
         if (slotCourses.isEmpty) continue;
 
         for (var item in slotCourses) {
-          String name = item['courseName'] ?? '';
-          String location = item['roomName'] ?? '';
-          String teacher = item['teacherName'] ?? '';
+          // [v2.3.0修复] 清理换行符和额外空格
+          String name = (item['courseName'] ?? '')
+              .toString()
+              .replaceAll('\n', ' ')
+              .replaceAll('\r', ' ')
+              .replaceAll(RegExp(r'\s+'), ' ')
+              .trim();
+          
+          String location = (item['roomName'] ?? '')
+              .toString()
+              .replaceAll('\n', ' ')
+              .replaceAll('\r', ' ')
+              .replaceAll(RegExp(r'\s+'), ' ')
+              .trim();
+          
+          String teacher = (item['teacherName'] ?? '')
+              .toString()
+              .replaceAll('\n', ' ')
+              .replaceAll('\r', ' ')
+              .replaceAll(RegExp(r'\s+'), ' ')
+              .trim();
+          
           String validWeeksStr = item['vaildWeeks'] ?? '';
 
           // 解析周次字符串

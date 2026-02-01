@@ -9,7 +9,14 @@ import '../widgets/liquid_components.dart' as liquid;
 import '../widgets/liquid_glass_pickers.dart';
 
 class AndroidScheduleConfigScreen extends StatefulWidget {
-  const AndroidScheduleConfigScreen({super.key});
+  /// [v2.3.0] 是否显示导航元素（返回按钮、保存按钮）
+  /// 在引导页面中嵌入时设为 false，独立使用时设为 true
+  final bool showNavigation;
+  
+  const AndroidScheduleConfigScreen({
+    super.key,
+    this.showNavigation = true,
+  });
 
   @override
   State<AndroidScheduleConfigScreen> createState() => _AndroidScheduleConfigScreenState();
@@ -159,25 +166,39 @@ class _AndroidScheduleConfigScreenState extends State<AndroidScheduleConfigScree
         ),
         child: Column(
           children: [
-            // Custom Header
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    // [v2.2.9修复] 引导页面不需要返回按钮
-                    Text('课时配置', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor)),
-                    const Spacer(),
-                    liquid.LiquidButton(
-                      text: '保存',
-                      onTap: _saveConfig,
-                      color: AppThemeColors.babyPink,
-                    ),
-                  ],
+            // Custom Header - [v2.3.0] 根据 showNavigation 参数决定是否显示
+            if (widget.showNavigation)
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      // 返回按钮
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(CupertinoIcons.back, color: textColor, size: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text('课时配置', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor)),
+                      const Spacer(),
+                      liquid.LiquidButton(
+                        text: '保存',
+                        onTap: _saveConfig,
+                        color: AppThemeColors.babyPink,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             
             // Content - 使用ListView优化滚动
             Expanded(

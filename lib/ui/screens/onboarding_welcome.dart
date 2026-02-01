@@ -119,47 +119,46 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
   }
 
   Widget _buildLogoGlass() {
-    // [v2.3.0修复] 使用 assets 中的应用图标，降低 glassify 厚度
-    return Container(
-      width: 200,
-      height: 200,
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withValues(alpha: 0.1),
-            Colors.white.withValues(alpha: 0.05),
+    // [v2.3.0修复] 使用 GlassContainer 获得真正的玻璃效果
+    return GlassContainer(
+      width: 240,
+      height: 240,
+      shape: const LiquidRoundedSuperellipse(borderRadius: 48),
+      settings: LiquidGlassSettings(
+        glassColor: Colors.white.withValues(alpha: 0.15),
+        blur: 20, // [v2.3.0修复] 添加模糊效果
+        thickness: 15, // [v2.3.0修复] 添加厚度
+      ),
+      quality: GlassQuality.standard,
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // [v2.3.0修复] 使用 assets 中的应用图标
+            Image.asset(
+              'assets/icon.png',
+              width: 90,
+              height: 90,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 24),
+            
+            // App Name - [v2.3.0修复] 缩小字号避免换行
+            const Text(
+              'CourseWidgets',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 0.5,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(48),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 2,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // [v2.3.0修复] 使用 assets 中的应用图标
-          Image.asset(
-            'assets/icon.png',
-            width: 80,
-            height: 80,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 20),
-          
-          // App Name
-          const Text(
-            'CourseWidgets',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: 1.0,
-            ),
-          ),
-        ],
       ),
     );
   }

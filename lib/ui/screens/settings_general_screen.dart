@@ -191,6 +191,13 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                       '从背景图片提取主题色',
                       CupertinoIcons.photo,
                     ),
+                    const SizedBox(height: 12),
+                    _buildThemeModeOption(
+                      theme.ThemeMode.custom,
+                      '自定义主题色',
+                      '选择你喜欢的任意颜色',
+                      CupertinoIcons.color_filter,
+                    ),
                   ],
                 ),
               ),
@@ -209,6 +216,21 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
     return GestureDetector(
       onTap: () async {
         HapticFeedback.selectionClick();
+        
+        // [v2.3.0] 自定义主题色需要打开颜色选择器
+        if (mode == theme.ThemeMode.custom) {
+          Navigator.pop(context); // 先关闭底部表单
+          await _showColorPicker();
+          return;
+        }
+        
+        // [v2.3.0修复] 莫奈取色需要先选择背景图片
+        if (mode == theme.ThemeMode.monet && globalBackgroundPath.value == null) {
+          Navigator.pop(context);
+          _showToast('请先选择背景图片');
+          return;
+        }
+        
         setState(() => _currentThemeMode = mode);
         await _themeService.setThemeMode(mode);
         
@@ -316,9 +338,11 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('通用设置', style: TextStyle(color: _textColor, fontWeight: FontWeight.bold)),
-        // [v2.3.0修复] 移除自定义 leading，使用默认返回按钮以保留动画
-        automaticallyImplyLeading: true,
-        iconTheme: IconThemeData(color: _textColor),
+        // [v2.3.0修复] 恢复返回按钮，使用默认样式
+        leading: IconButton(
+          icon: Icon(CupertinoIcons.back, color: _textColor),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: LiquidGlassLayer(
         settings: LiquidGlassSettings(
@@ -382,6 +406,82 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
         return '系统主题';
       case theme.ThemeMode.monet:
         return '莫奈取色';
+      case theme.ThemeMode.custom:
+        return '自定义主题色';
+    }
+  }
+
+  /// [v2.3.0] 显示颜色选择器
+  Future<void> _showColorPicker() async {
+    // 预设颜色
+    final presetColors = [
+      AppThemeColors.babyPink, // 默认粉色
+      const Color(0xFFFF6B6B), // 红色
+      const Color(0xFFFFB347), // 橙色
+      const Color(0xFFFFD93D), // 黄色
+      const Color(0xFF6BCB77), // 绿色
+      const Color(0xFF4D96FF), // 蓝色
+      const Color(0xFF9D84B7), // 紫色
+      const Color(0xFFFF85A2), // 粉红
+    ];
+
+    Color? selectedColor;
+
+    await liquid.showLiquidDialog(
+      context: context,
+      builder: liquid.LiquidGlassDialog(
+        title: '选择主题色',
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: presetColors.map((color) {
+              return GestureDetector(
+                onTap: () {
+                  selectedColor = color;
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          GlassDialogAction(
+            label: '取消',
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+
+    if (selectedColor != null) {
+      setState(() => _currentThemeMode = theme.ThemeMode.custom);
+      await _themeService.setThemeMode(theme.ThemeMode.custom);
+      await _themeService.setCustomColor(selectedColor!);
+      if (mounted) {
+        setState(() {});
+        _showToast('主题色已更新');
+      }
     }
   }
 

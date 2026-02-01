@@ -123,12 +123,22 @@ class ScheduleProvider with ChangeNotifier {
       final courses = await _importService.getAllCourses();
       if (courses.isNotEmpty) {
         _courses = courses;
-        // 保持当前的周次和星期选择
+        
+        // [v2.3.0修复] 确保数据加载完成后再跳转
+        // 使用 Future.microtask 确保在下一个事件循环中执行
+        await Future.microtask(() async {
+          await _jumpToCurrentDate();
+          debugPrint('✅ 数据加载完成，已跳转到当前日期：第 $_currentWeek 周，星期 $_currentDay');
+        });
+      } else {
+        // 没有数据时，确保周次和星期有效
         if (_currentWeek < 1) _currentWeek = 1;
         if (_currentDay < 1 || _currentDay > 7) _currentDay = 1;
+        debugPrint('⚠️ 没有课程数据，使用默认周次和星期');
       }
     } catch (e) {
       _errorMessage = '加载数据失败: $e';
+      debugPrint('❌ 加载数据失败: $e');
     }
     
     _isLoading = false;

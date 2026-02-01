@@ -69,7 +69,13 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
           child: Container(
             height: maxHeight,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
+            // [v2.3.0修复] 使用 DefaultTextStyle 确保所有文本无下划线
+            child: DefaultTextStyle(
+              style: const TextStyle(
+                decoration: TextDecoration.none,
+                fontFamily: 'PingFangSC',
+              ),
+              child: Row(
           children: [
             // 月份选择
             Expanded(
@@ -93,7 +99,7 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ),
@@ -122,7 +128,7 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ),
@@ -151,7 +157,7 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.none, // [v2.2.9修复] 移除下划线
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ),
@@ -160,6 +166,7 @@ class _LiquidGlassDatePickerState extends State<LiquidGlassDatePicker> {
             ),
           ],
         ),
+            ), // [v2.3.0修复] 关闭 DefaultTextStyle
       ),
         ),
       ),
@@ -342,8 +349,6 @@ Future<DateTime?> showLiquidGlassDatePicker({
       ),
     );
   }
-  
-  return selectedDate;
   
   return selectedDate;
 }

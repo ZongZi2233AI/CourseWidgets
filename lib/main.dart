@@ -108,9 +108,15 @@ void main() async {
       await windowManager.show();
       await windowManager.focus();
     });
+    
+    // [v2.3.0修复] Windows 托盘服务初始化
     if (Platform.isWindows) {
+      // 设置窗口关闭时不退出应用，而是隐藏到托盘
+      await windowManager.setPreventClose(true);
+      
       final tray = WindowsTrayService();
       await tray.initialize();
+      debugPrint('✅ Windows 托盘服务已在 main 中初始化');
     }
   }
 
@@ -196,7 +202,7 @@ class _MyAppState extends State<MyApp> {
       valueListenable: globalBackgroundPath,
       builder: (context, backgroundPath, _) {
         // [v2.2.8修复] 添加调试信息
-        debugPrint('🎨 当前背景路径: $backgroundPath');
+        debugPrint('🎨 当前背景路径: $backgroundPath, 深色模式: $globalUseDarkMode');
         
         return material.MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -214,6 +220,9 @@ class _MyAppState extends State<MyApp> {
             // 构建背景组件
             Widget backgroundWidget;
             
+            // [v2.3.0修复] 根据深色模式调整背景亮度
+            final darkenAlpha = globalUseDarkMode ? 0.6 : 0.2;
+            
             if (backgroundPath != null && backgroundPath.isNotEmpty) {
               // 检查是否是 asset 路径
               if (backgroundPath.startsWith('asset:')) {
@@ -226,10 +235,8 @@ class _MyAppState extends State<MyApp> {
                       image: AssetImage(assetPath),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
-                        // [v2.2.9修复] 深色模式降低背景亮度
-                        globalUseDarkMode 
-                            ? Colors.black.withValues(alpha: 0.5) 
-                            : Colors.black.withValues(alpha: 0.2),
+                        // [v2.3.0修复] 深色模式大幅降低背景亮度
+                        Colors.black.withValues(alpha: darkenAlpha),
                         BlendMode.darken,
                       ),
                     ),
@@ -245,10 +252,8 @@ class _MyAppState extends State<MyApp> {
                       image: FileImage(File(backgroundPath)),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
-                        // [v2.2.9修复] 深色模式降低背景亮度
-                        globalUseDarkMode 
-                            ? Colors.black.withValues(alpha: 0.5) 
-                            : Colors.black.withValues(alpha: 0.2),
+                        // [v2.3.0修复] 深色模式大幅降低背景亮度
+                        Colors.black.withValues(alpha: darkenAlpha),
                         BlendMode.darken,
                       ),
                     ),

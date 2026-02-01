@@ -213,42 +213,50 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
   }
 
   Widget _buildPremiumGlassDemo() {
-    return GlassButton.custom(
+    // [v2.3.0修复] 参考导航栏设计，使用 GlassContainer 获得更好的玻璃效果
+    return GestureDetector(
       onTap: () {
         HapticFeedback.heavyImpact();
       },
-      width: double.infinity,
-      height: 120,
-      style: GlassButtonStyle.filled,
-      shape: const LiquidRoundedSuperellipse(borderRadius: 28),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              CupertinoIcons.hand_point_right_fill,
-              color: Colors.white,
-              size: 32,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Touch me',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      child: GlassContainer(
+        width: double.infinity,
+        height: 120,
+        shape: const LiquidRoundedSuperellipse(borderRadius: 28),
+        quality: GlassQuality.premium,
+        settings: LiquidGlassSettings(
+          glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
+          blur: 30,
+          thickness: 25,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                CupertinoIcons.hand_point_right_fill,
                 color: Colors.white,
-                letterSpacing: 1.0,
+                size: 32,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Premium Liquid Glass Demo',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.white.withValues(alpha: 0.8),
+              const SizedBox(height: 12),
+              const Text(
+                'Touch me',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1.0,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'Premium Liquid Glass Demo',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

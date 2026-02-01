@@ -29,18 +29,24 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     windowManager.addListener(this);
     _initWindow();
     
-    // [v2.2.0修复5] 初始化托盘服务
+    // [v2.3.0修复] 初始化托盘服务并启动课程提醒
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       
-      final tray = WindowsTrayService();
-      await tray.initialize();
-      
-      // 启动课程提醒
-      final provider = context.read<ScheduleProvider>();
-      tray.startCourseReminder(provider);
-      
-      debugPrint('✅ 托盘服务已初始化');
+      try {
+        final tray = WindowsTrayService();
+        await tray.initialize();
+        
+        // 启动课程提醒
+        if (mounted) {
+          final provider = context.read<ScheduleProvider>();
+          tray.startCourseReminder(provider);
+        }
+        
+        debugPrint('✅ Windows 托盘服务已初始化并启动课程提醒');
+      } catch (e) {
+        debugPrint('❌ 托盘服务初始化失败: $e');
+      }
     });
   }
 
@@ -96,12 +102,17 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     debugPrint('窗口已还原');
   }
 
-  /// [v2.2.0修复5] 窗口关闭 - 最小化到托盘
+  /// [v2.3.0修复] 窗口关闭 - 最小化到托盘而不退出进程
   @override
   Future<void> onWindowClose() async {
-    // 隐藏到托盘
+    // 阻止窗口关闭，改为隐藏到托盘
     await windowManager.hide();
-    debugPrint('窗口已最小化到托盘');
+    
+    // 进入后台模式
+    final tray = WindowsTrayService();
+    await tray.enterBackgroundMode();
+    
+    debugPrint('🌙 窗口已最小化到托盘，进程继续运行');
   }
 
   @override

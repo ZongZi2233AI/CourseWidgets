@@ -60,8 +60,9 @@ class OnboardingConfig extends StatelessWidget {
           ),
           
           // 嵌入课时配置页面内容
+          // [v2.3.0修复] 引导页面中不显示返回按钮和保存按钮
           Expanded(
-            child: const AndroidScheduleConfigScreen(),
+            child: const AndroidScheduleConfigScreen(showNavigation: false),
           ),
           
           // Navigation
