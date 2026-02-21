@@ -121,13 +121,13 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
   Widget _buildLogoGlass() {
     // [v2.3.0修复] 使用 GlassContainer 获得真正的玻璃效果
     return GlassContainer(
-      width: 240,
+      width: 280, // [v2.3.2修复] 增加宽度防止文字换行
       height: 240,
       shape: const LiquidRoundedSuperellipse(borderRadius: 48),
       settings: LiquidGlassSettings(
         glassColor: Colors.white.withValues(alpha: 0.15),
-        blur: 20, // [v2.3.0修复] 添加模糊效果
-        thickness: 15, // [v2.3.0修复] 添加厚度
+        blur: 20,
+        thickness: 15,
       ),
       quality: GlassQuality.standard,
       child: Padding(
@@ -155,7 +155,8 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.visible, // [v2.3.2修复] 允许溢出但不换行
+              softWrap: false,
             ),
           ],
         ),

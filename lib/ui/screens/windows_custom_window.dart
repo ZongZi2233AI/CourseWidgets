@@ -18,7 +18,7 @@ class WindowsCustomWindow extends StatefulWidget {
   State<WindowsCustomWindow> createState() => _WindowsCustomWindowState();
 }
 
-class _WindowsCustomWindowState extends State<WindowsCustomWindow> 
+class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     with WindowListener {
   int _selectedIndex = 0;
   bool _isMaximized = false;
@@ -28,21 +28,21 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     super.initState();
     windowManager.addListener(this);
     _initWindow();
-    
+
     // [v2.3.0修复] 初始化托盘服务并启动课程提醒
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      
+
       try {
         final tray = WindowsTrayService();
         await tray.initialize();
-        
+
         // 启动课程提醒
         if (mounted) {
           final provider = context.read<ScheduleProvider>();
           tray.startCourseReminder(provider);
         }
-        
+
         debugPrint('✅ Windows 托盘服务已初始化并启动课程提醒');
       } catch (e) {
         debugPrint('❌ 托盘服务初始化失败: $e');
@@ -54,32 +54,35 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   void _initWindow() async {
     // 等待窗口完全初始化
     await Future.delayed(const Duration(milliseconds: 150));
-    
+
     // [修复2] 启用窗口调整大小
     await windowManager.setResizable(true);
-    
+
     // 设置最小窗口大小
     await windowManager.setMinimumSize(const Size(800, 600));
-    
+
     // [v2.2.8修复] 启用窗口动画 - 设置窗口属性
-    await windowManager.setAsFrameless();
+    // [v2.3.2修复] 移除 setAsFrameless，使用 TitleBarStyle.hidden 保留原生动画
+    // await windowManager.setAsFrameless();
     await windowManager.setHasShadow(true);
-    
+
     // [v2.2.8修复] 尝试启用窗口动画效果
     // 注意：window_manager 本身不提供动画API，动画由系统DWM控制
     // 确保窗口不是完全透明，这样系统才能正确渲染动画
-    await windowManager.setBackgroundColor(Colors.black.withValues(alpha: 0.01));
-    
+    await windowManager.setBackgroundColor(
+      Colors.black.withValues(alpha: 0.01),
+    );
+
     // 强制设置窗口大小和位置
     await windowManager.setSize(const Size(1024, 768));
     await windowManager.center();
-    
+
     // 检查最大化状态
     _isMaximized = await windowManager.isMaximized();
     if (mounted) {
       setState(() {});
     }
-    
+
     debugPrint('✅ 窗口初始化完成: 1024x768, 可调整大小, 启用动画');
   }
 
@@ -107,19 +110,30 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   Future<void> onWindowClose() async {
     // 阻止窗口关闭，改为隐藏到托盘
     await windowManager.hide();
-    
+
     // 进入后台模式
     final tray = WindowsTrayService();
     await tray.enterBackgroundMode();
-    
+
     debugPrint('🌙 窗口已最小化到托盘，进程继续运行');
+  }
+
+  void _handleMaximize() async {
+    if (_isMaximized) {
+      await windowManager.unmaximize();
+    } else {
+      // 避免全屏遮盖任务栏，所以我们显式获取屏幕可见工作区并设置窗口边界
+      // window_manager 在 macOS/Windows 有 getBounds 获取可用区域
+      // 但对于 frameless 窗口最安全的做法是直接调用最大化，如果依然遮盖，则手动 setBounds
+      await windowManager.maximize();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // [v2.2.1修复] 根据最大化状态调整圆角
     final borderRadius = _isMaximized ? 0.0 : 16.0;
-    
+
     return ClipSmoothRect(
       radius: SmoothBorderRadius(
         cornerRadius: borderRadius,
@@ -167,19 +181,13 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.05),
           border: Border(
-            bottom: BorderSide(
-              color: Colors.white.withValues(alpha: 0.1),
-            ),
+            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
         ),
         child: Row(
           children: [
             const SizedBox(width: 16),
-            Icon(
-              Icons.school,
-              color: AppThemeColors.babyPink,
-              size: 16,
-            ),
+            Icon(Icons.school, color: AppThemeColors.babyPink, size: 16),
             const SizedBox(width: 8),
             const Text(
               "CourseWidgets",
@@ -190,23 +198,15 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
               ),
             ),
             const Spacer(),
+            // 自定义窗口按钮
+            _buildWindowButton(Icons.remove, () => windowManager.minimize()),
             _buildWindowButton(
-              Icons.remove,
-              () => windowManager.minimize(),
-            ),
-            _buildWindowButton(
-              _isMaximized ? Icons.fullscreen_exit : Icons.crop_square,
-              () async {
-                if (_isMaximized) {
-                  await windowManager.unmaximize();
-                } else {
-                  await windowManager.maximize();
-                }
-              },
+              _isMaximized ? Icons.filter_none : Icons.crop_square,
+              _handleMaximize,
             ),
             _buildWindowButton(
               Icons.close,
-              () => windowManager.close(),
+              () => windowManager.close(), // 触发 onWindowClose 隐藏到托盘
               isClose: true,
             ),
           ],
@@ -227,7 +227,7 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
         child: Container(
           width: 46,
           height: 40,
-          color: Colors.transparent,
+          color: Colors.transparent, // 可以改为 hover 时有浅色背景
           child: Icon(
             icon,
             size: 16,
@@ -283,11 +283,7 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
       child: Row(
         children: [
           const SizedBox(width: 12),
-          Icon(
-            icon,
-            color: Colors.white,
-            size: 20,
-          ),
+          Icon(icon, color: Colors.white, size: 20),
           const SizedBox(width: 12),
           Text(
             title,

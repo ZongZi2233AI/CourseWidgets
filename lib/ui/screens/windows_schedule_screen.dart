@@ -18,8 +18,8 @@ class WindowsScheduleScreen extends StatefulWidget {
 
 class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
   /// [v2.2.1] 切换周次（带验证）
-  void _changeWeek(ScheduleProvider provider, int targetWeek) async {
-    final weeks = await provider.getAvailableWeeks();
+  void _changeWeek(ScheduleProvider provider, int targetWeek) { // Removed async
+    final weeks = provider.availableWeeks;
     if (weeks.isEmpty) return;
     
     // 限制周次范围，防止切换到第0周或负数周
@@ -32,8 +32,8 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
   }
   
   /// [v2.2.2] 显示周次选择器 - 使用底部菜单而非对话框
-  void _showWeekPicker(BuildContext context, ScheduleProvider provider) async {
-    final weeks = await provider.getAvailableWeeks();
+  void _showWeekPicker(BuildContext context, ScheduleProvider provider) { // Removed async
+    final weeks = provider.availableWeeks;
     if (weeks.isEmpty || !mounted) return;
     
     showModalBottomSheet(
@@ -149,10 +149,10 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
   Widget _buildWeekSelector(ScheduleProvider provider) {
     return SizedBox(
       height: 44,
-      child: FutureBuilder<List<int>>(
-        future: provider.getAvailableWeeks(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const SizedBox();
+      child: Builder(
+        builder: (context) {
+          final weeks = provider.availableWeeks;
+          if (weeks.isEmpty) return const SizedBox();
           return Row(
             children: [
               // 左箭头按钮
@@ -180,9 +180,9 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  itemCount: snapshot.data!.length,
+                  itemCount: weeks.length,
                   itemBuilder: (context, index) {
-                    final week = snapshot.data![index];
+                    final week = weeks[index];
                     final isSelected = week == provider.currentWeek;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),

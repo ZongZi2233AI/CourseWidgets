@@ -8,23 +8,23 @@ import 'storage_service.dart';
 /// 主题模式
 enum ThemeMode {
   defaultMode, // 默认主题色（嫩粉色+柔珊瑚）
-  system,      // 系统主题色（Android 12+ Material You）
-  monet,       // 莫奈取色（从背景图片提取）
-  custom,      // 自定义主题色
+  system, // 系统主题色（Android 12+ Material You）
+  monet, // 莫奈取色（从背景图片提取）
+  custom, // 自定义主题色
 }
 
 /// 主题服务 - 管理应用主题色
-class ThemeService {
+class ThemeService extends ChangeNotifier {
   static final ThemeService _instance = ThemeService._internal();
   factory ThemeService() => _instance;
   ThemeService._internal();
 
   final StorageService _storage = StorageService();
-  
+
   // 默认主题色
   static const Color defaultPrimaryColor = Color(0xFFFF9A9E); // 嫩粉色
   static const Color defaultSecondaryColor = Color(0xFFFAD0C4); // 柔珊瑚
-  
+
   // 当前主题色
   Color _primaryColor = defaultPrimaryColor;
   Color _secondaryColor = defaultSecondaryColor;
@@ -59,6 +59,7 @@ class ThemeService {
       _secondaryColor = defaultSecondaryColor;
     }
 
+    notifyListeners();
     debugPrint('主题服务初始化完成: $_themeMode');
   }
 
@@ -66,15 +67,20 @@ class ThemeService {
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
     await _storage.setString(StorageService.keyThemeMode, mode.name);
-    
+
     switch (mode) {
       case ThemeMode.defaultMode:
         _primaryColor = defaultPrimaryColor;
         _secondaryColor = defaultSecondaryColor;
         // [v2.3.0修复] 保存默认颜色到存储
         // 使用 toARGB32() 方法（Flutter 3.33+ 推荐）
-        await _storage.setInt(StorageService.keyCustomThemeColor, _primaryColor.toARGB32());
-        debugPrint('✅ 默认主题已设置: $_primaryColor (ARGB: ${_primaryColor.toARGB32()})');
+        await _storage.setInt(
+          StorageService.keyCustomThemeColor,
+          _primaryColor.toARGB32(),
+        );
+        debugPrint(
+          '✅ 默认主题已设置: $_primaryColor (ARGB: ${_primaryColor.toARGB32()})',
+        );
         break;
       case ThemeMode.system:
         // 系统主题色将在 applySystemTheme 中设置
@@ -89,7 +95,8 @@ class ThemeService {
         debugPrint('✅ 自定义主题色模式已设置，等待 setCustomColor 调用');
         break;
     }
-    
+
+    notifyListeners();
     debugPrint('✅ 主题模式已切换: $mode, 颜色: $_primaryColor');
   }
 
@@ -97,7 +104,11 @@ class ThemeService {
   Future<void> setCustomColor(Color color) async {
     _primaryColor = color;
     _secondaryColor = _generateSecondaryColor(color);
-    await _storage.setInt(StorageService.keyCustomThemeColor, _primaryColor.toARGB32());
+    await _storage.setInt(
+      StorageService.keyCustomThemeColor,
+      _primaryColor.toARGB32(),
+    );
+    notifyListeners();
     debugPrint('✅ 自定义主题色已设置: $_primaryColor');
   }
 
@@ -111,25 +122,33 @@ class ThemeService {
     try {
       // 使用 MethodChannel 获取系统主题色
       const platform = MethodChannel('com.zongzi.schedule/theme');
-      final int? systemColor = await platform.invokeMethod('getSystemAccentColor');
-      
+      final int? systemColor = await platform.invokeMethod(
+        'getSystemAccentColor',
+      );
+
       if (systemColor != null) {
         // 使用系统主色调生成调色板
         final corePalette = CorePalette.of(systemColor);
         _primaryColor = Color(corePalette.primary.get(40));
         _secondaryColor = Color(corePalette.secondary.get(40));
-        
-        await _storage.setInt(StorageService.keyCustomThemeColor, _primaryColor.toARGB32());
+
+        await _storage.setInt(
+          StorageService.keyCustomThemeColor,
+          _primaryColor.toARGB32(),
+        );
+        notifyListeners();
         debugPrint('系统主题色已应用: $_primaryColor');
       } else {
         debugPrint('无法获取系统主题色，使用默认主题');
         _primaryColor = defaultPrimaryColor;
         _secondaryColor = defaultSecondaryColor;
+        notifyListeners();
       }
     } catch (e) {
       debugPrint('获取系统主题色失败: $e，使用默认主题');
       _primaryColor = defaultPrimaryColor;
       _secondaryColor = defaultSecondaryColor;
+      notifyListeners();
     }
   }
 
@@ -145,7 +164,7 @@ class ThemeService {
 
       final bytes = await imageFile.readAsBytes();
       final image = img.decodeImage(bytes);
-      
+
       if (image == null) {
         debugPrint('无法解码图片');
         return;
@@ -176,23 +195,28 @@ class ThemeService {
       // 使用 Material Color Utilities 生成调色板
       final result = await QuantizerCelebi().quantize(pixels, 128);
       final ranked = Score.score(result.colorToCount, desired: 1);
-      
+
       if (ranked.isNotEmpty) {
         final dominantColor = Color(ranked.first);
-        
+
         // 生成 Material You 风格的调色板
         final corePalette = CorePalette.of(dominantColor.toARGB32());
-        
+
         _primaryColor = Color(corePalette.primary.get(40));
         _secondaryColor = Color(corePalette.secondary.get(40));
-        
-        await _storage.setInt(StorageService.keyCustomThemeColor, _primaryColor.toARGB32());
+
+        await _storage.setInt(
+          StorageService.keyCustomThemeColor,
+          _primaryColor.toARGB32(),
+        );
+        notifyListeners();
         debugPrint('莫奈取色完成: $_primaryColor');
       }
     } catch (e) {
       debugPrint('莫奈取色失败: $e');
       _primaryColor = defaultPrimaryColor;
       _secondaryColor = defaultSecondaryColor;
+      notifyListeners();
     }
   }
 
@@ -208,6 +232,7 @@ class ThemeService {
     _primaryColor = defaultPrimaryColor;
     _secondaryColor = defaultSecondaryColor;
     await _storage.remove(StorageService.keyCustomThemeColor);
+    notifyListeners();
     debugPrint('主题已重置为默认');
   }
 

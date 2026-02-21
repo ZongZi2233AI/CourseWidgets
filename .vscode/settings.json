@@ -1,4 +1,7 @@
 {
     "cmake.sourceDirectory": "D:/VSCODE/Schedule/schedule_app/linux",
-    "kiroAgent.configureMCP": "Disabled"
+    "kiroAgent.configureMCP": "Disabled",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.gradle.version": "9.1",
+    "java.import.gradle.wrapper.enabled": true
 }

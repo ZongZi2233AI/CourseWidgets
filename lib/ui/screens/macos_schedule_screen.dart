@@ -1,11 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' as material;
 import 'package:provider/provider.dart';
 import '../../models/course_event.dart';
 import '../../providers/schedule_provider.dart';
 import '../../services/data_import_service.dart';
 import 'schedule_config_screen.dart';
-import 'windows_custom_window.dart';
+
 import 'calendar_view_screen.dart';
 import 'course_edit_screen.dart';
 import 'macos_about_screen.dart';
@@ -33,7 +32,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
   Future<void> _initializeData() async {
     final provider = context.read<ScheduleProvider>();
     await provider.loadSavedData();
-    
+
     if (provider.hasData && !_hasAutoJumped) {
       await _jumpToCurrentDate();
       _hasAutoJumped = true;
@@ -43,15 +42,16 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
   Future<void> _jumpToCurrentDate() async {
     final provider = context.read<ScheduleProvider>();
     final now = DateTime.now();
-    
+
     final availableWeeks = await provider.getAvailableWeeks();
     if (availableWeeks.isEmpty) return;
-    
+
     final minWeek = availableWeeks.first;
     final maxWeek = availableWeeks.last;
-    
-    final weeksSinceStart = now.difference(provider.semesterStartDate).inDays ~/ 7 + 1;
-    
+
+    final weeksSinceStart =
+        now.difference(provider.semesterStartDate).inDays ~/ 7 + 1;
+
     if (weeksSinceStart < minWeek) {
       provider.setCurrentWeek(minWeek);
     } else if (weeksSinceStart > maxWeek) {
@@ -59,10 +59,10 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
     } else {
       provider.setCurrentWeek(weeksSinceStart);
     }
-    
+
     final currentDay = now.weekday;
     final availableDays = provider.getAvailableDays();
-    
+
     if (currentDay > 5 && !availableDays.contains(currentDay)) {
       if (availableDays.isNotEmpty) {
         provider.setCurrentDay(availableDays.first);
@@ -127,9 +127,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
         middle: Text('课程表'),
         backgroundColor: CupertinoColors.systemBackground,
       ),
-      child: SafeArea(
-        child: _buildScheduleBody(provider),
-      ),
+      child: SafeArea(child: _buildScheduleBody(provider)),
     );
   }
 
@@ -140,9 +138,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
         middle: Text('日历视图'),
         backgroundColor: CupertinoColors.systemBackground,
       ),
-      child: SafeArea(
-        child: CalendarViewScreen(),
-      ),
+      child: SafeArea(child: CalendarViewScreen()),
     );
   }
 
@@ -153,9 +149,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
         middle: Text('数据导入'),
         backgroundColor: CupertinoColors.systemBackground,
       ),
-      child: SafeArea(
-        child: _buildImportBody(),
-      ),
+      child: SafeArea(child: _buildImportBody()),
     );
   }
 
@@ -166,15 +160,15 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
         middle: Text('设置'),
         backgroundColor: CupertinoColors.systemBackground,
       ),
-      child: SafeArea(
-        child: _buildSettingsBody(),
-      ),
+      child: SafeArea(child: _buildSettingsBody()),
     );
   }
 
   /// 构建课表主体
   Widget _buildScheduleBody(ScheduleProvider provider) {
-    if (!provider.hasData && !provider.isLoading && provider.errorMessage == null) {
+    if (!provider.hasData &&
+        !provider.isLoading &&
+        provider.errorMessage == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           provider.loadSavedData();
@@ -183,9 +177,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
     }
 
     if (provider.isLoading) {
-      return const Center(
-        child: CupertinoActivityIndicator(radius: 20),
-      );
+      return const Center(child: CupertinoActivityIndicator(radius: 20));
     }
 
     if (provider.errorMessage != null) {
@@ -193,7 +185,11 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(CupertinoIcons.exclamationmark_triangle, size: 48, color: CupertinoColors.systemRed),
+            const Icon(
+              CupertinoIcons.exclamationmark_triangle,
+              size: 48,
+              color: CupertinoColors.systemRed,
+            ),
             const SizedBox(height: 16),
             Text(
               '错误: ${provider.errorMessage!}',
@@ -240,9 +236,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
           const SizedBox(height: 12),
           const Text(
             '请导入ICS格式的课表文件',
-            style: TextStyle(
-              color: CupertinoColors.systemGrey,
-            ),
+            style: TextStyle(color: CupertinoColors.systemGrey),
           ),
           const SizedBox(height: 24),
           CupertinoButton(
@@ -259,9 +253,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
     return Column(
       children: [
         _buildWeekAndDaySelector(provider),
-        Expanded(
-          child: _buildCourseList(provider),
-        ),
+        Expanded(child: _buildCourseList(provider)),
       ],
     );
   }
@@ -279,7 +271,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const SizedBox.shrink();
               }
-              
+
               final weeks = snapshot.data!;
               return Wrap(
                 spacing: 8,
@@ -287,17 +279,26 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                 children: weeks.map((week) {
                   final isSelected = week == provider.currentWeek;
                   return CupertinoButton(
-                    minSize: 32,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: const Size(32, 32),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     borderRadius: BorderRadius.circular(8),
-                    color: isSelected ? CupertinoColors.systemBlue : CupertinoColors.systemGrey5,
+                    color: isSelected
+                        ? CupertinoColors.systemBlue
+                        : CupertinoColors.systemGrey5,
                     onPressed: () => provider.setCurrentWeek(week),
                     child: Text(
                       '第$week周',
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                        color: isSelected ? CupertinoColors.white : CupertinoColors.label,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: isSelected
+                            ? CupertinoColors.white
+                            : CupertinoColors.label,
                       ),
                     ),
                   );
@@ -325,10 +326,12 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
       children: days.map((day) {
         final isSelected = day == provider.currentDay;
         return CupertinoButton(
-          minSize: 28,
+          minimumSize: const Size(28, 28),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           borderRadius: BorderRadius.circular(6),
-          color: isSelected ? CupertinoColors.systemBlue : CupertinoColors.systemGrey6,
+          color: isSelected
+              ? CupertinoColors.systemBlue
+              : CupertinoColors.systemGrey6,
           onPressed: () => provider.setCurrentDay(day),
           child: Text(
             provider.getDayName(day),
@@ -346,7 +349,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
   /// 课程列表
   Widget _buildCourseList(ScheduleProvider provider) {
     final courses = provider.getCurrentDayCourses();
-    
+
     if (courses.isEmpty) {
       return Center(
         child: Column(
@@ -360,10 +363,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
             const SizedBox(height: 16),
             Text(
               '当天无课程',
-              style: TextStyle(
-                fontSize: 16,
-                color: CupertinoColors.systemGrey,
-              ),
+              style: TextStyle(fontSize: 16, color: CupertinoColors.systemGrey),
             ),
           ],
         ),
@@ -418,9 +418,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(width: 16),
-            
+
             // 课程信息
             Expanded(
               child: Column(
@@ -467,9 +467,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(width: 8),
-            
+
             // 箭头图标
             const Icon(
               CupertinoIcons.chevron_right,
@@ -485,16 +485,16 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
   /// 根据课程名称生成颜色
   Color _getCourseColor(String courseName) {
     final colors = [
-      const Color(0xFF2196F3),  // Blue
-      const Color(0xFF4CAF50),  // Green
-      const Color(0xFFFF9800),  // Orange
-      const Color(0xFF9C27B0),  // Purple
-      const Color(0xFFF44336),  // Red
-      const Color(0xFF009688),  // Teal
-      const Color(0xFF3F51B5),  // Indigo
-      const Color(0xFFE91E63),  // Pink
+      const Color(0xFF2196F3), // Blue
+      const Color(0xFF4CAF50), // Green
+      const Color(0xFFFF9800), // Orange
+      const Color(0xFF9C27B0), // Purple
+      const Color(0xFFF44336), // Red
+      const Color(0xFF009688), // Teal
+      const Color(0xFF3F51B5), // Indigo
+      const Color(0xFFE91E63), // Pink
     ];
-    
+
     final hash = courseName.hashCode;
     return colors[hash.abs() % colors.length];
   }
@@ -514,7 +514,10 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
             _buildDetailRow('上课地点', course.location),
             _buildDetailRow('任课教师', course.teacher),
             _buildDetailRow('日期', course.dateStr),
-            _buildDetailRow('星期', context.read<ScheduleProvider>().getDayName(course.weekday)),
+            _buildDetailRow(
+              '星期',
+              context.read<ScheduleProvider>().getDayName(course.weekday),
+            ),
           ],
         ),
         actions: [
@@ -577,7 +580,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 24),
-          
+
           // ICS导入
           Container(
             padding: const EdgeInsets.all(16),
@@ -607,9 +610,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // HTML导入
           Container(
             padding: const EdgeInsets.all(16),
@@ -639,9 +642,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Assets导入
           Container(
             padding: const EdgeInsets.all(16),
@@ -671,9 +674,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // 导出数据
           Container(
             padding: const EdgeInsets.all(16),
@@ -722,9 +725,11 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                             return;
                           }
                           final dataImportService = DataImportService();
-                          final activeSchedule = await dataImportService.getActiveSchedule();
+                          final activeSchedule = await dataImportService
+                              .getActiveSchedule();
                           if (activeSchedule != null) {
-                            final result = await dataImportService.exportHistoryToIcs(activeSchedule['id']);
+                            final result = await dataImportService
+                                .exportHistoryToIcs(activeSchedule['id']);
                             if (mounted) {
                               if (result) {
                                 _showSuccessDialog('ICS文件已导出到当前目录');
@@ -744,9 +749,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // 清除数据
           Container(
             padding: const EdgeInsets.all(16),
@@ -783,7 +788,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                         ],
                       ),
                     );
-                    
+
                     if (confirm == true) {
                       await context.read<ScheduleProvider>().clearData();
                       if (mounted) {
@@ -804,7 +809,8 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
   /// 构建设置主体
   Widget _buildSettingsBody() {
     final dateController = TextEditingController(
-      text: '${context.read<ScheduleProvider>().semesterStartDate.year}-${context.read<ScheduleProvider>().semesterStartDate.month.toString().padLeft(2, '0')}-${context.read<ScheduleProvider>().semesterStartDate.day.toString().padLeft(2, '0')}',
+      text:
+          '${context.read<ScheduleProvider>().semesterStartDate.year}-${context.read<ScheduleProvider>().semesterStartDate.month.toString().padLeft(2, '0')}-${context.read<ScheduleProvider>().semesterStartDate.day.toString().padLeft(2, '0')}',
     );
 
     return Container(
@@ -817,7 +823,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 24),
-          
+
           // 学期开始日期
           Container(
             padding: const EdgeInsets.all(16),
@@ -844,7 +850,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                       final date = await showCupertinoDialog<DateTime>(
                         context: context,
                         builder: (context) {
-                          DateTime? selectedDate = context.read<ScheduleProvider>().semesterStartDate;
+                          DateTime? selectedDate = context
+                              .read<ScheduleProvider>()
+                              .semesterStartDate;
                           return CupertinoAlertDialog(
                             title: const Text('选择日期'),
                             content: SizedBox(
@@ -866,7 +874,8 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                               ),
                               CupertinoDialogAction(
                                 isDefaultAction: true,
-                                onPressed: () => Navigator.pop(context, selectedDate),
+                                onPressed: () =>
+                                    Navigator.pop(context, selectedDate),
                                 child: const Text('确定'),
                               ),
                             ],
@@ -874,7 +883,8 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                         },
                       );
                       if (date != null) {
-                        dateController.text = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+                        dateController.text =
+                            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
                       }
                     },
                     child: const Icon(CupertinoIcons.calendar, size: 20),
@@ -891,7 +901,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                           int.parse(parts[1]),
                           int.parse(parts[2]),
                         );
-                        context.read<ScheduleProvider>().setSemesterStartDate(date);
+                        context.read<ScheduleProvider>().setSemesterStartDate(
+                          date,
+                        );
                         _showSuccessDialog('配置已更新');
                       }
                     } catch (e) {
@@ -903,9 +915,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // 课时配置
           Container(
             padding: const EdgeInsets.all(16),
@@ -924,7 +936,10 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                 const SizedBox(height: 12),
                 const Text(
                   '调整每节课的开始时间、时长和课间休息时间',
-                  style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 12),
+                  style: TextStyle(
+                    color: CupertinoColors.systemGrey,
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CupertinoButton(
@@ -941,9 +956,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // 历史记录
           Container(
             padding: const EdgeInsets.all(16),
@@ -962,7 +977,10 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                 const SizedBox(height: 12),
                 const Text(
                   '查看和管理课程表历史记录',
-                  style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 12),
+                  style: TextStyle(
+                    color: CupertinoColors.systemGrey,
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CupertinoButton(
@@ -974,9 +992,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // 关于软件
           Container(
             padding: const EdgeInsets.all(16),
@@ -995,7 +1013,10 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                 const SizedBox(height: 12),
                 const Text(
                   '查看版本信息和开发者信息',
-                  style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 12),
+                  style: TextStyle(
+                    color: CupertinoColors.systemGrey,
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 CupertinoButton(
@@ -1020,7 +1041,7 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
   /// 显示历史记录管理弹窗
   void _showHistoryDialog(BuildContext context) {
     final dataImportService = DataImportService();
-    
+
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
@@ -1032,19 +1053,24 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
             future: dataImportService.getAllHistory(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CupertinoActivityIndicator(),
-                );
+                return const Center(child: CupertinoActivityIndicator());
               }
-              
+
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(CupertinoIcons.clock, size: 48, color: CupertinoColors.systemGrey),
+                      Icon(
+                        CupertinoIcons.clock,
+                        size: 48,
+                        color: CupertinoColors.systemGrey,
+                      ),
                       SizedBox(height: 16),
-                      Text('暂无历史记录', style: TextStyle(color: CupertinoColors.systemGrey)),
+                      Text(
+                        '暂无历史记录',
+                        style: TextStyle(color: CupertinoColors.systemGrey),
+                      ),
                     ],
                   ),
                 );
@@ -1062,15 +1088,21 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                   itemBuilder: (context, index) {
                     final item = history[index];
                     final isActive = item['id'] == activeSchedule['id'];
-                    final createdAt = DateTime.fromMillisecondsSinceEpoch(item['created_at']);
-                    
+                    final createdAt = DateTime.fromMillisecondsSinceEpoch(
+                      item['created_at'],
+                    );
+
                     return Container(
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       decoration: BoxDecoration(
-                        color: isActive ? const Color(0xFFE3F2FD) : CupertinoColors.systemBackground,
+                        color: isActive
+                            ? const Color(0xFFE3F2FD)
+                            : CupertinoColors.systemBackground,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isActive ? const Color(0xFF1976D2) : CupertinoColors.systemGrey5,
+                          color: isActive
+                              ? const Color(0xFF1976D2)
+                              : CupertinoColors.systemGrey5,
                         ),
                       ),
                       child: CupertinoListTile(
@@ -1078,7 +1110,9 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                           item['name'],
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: isActive ? const Color(0xFF1976D2) : CupertinoColors.label,
+                            color: isActive
+                                ? const Color(0xFF1976D2)
+                                : CupertinoColors.label,
                           ),
                         ),
                         subtitle: Column(
@@ -1086,8 +1120,17 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                           children: [
                             Text('类型: ${item['source_type'].toUpperCase()}'),
                             Text('学期: ${item['semester']}'),
-                            Text('创建: ${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}'),
-                            if (isActive) const Text('✓ 当前使用', style: TextStyle(color: Color(0xFF4CAF50), fontWeight: FontWeight.bold)),
+                            Text(
+                              '创建: ${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
+                            ),
+                            if (isActive)
+                              const Text(
+                                '✓ 当前使用',
+                                style: TextStyle(
+                                  color: Color(0xFF4CAF50),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                           ],
                         ),
                         trailing: Row(
@@ -1096,30 +1139,46 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                             // 切换按钮
                             CupertinoButton(
                               padding: const EdgeInsets.all(4),
-                              onPressed: isActive ? null : () async {
-                                final success = await dataImportService.switchToHistory(item['id']);
-                                if (success && context.mounted) {
-                                  Navigator.pop(context);
-                                  _showSuccessDialog('已切换到 ${item['name']}');
-                                  context.read<ScheduleProvider>().loadSavedData();
-                                }
-                              },
+                              onPressed: isActive
+                                  ? null
+                                  : () async {
+                                      final success = await dataImportService
+                                          .switchToHistory(item['id']);
+                                      if (success && context.mounted) {
+                                        Navigator.pop(context);
+                                        _showSuccessDialog(
+                                          '已切换到 ${item['name']}',
+                                        );
+                                        context
+                                            .read<ScheduleProvider>()
+                                            .loadSavedData();
+                                      }
+                                    },
                               child: Icon(
-                                isActive ? CupertinoIcons.check_mark_circled : CupertinoIcons.add_circled,
+                                isActive
+                                    ? CupertinoIcons.check_mark_circled
+                                    : CupertinoIcons.add_circled,
                                 size: 20,
-                                color: isActive ? CupertinoColors.systemGreen : CupertinoColors.systemBlue,
+                                color: isActive
+                                    ? CupertinoColors.systemGreen
+                                    : CupertinoColors.systemBlue,
                               ),
                             ),
                             // 导出按钮
                             CupertinoButton(
                               padding: const EdgeInsets.all(4),
                               onPressed: () async {
-                                final success = await dataImportService.exportHistoryToIcs(item['id']);
+                                final success = await dataImportService
+                                    .exportHistoryToIcs(item['id']);
                                 if (success && context.mounted) {
                                   _showSuccessDialog('ICS文件已导出');
                                 }
                               },
-                              child: const Icon(CupertinoIcons.download_circle, size: 20, color: CupertinoColors.systemBlue),
+                              child: const Icon(
+                                CupertinoIcons.download_circle,
+                                size: 20,
+                                color: CupertinoColors.systemBlue,
+                              ),
                             ),
                             // 删除按钮
                             CupertinoButton(
@@ -1132,27 +1191,33 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                                     content: Text('确定要删除 "${item['name']}" 吗？'),
                                     actions: [
                                       CupertinoDialogAction(
-                                        onPressed: () => Navigator.pop(context, false),
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
                                         child: const Text('取消'),
                                       ),
                                       CupertinoDialogAction(
                                         isDestructiveAction: true,
-                                        onPressed: () => Navigator.pop(context, true),
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
                                         child: const Text('删除'),
                                       ),
                                     ],
                                   ),
                                 );
-                                
                                 if (confirm == true) {
-                                  final success = await dataImportService.deleteHistory(item['id']);
+                                  final success = await dataImportService
+                                      .deleteHistory(item['id']);
                                   if (success && context.mounted) {
                                     _showSuccessDialog('记录已删除');
                                     setState(() {});
                                   }
                                 }
                               },
-                              child: const Icon(CupertinoIcons.trash_circle, size: 20, color: CupertinoColors.systemRed),
+                              child: const Icon(
+                                CupertinoIcons.trash_circle,
+                                size: 20,
+                                color: CupertinoColors.systemRed,
+                              ),
                             ),
                           ],
                         ),
@@ -1181,7 +1246,10 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
       builder: (context) => CupertinoAlertDialog(
         title: const Row(
           children: [
-            Icon(CupertinoIcons.check_mark_circled, color: CupertinoColors.systemGreen),
+            Icon(
+              CupertinoIcons.check_mark_circled,
+              color: CupertinoColors.systemGreen,
+            ),
             SizedBox(width: 8),
             Text('成功'),
           ],
@@ -1205,7 +1273,10 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
       builder: (context) => CupertinoAlertDialog(
         title: const Row(
           children: [
-            Icon(CupertinoIcons.exclamationmark_circle, color: CupertinoColors.systemRed),
+            Icon(
+              CupertinoIcons.exclamationmark_circle,
+              color: CupertinoColors.systemRed,
+            ),
             SizedBox(width: 8),
             Text('错误'),
           ],

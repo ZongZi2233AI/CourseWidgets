@@ -13,7 +13,8 @@ class SettingsAboutScreen extends StatefulWidget {
   State<SettingsAboutScreen> createState() => _SettingsAboutScreenState();
 }
 
-class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTickerProviderStateMixin {
+class _SettingsAboutScreenState extends State<SettingsAboutScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -32,10 +33,7 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
   }
 
@@ -72,7 +70,7 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
               ),
             ),
           ),
-          
+
           // Content
           Expanded(
             child: FadeTransition(
@@ -99,7 +97,9 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
                               borderRadius: BorderRadius.circular(32),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppThemeColors.babyPink.withValues(alpha: 0.3),
+                                  color: AppThemeColors.babyPink.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 30,
                                   spreadRadius: 5,
                                 ),
@@ -108,13 +108,13 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(32),
                               child: Image.asset(
-                                'assets/app_icon.ico',
+                                'assets/icon.png',
                                 fit: BoxFit.cover,
                               ),
                             ),
                           ),
                           const SizedBox(height: 24),
-                          
+
                           // App Name
                           const Text(
                             'CourseWidgets',
@@ -126,13 +126,15 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
+
                           // Version Badge
                           liquid.LiquidCard(
                             borderRadius: 16,
                             padding: 8,
                             styleType: liquid.LiquidStyleType.micro,
-                            glassColor: AppThemeColors.babyPink.withValues(alpha: 0.2),
+                            glassColor: AppThemeColors.babyPink.withValues(
+                              alpha: 0.2,
+                            ),
                             quality: GlassQuality.standard,
                             child: Text(
                               'v$appVersion',
@@ -146,14 +148,14 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Premium Glass Demo Card
                     _buildPremiumGlassDemo(),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Copyright Card
                     liquid.LiquidCard(
                       borderRadius: 28,
@@ -164,7 +166,9 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
                         children: [
                           Icon(
                             CupertinoIcons.heart_fill,
-                            color: AppThemeColors.babyPink.withValues(alpha: 0.6),
+                            color: AppThemeColors.babyPink.withValues(
+                              alpha: 0.6,
+                            ),
                             size: 32,
                           ),
                           const SizedBox(height: 12),
@@ -200,8 +204,10 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
                         ],
                       ),
                     ),
-                    
-                    const SizedBox(height: 100), // Bottom padding for navigation bar
+
+                    const SizedBox(
+                      height: 100,
+                    ), // Bottom padding for navigation bar
                   ],
                 ),
               ),
@@ -213,49 +219,56 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen> with SingleTi
   }
 
   Widget _buildPremiumGlassDemo() {
-    // [v2.3.0修复] 参考导航栏设计，使用 GlassContainer 获得更好的玻璃效果
+    // [v2.4.3修复] 移除 LiquidGlassScope.stack 避免由于透明图层在滚动列表下复合导致的 Impeller 渲染灰块问题
     return GestureDetector(
       onTap: () {
         HapticFeedback.heavyImpact();
       },
-      child: GlassContainer(
-        width: double.infinity,
+      child: SizedBox(
         height: 120,
-        shape: const LiquidRoundedSuperellipse(borderRadius: 28),
-        quality: GlassQuality.premium,
-        settings: LiquidGlassSettings(
-          glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
-          blur: 30,
-          thickness: 25,
-        ),
+        width: double.infinity,
         child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                CupertinoIcons.hand_point_right_fill,
-                color: Colors.white,
-                size: 32,
+          child: GlassContainer(
+            width: double.infinity,
+            height: 120,
+            useOwnLayer: false, // [v2.4.3修复] 必须关闭独立图层
+            shape: const LiquidRoundedSuperellipse(borderRadius: 28),
+            quality: GlassQuality.standard, // 使用标准质量的 BackdropFilter 是安全的
+            settings: LiquidGlassSettings(
+              glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
+              blur: 30,
+              thickness: 25,
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    CupertinoIcons.hand_point_right_fill,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Touch me',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Premium Liquid Glass Demo',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              const Text(
-                'Touch me',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Premium Liquid Glass Demo',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

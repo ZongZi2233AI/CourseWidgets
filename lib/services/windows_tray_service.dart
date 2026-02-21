@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:system_tray/system_tray.dart';
+import 'package:path/path.dart' as path;
 import 'package:window_manager/window_manager.dart';
 import '../providers/schedule_provider.dart';
 import 'notification_manager.dart';
@@ -11,7 +12,7 @@ import 'notification_manager.dart';
 class WindowsTrayService {
   static final WindowsTrayService _instance = WindowsTrayService._internal();
   factory WindowsTrayService() => _instance;
-  
+
   WindowsTrayService._internal();
 
   SystemTray? _systemTray;
@@ -31,7 +32,7 @@ class WindowsTrayService {
     try {
       // 初始化通知管理器
       await _notificationManager.initialize();
-      
+
       // 初始化系统托盘
       await _initializeSystemTray();
 
@@ -49,7 +50,7 @@ class WindowsTrayService {
 
       // 查找托盘图标
       String iconPath = await _findTrayIcon();
-      
+
       debugPrint('🎨 托盘图标路径: $iconPath');
 
       // 初始化托盘
@@ -85,30 +86,52 @@ class WindowsTrayService {
 
   /// 查找托盘图标
   Future<String> _findTrayIcon() async {
+    // [v2.4.0] 修复 Release 模式下找不到 assets 的问题
+    // 在 Windows Release 构建中，assets 通常位于 data/flutter_assets/assets/ 下
+    if (kReleaseMode) {
+      final String exePath = Platform.resolvedExecutable;
+      final String exeDir = path.dirname(exePath);
+      final String iconPath = path.join(
+        exeDir,
+        'data',
+        'flutter_assets',
+        'assets',
+        'app_icon.ico',
+      );
+
+      final file = File(iconPath);
+      if (await file.exists()) {
+        debugPrint('✅ Found release tray icon at: $iconPath');
+        return iconPath;
+      } else {
+        debugPrint(
+          '❌ Release tray icon NOT found at: $iconPath, trying fallback.',
+        );
+      }
+    }
+
     final possiblePaths = [
-      'data/flutter_assets/assets/app_icon.ico',
       'assets/app_icon.ico',
+      'data/flutter_assets/assets/app_icon.ico',
       'app_icon.ico',
     ];
-    
+
+    // 检查当前执行目录下的文件
     for (final path in possiblePaths) {
       if (await File(path).exists()) {
+        debugPrint('✅ 找到托盘图标: $path');
         return path;
       }
     }
-    
-    // 返回第一个路径作为默认值
-    return possiblePaths.first;
+
+    return 'assets/app_icon.ico';
   }
 
   /// 创建托盘菜单
   Future<void> _createTrayMenu() async {
     final Menu menu = Menu();
     await menu.buildFrom([
-      MenuItemLabel(
-        label: '显示窗口',
-        onClicked: (menuItem) => _showWindow(),
-      ),
+      MenuItemLabel(label: '显示窗口', onClicked: (menuItem) => _showWindow()),
       MenuSeparator(),
       MenuItemLabel(
         label: '通知设置',
@@ -133,6 +156,10 @@ class WindowsTrayService {
   /// 显示窗口
   Future<void> _showWindow() async {
     try {
+      final isMinimized = await windowManager.isMinimized();
+      if (isMinimized) {
+        await windowManager.restore();
+      }
       await windowManager.show();
       await windowManager.focus();
       _isBackgroundMode = false;
@@ -145,10 +172,10 @@ class WindowsTrayService {
   /// 启动课程提醒
   void startCourseReminder(ScheduleProvider provider) {
     if (!Platform.isWindows) return;
-    
+
     final courses = provider.courses;
     _notificationManager.startCourseCheck(courses);
-    
+
     debugPrint('🔔 Windows 课程提醒已启动');
   }
 
@@ -161,7 +188,7 @@ class WindowsTrayService {
   /// 进入后台模式（最小化到托盘）
   Future<void> enterBackgroundMode() async {
     if (!Platform.isWindows) return;
-    
+
     try {
       await windowManager.hide();
       _isBackgroundMode = true;
@@ -182,15 +209,14 @@ class WindowsTrayService {
   /// 清理资源
   Future<void> dispose() async {
     _notificationManager.stopCourseCheck();
-    
+
     if (_systemTray != null) {
       await _systemTray!.destroy();
     }
-    
+
     _isInitialized = false;
     _isBackgroundMode = false;
-    
+
     debugPrint('🧹 Windows 托盘服务已清理');
   }
 }
-

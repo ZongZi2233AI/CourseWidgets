@@ -277,14 +277,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       child: Column(
         children: [
           // 周次选择 - 动态获取可用周次
-          FutureBuilder<List<int>>(
-            future: provider.getAvailableWeeks(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          Builder(
+            builder: (context) {
+              final weeks = provider.availableWeeks;
+              if (weeks.isEmpty) {
                 return const SizedBox.shrink();
               }
               
-              final weeks = snapshot.data!;
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),

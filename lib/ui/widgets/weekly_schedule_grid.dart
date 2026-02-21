@@ -51,8 +51,8 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
   }
   
   /// [v2.2.1] 切换周次（带验证）
-  void _changeWeek(ScheduleProvider provider, int targetWeek) async {
-    final weeks = await provider.getAvailableWeeks();
+  void _changeWeek(ScheduleProvider provider, int targetWeek) { // Removed async
+    final weeks = provider.availableWeeks;
     if (weeks.isEmpty) return;
     
     // 限制周次范围，防止切换到第0周或负数周
@@ -65,8 +65,8 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
   }
   
   /// [v2.2.2] 显示周次选择器 - 使用底部菜单而非对话框
-  void _showWeekPicker(BuildContext context, ScheduleProvider provider) async {
-    final weeks = await provider.getAvailableWeeks();
+  void _showWeekPicker(BuildContext context, ScheduleProvider provider) { // Removed async
+    final weeks = provider.availableWeeks;
     if (weeks.isEmpty || !context.mounted) return;
     
     showModalBottomSheet(

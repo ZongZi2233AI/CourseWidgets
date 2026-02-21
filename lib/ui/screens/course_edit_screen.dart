@@ -12,9 +12,9 @@ import '../widgets/liquid_glass_pickers.dart';
 import '../widgets/liquid_toast.dart';
 
 class CourseEditScreen extends StatefulWidget {
-  final CourseEvent? course; 
-  final int? week; 
-  final int? day; 
+  final CourseEvent? course;
+  final int? week;
+  final int? day;
 
   const CourseEditScreen({super.key, this.course, this.week, this.day});
 
@@ -36,25 +36,36 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.course?.name ?? '');
-    _locationController = TextEditingController(text: widget.course?.location ?? '');
-    _teacherController = TextEditingController(text: widget.course?.teacher ?? '');
+    _locationController = TextEditingController(
+      text: widget.course?.location ?? '',
+    );
+    _teacherController = TextEditingController(
+      text: widget.course?.teacher ?? '',
+    );
     final now = DateTime.now();
     _selectedDate = now;
     _selectedDay = widget.day ?? now.weekday;
     _startTimeController = TextEditingController(text: '08:00');
     _endTimeController = TextEditingController(text: '09:40');
     if (widget.course != null) {
-       final start = DateTime.fromMillisecondsSinceEpoch(widget.course!.startTime);
-       final end = DateTime.fromMillisecondsSinceEpoch(widget.course!.endTime);
-       _selectedDate = start;
-       _selectedDay = widget.course!.weekday;
-       _startTimeController.text = '${start.hour.toString().padLeft(2,'0')}:${start.minute.toString().padLeft(2,'0')}';
-       _endTimeController.text = '${end.hour.toString().padLeft(2,'0')}:${end.minute.toString().padLeft(2,'0')}';
+      final start = DateTime.fromMillisecondsSinceEpoch(
+        widget.course!.startTime,
+      );
+      final end = DateTime.fromMillisecondsSinceEpoch(widget.course!.endTime);
+      _selectedDate = start;
+      _selectedDay = widget.course!.weekday;
+      _startTimeController.text =
+          '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}';
+      _endTimeController.text =
+          '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+
     return Scaffold(
       backgroundColor: Colors.transparent, // 必须透明
       body: LiquidGlassLayer(
@@ -69,20 +80,27 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
             SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     const LiquidBackButton(),
                     const SizedBox(width: 12),
                     Text(
                       widget.course == null ? '添加课程' : '编辑课程',
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            
+
             // Content
             Expanded(
               child: SingleChildScrollView(
@@ -93,32 +111,51 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionTitle('基本信息'),
-                      const SizedBox(height: 12),
-                      LiquidCard(
-                        borderRadius: 24,
-                        padding: 20,
-                        useFakeGlass: true, 
-                        glassColor: Colors.white.withValues(alpha: 0.02),
-                        child: Column(
-                          children: [
-                            LiquidInput(controller: _nameController, label: '课程名称', icon: CupertinoIcons.book, placeholder: '例如：高等数学'),
-                            const SizedBox(height: 20),
-                            LiquidInput(controller: _locationController, label: '上课地点', icon: CupertinoIcons.location, placeholder: '例如：教A-101'),
-                            const SizedBox(height: 20),
-                            LiquidInput(controller: _teacherController, label: '任课教师', icon: CupertinoIcons.person, placeholder: '例如：张教授'),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('时间信息'),
+                      _buildSectionTitle('基本信息', textColor),
                       const SizedBox(height: 12),
                       LiquidCard(
                         borderRadius: 24,
                         padding: 20,
                         useFakeGlass: true,
-                        glassColor: Colors.white.withValues(alpha: 0.02),
+                        glassColor: isDark
+                            ? Colors.white.withValues(alpha: 0.02)
+                            : Colors.black.withValues(alpha: 0.02),
+                        child: Column(
+                          children: [
+                            LiquidInput(
+                              controller: _nameController,
+                              label: '课程名称',
+                              icon: CupertinoIcons.book,
+                              placeholder: '例如：高等数学',
+                            ),
+                            const SizedBox(height: 20),
+                            LiquidInput(
+                              controller: _locationController,
+                              label: '上课地点',
+                              icon: CupertinoIcons.location,
+                              placeholder: '例如：教A-101',
+                            ),
+                            const SizedBox(height: 20),
+                            LiquidInput(
+                              controller: _teacherController,
+                              label: '任课教师',
+                              icon: CupertinoIcons.person,
+                              placeholder: '例如：张教授',
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('时间信息', textColor),
+                      const SizedBox(height: 12),
+                      LiquidCard(
+                        borderRadius: 24,
+                        padding: 20,
+                        useFakeGlass: true,
+                        glassColor: isDark
+                            ? Colors.white.withValues(alpha: 0.02)
+                            : Colors.black.withValues(alpha: 0.02),
                         child: Column(
                           children: [
                             Row(
@@ -131,23 +168,46 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                             const SizedBox(height: 20),
                             Row(
                               children: [
-                                Expanded(child: _buildTimeInput(_startTimeController, '开始')),
+                                Expanded(
+                                  child: _buildTimeInput(
+                                    _startTimeController,
+                                    '开始',
+                                    textColor,
+                                  ),
+                                ),
                                 const SizedBox(width: 16),
-                                Expanded(child: _buildTimeInput(_endTimeController, '结束')),
+                                Expanded(
+                                  child: _buildTimeInput(
+                                    _endTimeController,
+                                    '结束',
+                                    textColor,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 40),
                       Row(
                         children: [
                           if (widget.course != null)
-                            Expanded(child: LiquidButton(text: '删除', onTap: _deleteCourse, color: Colors.redAccent)),
-                          if (widget.course != null)
-                            const SizedBox(width: 16),
-                          Expanded(child: LiquidButton(text: '保存', onTap: _saveCourse, color: AppThemeColors.babyPink)),
+                            Expanded(
+                              child: LiquidButton(
+                                text: '删除',
+                                onTap: _deleteCourse,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          if (widget.course != null) const SizedBox(width: 16),
+                          Expanded(
+                            child: LiquidButton(
+                              text: '保存',
+                              onTap: _saveCourse,
+                              color: AppThemeColors.babyPink,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 40),
@@ -162,15 +222,26 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, Color textColor) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: textColor,
+        ),
+      ),
     );
   }
 
   // [v2.1.7] 使用GlassTextField替代LiquidInput用于时间输入
-  Widget _buildTimeInput(TextEditingController controller, String label) {
+  Widget _buildTimeInput(
+    TextEditingController controller,
+    String label,
+    Color textColor,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -179,7 +250,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
           child: Text(
             label,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
+              color: textColor.withValues(alpha: 0.7),
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -199,7 +270,8 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     return LiquidInput(
       label: '日期',
       icon: CupertinoIcons.calendar,
-      valueText: '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
+      valueText:
+          '${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}',
       onTap: () async {
         final date = await showLiquidGlassDatePicker(
           context: context,
@@ -229,10 +301,10 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
       },
     );
   }
-  
+
   Future<void> _saveCourse() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     // 解析时间
     final startTimeParts = _startTimeController.text.split(':');
     final endTimeParts = _endTimeController.text.split(':');
@@ -240,26 +312,41 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
       LiquidToast.error(context, '时间格式错误，请使用 HH:MM 格式');
       return;
     }
-    
+
     final startHour = int.tryParse(startTimeParts[0]);
     final startMinute = int.tryParse(startTimeParts[1]);
     final endHour = int.tryParse(endTimeParts[0]);
     final endMinute = int.tryParse(endTimeParts[1]);
-    
-    if (startHour == null || startMinute == null || endHour == null || endMinute == null) {
+
+    if (startHour == null ||
+        startMinute == null ||
+        endHour == null ||
+        endMinute == null) {
       LiquidToast.error(context, '时间格式错误');
       return;
     }
-    
+
     // 创建时间戳
-    final startTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, startHour, startMinute);
-    final endTime = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, endHour, endMinute);
-    
+    final startTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      startHour,
+      startMinute,
+    );
+    final endTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      endHour,
+      endMinute,
+    );
+
     if (endTime.isBefore(startTime)) {
       LiquidToast.error(context, '结束时间必须晚于开始时间');
       return;
     }
-    
+
     final course = CourseEvent(
       id: widget.course?.id ?? DateTime.now().millisecondsSinceEpoch,
       name: _nameController.text,
@@ -268,9 +355,9 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
       startTime: startTime.millisecondsSinceEpoch,
       endTime: endTime.millisecondsSinceEpoch,
     );
-    
+
     final db = await DatabaseHelper.instance.database;
-    
+
     try {
       if (widget.course == null) {
         await db.insert('courses', course.toMap());
@@ -284,7 +371,12 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
           });
         }
       } else {
-        await db.update('courses', course.toMap(), where: 'id = ?', whereArgs: [course.id]);
+        await db.update(
+          'courses',
+          course.toMap(),
+          where: 'id = ?',
+          whereArgs: [course.id],
+        );
         HapticFeedback.mediumImpact();
         if (mounted) {
           LiquidToast.success(context, '课程更新成功');
@@ -301,10 +393,10 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
       }
     }
   }
-  
+
   Future<void> _deleteCourse() async {
     if (widget.course == null) return;
-    
+
     // 确认删除
     final confirm = await showDialog<bool>(
       context: context,
@@ -324,13 +416,17 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
         ],
       ),
     );
-    
+
     if (confirm != true) return;
-    
+
     try {
       final db = await DatabaseHelper.instance.database;
-      await db.delete('courses', where: 'id = ?', whereArgs: [widget.course!.id]);
-      
+      await db.delete(
+        'courses',
+        where: 'id = ?',
+        whereArgs: [widget.course!.id],
+      );
+
       HapticFeedback.mediumImpact();
       if (mounted) {
         LiquidToast.success(context, '课程已删除');

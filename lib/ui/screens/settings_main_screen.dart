@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../constants/theme_constants.dart';
 import '../../utils/responsive_utils.dart';
 import 'new_settings_screen.dart'; 
@@ -84,57 +85,66 @@ class _SettingsMainScreenState extends State<SettingsMainScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    // [v2.3.0修复] 使用 GestureDetector 包裹整个卡片，确保点击区域覆盖整个卡片
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque, // 确保整个区域可点击
-      child: liquid.LiquidCard(
-        borderRadius: 24,
-        padding: 20,
-        glassColor: Colors.white.withValues(alpha: 0.04),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    color.withValues(alpha: 0.8),
-                    color.withValues(alpha: 0.4),
-                  ],
+    // [v2.4.0] 使用 Material + InkWell 实现水波纹和触控反馈
+    return liquid.LiquidCard(
+      borderRadius: 24,
+      padding: 0, // 移除内边距，由内部的一级容器控制，以便水波纹填满
+      glassColor: Colors.white.withValues(alpha: 0.04),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            HapticFeedback.lightImpact(); // [v2.4.0] 添加触控震动
+            onTap();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        color.withValues(alpha: 0.8),
+                        color.withValues(alpha: 0.4),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 26),
                 ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(icon, color: Colors.white, size: 26),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: _textColor,
-                    ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: _textColor,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white60,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white60,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: Colors.white30),
+              ],
             ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.white30),
-          ],
+          ),
         ),
       ),
     );

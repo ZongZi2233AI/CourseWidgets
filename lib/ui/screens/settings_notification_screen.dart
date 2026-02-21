@@ -11,16 +11,19 @@ class SettingsNotificationScreen extends StatefulWidget {
   const SettingsNotificationScreen({super.key});
 
   @override
-  State<SettingsNotificationScreen> createState() => _SettingsNotificationScreenState();
+  State<SettingsNotificationScreen> createState() =>
+      _SettingsNotificationScreenState();
 }
 
-class _SettingsNotificationScreenState extends State<SettingsNotificationScreen> {
+class _SettingsNotificationScreenState
+    extends State<SettingsNotificationScreen> {
   final NotificationManager _notificationManager = NotificationManager();
-  
+
   bool _notificationEnabled = true;
   int _advanceMinutes = 15;
   bool _doubleReminder = true;
-  
+  bool _liveActivitiesEnabled = true;
+
   final List<int> _advanceOptions = [5, 10, 15, 20, 30];
 
   @override
@@ -34,6 +37,7 @@ class _SettingsNotificationScreenState extends State<SettingsNotificationScreen>
       _notificationEnabled = _notificationManager.isNotificationEnabled;
       _advanceMinutes = _notificationManager.getAdvanceMinutes();
       _doubleReminder = _notificationManager.isDoubleReminderEnabled;
+      _liveActivitiesEnabled = _notificationManager.isLiveActivitiesEnabled;
     });
   }
 
@@ -64,7 +68,7 @@ class _SettingsNotificationScreenState extends State<SettingsNotificationScreen>
               ),
             ),
           ),
-          
+
           // Content
           Expanded(
             child: ListView(
@@ -82,14 +86,14 @@ class _SettingsNotificationScreenState extends State<SettingsNotificationScreen>
                     await _notificationManager.setNotificationEnabled(value);
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // 提前通知时间
                 _buildAdvanceTimeCard(),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // 双次提醒
                 _buildSwitchCard(
                   title: '双次提醒',
@@ -101,12 +105,27 @@ class _SettingsNotificationScreenState extends State<SettingsNotificationScreen>
                     await _notificationManager.setDoubleReminder(value);
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
+                // Live Activities 开关
+                _buildSwitchCard(
+                  title: '开启实况通知 (Live Activities)',
+                  subtitle:
+                      'Android 16 实时活动 (Live Update) 与 iOS 灵动岛 (Live Activities) 支持',
+                  icon: CupertinoIcons.sparkles,
+                  value: _liveActivitiesEnabled,
+                  onChanged: (value) async {
+                    setState(() => _liveActivitiesEnabled = value);
+                    await _notificationManager.setLiveActivitiesEnabled(value);
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
                 // Live Activities 说明
                 _buildInfoCard(),
-                
+
                 const SizedBox(height: 100),
               ],
             ),
@@ -200,7 +219,11 @@ class _SettingsNotificationScreenState extends State<SettingsNotificationScreen>
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(CupertinoIcons.clock_fill, color: Colors.white, size: 24),
+                child: const Icon(
+                  CupertinoIcons.clock_fill,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -253,7 +276,9 @@ class _SettingsNotificationScreenState extends State<SettingsNotificationScreen>
                     style: TextStyle(
                       color: isSelected ? Colors.white : Colors.white70,
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -293,10 +318,9 @@ class _SettingsNotificationScreenState extends State<SettingsNotificationScreen>
           ),
           const SizedBox(height: 12),
           Text(
-            'Android 14+ 和 iOS/iPadOS/macOS 设备支持 Live Activities 功能，可以在通知栏实时显示课程倒计时。\n\n'
-            '• 上课前：显示距离上课的倒计时\n'
-            '• 上课中：自动切换为下课倒计时\n'
-            '• 实时更新：每分钟自动刷新',
+            '支持 Android 16 (Live Updates) 和 iOS/iPadOS 16.1+、macOS 设备的主屏幕实况通知，可以在锁屏及通知栏实时显示课程倒计时。\n\n'
+            '• 实时更新：显示距离上课/下课的实时倒计时\n'
+            '• 开启此功能后：若你的系统或 OEM 厂商支持，将优先展示动态面板。',
             style: TextStyle(
               fontSize: 13,
               color: GlassSettingsHelper.getSecondaryTextColor(),

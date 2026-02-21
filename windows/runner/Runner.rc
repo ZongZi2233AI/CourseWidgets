@@ -63,13 +63,13 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 #if defined(FLUTTER_VERSION_MAJOR) && defined(FLUTTER_VERSION_MINOR) && defined(FLUTTER_VERSION_PATCH) && defined(FLUTTER_VERSION_BUILD)
 #define VERSION_AS_NUMBER FLUTTER_VERSION_MAJOR,FLUTTER_VERSION_MINOR,FLUTTER_VERSION_PATCH,FLUTTER_VERSION_BUILD
 #else
-#define VERSION_AS_NUMBER 2,2,0,0
+#define VERSION_AS_NUMBER 2,4,0,0
 #endif
 
 #if defined(FLUTTER_VERSION)
 #define VERSION_AS_STRING FLUTTER_VERSION
 #else
-#define VERSION_AS_STRING "2.2.0"
+#define VERSION_AS_STRING "2.4.0"
 #endif
 
 VS_VERSION_INFO VERSIONINFO
@@ -89,12 +89,12 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "CourseWidgets" "\0"
-            VALUE "FileDescription", "大学课程表应用 - 智能管理您的课程安排" "\0"
+            VALUE "CompanyName", "com.example" "\0"
+            VALUE "FileDescription", "coursewidgets" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "CourseWidgets" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 CourseWidgets. All rights reserved." "\0"
-            VALUE "OriginalFilename", "CourseWidgets.exe" "\0"
+            VALUE "InternalName", "coursewidgets" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
+            VALUE "OriginalFilename", "coursewidgets.exe" "\0"
             VALUE "ProductName", "CourseWidgets" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
