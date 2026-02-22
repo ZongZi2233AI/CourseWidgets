@@ -14,7 +14,7 @@
 
 
 </div>
-Made With XiaomiMiMoV2FLASH(https://github.com/XiaomiMiMo/MiMo-V2-Flash)
+Made With [XiaomiMiMoV2Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash)
 
 ## 声明：本软件除开源代码外完全使用MiMo-V2-Flash开发（几乎本文档和license也由ai构建），Windows部分使用Claude Sonnet 4.5开发，图标和部分复杂实现指导使用Gemini3.0Pro，并在2.4之后的版本转向完全由Gemini3.1Pro构建开发
 
