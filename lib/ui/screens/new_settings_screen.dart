@@ -8,6 +8,7 @@ import '../../constants/theme_constants.dart';
 import 'android_schedule_config_screen.dart';
 import 'course_edit_screen.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import '../transitions/smooth_slide_transitions.dart';
 import '../widgets/liquid_glass_pickers.dart';
 
 class NewSettingsScreen extends StatefulWidget {
@@ -35,17 +36,27 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
             SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     const liquid.LiquidBackButton(),
                     const SizedBox(width: 8),
-                    Text('课程设置', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _textColor)),
+                    Text(
+                      '课程设置',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: _textColor,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            
+
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(16),
@@ -59,9 +70,16 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
                     color: AppThemeColors.babyPink,
                     onTap: () {
                       final provider = context.read<ScheduleProvider>();
-                      Navigator.push(context, CupertinoPageRoute(
-                        builder: (_) => CourseEditScreen(week: provider.currentWeek, day: provider.currentDay)
-                      ));
+                      Navigator.push(
+                        context,
+                        TransparentMaterialPageRoute(
+                          builder:
+                              (_) => CourseEditScreen(
+                                week: provider.currentWeek,
+                                day: provider.currentDay,
+                              ),
+                        ),
+                      );
                     },
                   ),
                   _buildSettingCard(
@@ -69,9 +87,15 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
                     subtitle: '调整每节课的时间',
                     icon: CupertinoIcons.time,
                     color: AppThemeColors.softCoral,
-                    onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (_) => const AndroidScheduleConfigScreen())),
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          TransparentMaterialPageRoute(
+                            builder: (_) => const AndroidScheduleConfigScreen(),
+                          ),
+                        ),
                   ),
-                  
+
                   const SizedBox(height: 24),
                   _buildSectionTitle('学期设置'),
                   _buildSettingCard(
@@ -112,11 +136,11 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
   }
 
   Widget _buildSettingCard({
-    required String title, 
-    required String subtitle, 
-    required IconData icon, 
+    required String title,
+    required String subtitle,
+    required IconData icon,
     required Color color,
-    required VoidCallback onTap
+    required VoidCallback onTap,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -128,7 +152,8 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
         child: Row(
           children: [
             Container(
-              width: 48, height: 48,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [color, color.withOpacity(0.6)],
@@ -137,7 +162,11 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
                 ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
-                  BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4)),
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
               child: Icon(icon, color: Colors.white, size: 24),
@@ -147,13 +176,26 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _textColor)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _textColor,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: TextStyle(fontSize: 12, color: _textSecondaryColor)),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 12, color: _textSecondaryColor),
+                  ),
                 ],
               ),
             ),
-            Icon(CupertinoIcons.right_chevron, color: _textSecondaryColor.withOpacity(0.5)),
+            Icon(
+              CupertinoIcons.right_chevron,
+              color: _textSecondaryColor.withOpacity(0.5),
+            ),
           ],
         ),
       ),
@@ -162,12 +204,12 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
 
   Future<void> _pickSemesterStartDate() async {
     final provider = context.read<ScheduleProvider>();
-    
+
     final selectedDate = await showLiquidGlassCalendarPicker(
       context: context,
       initialDate: provider.semesterStartDate,
     );
-    
+
     if (selectedDate != null) {
       provider.setSemesterStartDate(selectedDate);
     }
@@ -183,12 +225,22 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
           height: 200,
           child: CupertinoPicker(
             itemExtent: 40,
-            scrollController: FixedExtentScrollController(initialItem: provider.currentWeek - 1),
+            scrollController: FixedExtentScrollController(
+              initialItem: provider.currentWeek - 1,
+            ),
             onSelectedItemChanged: (index) {
               HapticFeedback.selectionClick(); // 微振动
               provider.setCurrentWeek(index + 1);
             },
-            children: List.generate(25, (index) => Center(child: Text('第 ${index + 1} 周', style: const TextStyle(color: Colors.white)))),
+            children: List.generate(
+              25,
+              (index) => Center(
+                child: Text(
+                  '第 ${index + 1} 周',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
           ),
         ),
       ),

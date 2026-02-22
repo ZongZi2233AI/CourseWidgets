@@ -19,14 +19,35 @@ class WindowsCustomWindow extends StatefulWidget {
 }
 
 class _WindowsCustomWindowState extends State<WindowsCustomWindow>
-    with WindowListener {
+    with WindowListener, TickerProviderStateMixin {
   int _selectedIndex = 0;
   bool _isMaximized = false;
+
+  // [v2.4.8] 自定义窗口动画控制器 — macOS Tahoe 风格
+  late AnimationController _windowAnimController;
+  late Animation<double> _scaleAnim;
+  late Animation<double> _opacityAnim;
 
   @override
   void initState() {
     super.initState();
     windowManager.addListener(this);
+
+    // [v2.4.8] 初始化窗口动画
+    _windowAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.85).animate(
+      CurvedAnimation(
+        parent: _windowAnimController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+    _opacityAnim = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _windowAnimController, curve: Curves.easeInCubic),
+    );
+
     _initWindow();
 
     // [v2.3.0修复] 初始化托盘服务并启动课程提醒
@@ -61,17 +82,15 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     // 设置最小窗口大小
     await windowManager.setMinimumSize(const Size(800, 600));
 
-    // [v2.2.8修复] 启用窗口动画 - 设置窗口属性
-    // [v2.3.2修复] 移除 setAsFrameless，使用 TitleBarStyle.hidden 保留原生动画
-    // await windowManager.setAsFrameless();
+    // [v2.4.8] 确保使用 TitleBarStyle.hidden 而非 setAsFrameless
+    // hidden 保留系统 DWM 窗口动画（最大化/最小化/还原）
+    // setAsFrameless 完全移除窗口边框，导致 DWM 无法触发动画
+    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
     await windowManager.setHasShadow(true);
 
-    // [v2.2.8修复] 尝试启用窗口动画效果
-    // 注意：window_manager 本身不提供动画API，动画由系统DWM控制
-    // 确保窗口不是完全透明，这样系统才能正确渲染动画
-    await windowManager.setBackgroundColor(
-      Colors.black.withValues(alpha: 0.01),
-    );
+    // [v2.4.8] 使用不透明黑色背景，让 DWM 有足够内容来渲染动画
+    // alpha: 0.01 太透明会导致 DWM 动画看不到效果
+    await windowManager.setBackgroundColor(Colors.black);
 
     // 强制设置窗口大小和位置
     await windowManager.setSize(const Size(1024, 768));
@@ -88,6 +107,7 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
 
   @override
   void dispose() {
+    _windowAnimController.dispose();
     windowManager.removeListener(this);
     super.dispose();
   }
@@ -118,13 +138,19 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     debugPrint('🌙 窗口已最小化到托盘，进程继续运行');
   }
 
+  // [v2.4.8] 自定义最小化动画 — 缩小 + 淡出 → 最小化
+  void _animatedMinimize() async {
+    await _windowAnimController.forward();
+    await windowManager.minimize();
+    // 恢复动画状态，等窗口恢复时立即可见
+    _windowAnimController.reset();
+  }
+
+  // [v2.4.8] 自定义最大化/还原动画
   void _handleMaximize() async {
     if (_isMaximized) {
       await windowManager.unmaximize();
     } else {
-      // 避免全屏遮盖任务栏，所以我们显式获取屏幕可见工作区并设置窗口边界
-      // window_manager 在 macOS/Windows 有 getBounds 获取可用区域
-      // 但对于 frameless 窗口最安全的做法是直接调用最大化，如果依然遮盖，则手动 setBounds
       await windowManager.maximize();
     }
   }
@@ -141,32 +167,39 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: AnimatedContainer(
-          // [v2.2.8修复] 添加动画过渡，平滑最大化/还原效果
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          decoration: BoxDecoration(
-            // [v2.2.8修复] 确保窗口有可见的背景色
-            color: Colors.black.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
-          child: Column(
-            children: [
-              _buildTitleBar(),
-              Expanded(
-                child: Row(
-                  children: [
-                    _buildSidebar(),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: _buildContent(),
+        body: AnimatedBuilder(
+          animation: _windowAnimController,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _scaleAnim.value,
+              child: Opacity(opacity: _opacityAnim.value, child: child),
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Column(
+              children: [
+                _buildTitleBar(),
+                Expanded(
+                  child: Row(
+                    children: [
+                      _buildSidebar(),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: _buildContent(),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -199,7 +232,10 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
             ),
             const Spacer(),
             // 自定义窗口按钮
-            _buildWindowButton(Icons.remove, () => windowManager.minimize()),
+            _buildWindowButton(
+              Icons.remove,
+              _animatedMinimize,
+            ), // [v2.4.8] 动画最小化
             _buildWindowButton(
               _isMaximized ? Icons.filter_none : Icons.crop_square,
               _handleMaximize,
@@ -274,9 +310,10 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
       height: 48,
       style: GlassButtonStyle.filled,
       settings: LiquidGlassSettings(
-        glassColor: isSelected
-            ? AppThemeColors.babyPink.withValues(alpha: 0.3)
-            : Colors.white.withValues(alpha: 0.05),
+        glassColor:
+            isSelected
+                ? AppThemeColors.babyPink.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.05),
         blur: 0,
       ),
       shape: LiquidRoundedSuperellipse(borderRadius: 12),

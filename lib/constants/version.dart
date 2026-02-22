@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// 当前版本：[v2.4.2] Features: Predictive Back, Glass Styles, Haptics, OOM Fix, Windows Polish
-const String appVersion = '2.4.2';
-const int buildNumber = 10002402;
+/// 当前版本：[v2.4.9] Live Update, Windows UX, Animation Curves
+const String appVersion = '2.4.9';
+const int buildNumber = 10002409;
 const String copyright = '© 2025-2026 CourseWidgets. All rights reserved.';
 
 // 全局状态

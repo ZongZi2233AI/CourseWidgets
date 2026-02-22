@@ -13,6 +13,7 @@ import 'course_edit_screen.dart';
 import 'calendar_view_screen.dart';
 import 'settings_main_screen.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import '../transitions/smooth_slide_transitions.dart';
 import '../widgets/glass_context_menu.dart';
 import '../widgets/tablet_sidebar.dart';
 import '../widgets/weekly_schedule_grid.dart';
@@ -184,22 +185,12 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
             HapticFeedback.selectionClick();
             setState(() => _currentIndex = index);
           },
-          glassSettings: Theme.of(context).brightness == Brightness.light
-              ? LiquidGlassSettings(
-                  // [v2.4.1] 真正的 iOS 26 乳白色毛玻璃
-                  glassColor: Colors.white.withValues(alpha: 0.1),
-                  blur: 40.0,
-                  thickness: 25.0,
-                  refractiveIndex: 1.5,
-                )
-              : LiquidGlassSettings(
-                  // Dark Mode Style
-                  glassColor: Colors.black.withValues(alpha: 0.4),
-                  blur: 30,
-                  thickness: 25,
-                  refractiveIndex: 2.0,
-                ),
-          quality: GlassQuality.premium, // [v2.3.3] 恢复高质量渲染
+          // [v2.4.8] 显式设置导航栏玻璃参数 — 低模糊 + 高厚度以显示折射
+          glassSettings: LiquidGlassSettings(
+            blur: 3, // 低模糊 — 减少 GPU 负载且折射更清晰
+            thickness: 30, // 高厚度 — 让折射效果可见
+            refractiveIndex: 1.59, // 标准折射率 — API 推荐值
+          ),
           indicatorColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
           tabs: [
             GlassBottomBarTab(
@@ -227,148 +218,159 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
   // [修复4] 周次和星期选择器移到底部（导航栏上方）
   Widget _buildWeekAndDaySelectorWrapper() {
     return Consumer<ScheduleProvider>(
-      builder: (context, provider, _) => Container(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 周次选择 - 横向滚动
-            SizedBox(
-              height: 44,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                itemCount: provider.availableWeeks.length,
-                itemBuilder: (context, index) {
-                  final week = provider.availableWeeks[index];
-                  final isSelected = week == provider.currentWeek;
-                  // [v2.1.8修复3] 使用 Container + BoxShadow 实现圆形光晕
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Container(
-                      decoration: isSelected
-                          ? BoxDecoration(
-                              borderRadius: BorderRadius.circular(100),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppThemeColors.babyPink.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                  blurRadius: 20,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            )
-                          : null,
-                      child: GlassButton.custom(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          provider.setCurrentWeek(week);
-                        },
-                        width: 80,
-                        height: 44,
-                        style: GlassButtonStyle.filled,
-                        settings: LiquidGlassSettings(
-                          glassColor: isSelected
-                              ? AppThemeColors.babyPink.withValues(alpha: 0.3)
-                              : Colors.white.withValues(alpha: 0.05),
-                          blur: 0,
-                          thickness: 10,
-                        ),
-                        shape: LiquidRoundedSuperellipse(
-                          borderRadius: 100,
-                        ), // 超椭圆确保圆形光晕
-                        child: Center(
-                          child: Text(
-                            '第$week周',
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.white70,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            // [v2.1.8修复6] 星期选择 - 添加模糊效果
-            GlassPanel(
-              shape: LiquidRoundedSuperellipse(
-                borderRadius: 24,
-              ), // [v2.1.8] 使用shape设置圆角
-              padding: const EdgeInsets.all(8),
-              settings: LiquidGlassSettings(
-                glassColor: Colors.white.withValues(alpha: 0.03),
-                blur: 12, // 添加背景模糊
-                thickness: 0.6,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(7, (index) {
-                  final day = index + 1;
-                  final isSelected = day == provider.currentDay;
-                  return Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Container(
-                        decoration: isSelected
-                            ? BoxDecoration(
-                                borderRadius: BorderRadius.circular(18),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppThemeColors.softCoral.withValues(
-                                      alpha: 0.4,
-                                    ),
-                                    blurRadius: 16,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                              )
-                            : null,
-                        child: GlassButton.custom(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            provider.setCurrentDay(day);
-                          },
-                          width: double.infinity,
-                          height: 48,
-                          style: GlassButtonStyle.filled,
-                          settings: LiquidGlassSettings(
-                            glassColor: isSelected
-                                ? AppThemeColors.softCoral.withValues(
-                                    alpha: 0.3,
+      builder:
+          (context, provider, _) => Container(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 周次选择 - 横向滚动
+                SizedBox(
+                  height: 44,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    itemCount: provider.availableWeeks.length,
+                    itemBuilder: (context, index) {
+                      final week = provider.availableWeeks[index];
+                      final isSelected = week == provider.currentWeek;
+                      // [v2.1.8修复3] 使用 Container + BoxShadow 实现圆形光晕
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Container(
+                          decoration:
+                              isSelected
+                                  ? BoxDecoration(
+                                    borderRadius: BorderRadius.circular(100),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppThemeColors.babyPink
+                                            .withValues(alpha: 0.4),
+                                        blurRadius: 20,
+                                        spreadRadius: 2,
+                                      ),
+                                    ],
                                   )
-                                : Colors.white.withValues(alpha: 0.05),
-                            blur: 0,
-                            thickness: 10,
-                          ),
-                          shape: LiquidRoundedSuperellipse(borderRadius: 18),
-                          child: Center(
-                            child: Text(
-                              ['一', '二', '三', '四', '五', '六', '日'][index],
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.white60,
+                                  : null,
+                          child: GlassButton.custom(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              provider.setCurrentWeek(week);
+                            },
+                            width: 80,
+                            height: 44,
+                            style: GlassButtonStyle.filled,
+                            settings: LiquidGlassSettings(
+                              glassColor:
+                                  isSelected
+                                      ? AppThemeColors.babyPink.withValues(
+                                        alpha: 0.3,
+                                      )
+                                      : Colors.white.withValues(alpha: 0.05),
+                              blur: 0,
+                              thickness: 10,
+                            ),
+                            shape: LiquidRoundedSuperellipse(
+                              borderRadius: 100,
+                            ), // 超椭圆确保圆形光晕
+                            child: Center(
+                              child: Text(
+                                '第$week周',
+                                style: TextStyle(
+                                  color:
+                                      isSelected
+                                          ? Colors.white
+                                          : Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // [v2.1.8修复6] 星期选择 - 添加模糊效果
+                GlassPanel(
+                  shape: LiquidRoundedSuperellipse(
+                    borderRadius: 24,
+                  ), // [v2.1.8] 使用shape设置圆角
+                  padding: const EdgeInsets.all(8),
+                  settings: LiquidGlassSettings(
+                    glassColor: Colors.white.withValues(alpha: 0.03),
+                    blur: 12, // 添加背景模糊
+                    thickness: 0.6,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(7, (index) {
+                      final day = index + 1;
+                      final isSelected = day == provider.currentDay;
+                      return Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: Container(
+                            decoration:
+                                isSelected
+                                    ? BoxDecoration(
+                                      borderRadius: BorderRadius.circular(18),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppThemeColors.softCoral
+                                              .withValues(alpha: 0.4),
+                                          blurRadius: 16,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    )
+                                    : null,
+                            child: GlassButton.custom(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                provider.setCurrentDay(day);
+                              },
+                              width: double.infinity,
+                              height: 48,
+                              style: GlassButtonStyle.filled,
+                              settings: LiquidGlassSettings(
+                                glassColor:
+                                    isSelected
+                                        ? AppThemeColors.softCoral.withValues(
+                                          alpha: 0.3,
+                                        )
+                                        : Colors.white.withValues(alpha: 0.05),
+                                blur: 0,
+                                thickness: 10,
+                              ),
+                              shape: LiquidRoundedSuperellipse(
+                                borderRadius: 18,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  ['一', '二', '三', '四', '五', '六', '日'][index],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : Colors.white60,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -546,9 +548,9 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                CupertinoPageRoute(
-                                  builder: (_) =>
-                                      CourseEditScreen(course: course),
+                                TransparentMaterialPageRoute(
+                                  builder:
+                                      (_) => CourseEditScreen(course: course),
                                 ),
                               );
                             },

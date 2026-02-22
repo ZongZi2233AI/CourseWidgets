@@ -12,6 +12,7 @@ import 'course_edit_screen.dart';
 import 'windows_custom_window.dart';
 import 'calendar_view_screen.dart';
 import 'settings_about_screen.dart';
+import '../transitions/smooth_slide_transitions.dart';
 
 // 常量定义
 const String appName = "CourseWidgets";
@@ -99,17 +100,18 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
   void _showCupertinoAlert(String title, String content) {
     showCupertinoDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
+      builder:
+          (context) => CupertinoAlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(context),
+                child: const Text('确定'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -160,13 +162,14 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
             backgroundColor: CupertinoColors.systemBackground,
           ),
           child: SafeArea(
-            child: provider.isLoading
-                ? const Center(child: CupertinoActivityIndicator())
-                : provider.errorMessage != null
-                ? _buildErrorView(provider)
-                : provider.hasData
-                ? _buildScheduleView(provider)
-                : _buildEmptyView(provider),
+            child:
+                provider.isLoading
+                    ? const Center(child: CupertinoActivityIndicator())
+                    : provider.errorMessage != null
+                    ? _buildErrorView(provider)
+                    : provider.hasData
+                    ? _buildScheduleView(provider)
+                    : _buildEmptyView(provider),
           ),
         );
       },
@@ -265,21 +268,23 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                     onPressed: () async {
                       final confirm = await showCupertinoDialog<bool>(
                         context: context,
-                        builder: (context) => CupertinoAlertDialog(
-                          title: const Text('确认清除'),
-                          content: const Text('确定要清除所有课表数据吗？'),
-                          actions: [
-                            CupertinoDialogAction(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('取消'),
+                        builder:
+                            (context) => CupertinoAlertDialog(
+                              title: const Text('确认清除'),
+                              content: const Text('确定要清除所有课表数据吗？'),
+                              actions: [
+                                CupertinoDialogAction(
+                                  onPressed:
+                                      () => Navigator.pop(context, false),
+                                  child: const Text('取消'),
+                                ),
+                                CupertinoDialogAction(
+                                  isDestructiveAction: true,
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('确定'),
+                                ),
+                              ],
                             ),
-                            CupertinoDialogAction(
-                              isDestructiveAction: true,
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('确定'),
-                            ),
-                          ],
-                        ),
                       );
 
                       if (confirm == true) {
@@ -320,11 +325,12 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        CupertinoPageRoute(
-                          builder: (context) => CourseEditScreen(
-                            week: provider.currentWeek,
-                            day: provider.currentDay,
-                          ),
+                        TransparentMaterialPageRoute(
+                          builder:
+                              (context) => CourseEditScreen(
+                                week: provider.currentWeek,
+                                day: provider.currentDay,
+                              ),
                         ),
                       );
                     },
@@ -362,8 +368,8 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                       }
                       // 使用历史记录导出ICS
                       final dataImportService = DataImportService();
-                      final activeSchedule = await dataImportService
-                          .getActiveSchedule();
+                      final activeSchedule =
+                          await dataImportService.getActiveSchedule();
                       if (activeSchedule != null) {
                         final result = await dataImportService
                             .exportHistoryToIcs(activeSchedule['id']);
@@ -397,9 +403,9 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        CupertinoPageRoute(
-                          builder: (context) =>
-                              const AndroidScheduleConfigScreen(),
+                        TransparentMaterialPageRoute(
+                          builder:
+                              (context) => const AndroidScheduleConfigScreen(),
                         ),
                       );
                     },
@@ -423,7 +429,7 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        CupertinoPageRoute(
+                        TransparentMaterialPageRoute(
                           builder: (context) => const SettingsAboutScreen(),
                         ),
                       );
@@ -462,16 +468,18 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: isDestructive
-                    ? CupertinoColors.systemRed.withValues(alpha: 0.1)
-                    : CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                color:
+                    isDestructive
+                        ? CupertinoColors.systemRed.withValues(alpha: 0.1)
+                        : CupertinoColors.systemBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
-                color: isDestructive
-                    ? CupertinoColors.systemRed
-                    : CupertinoColors.systemBlue,
+                color:
+                    isDestructive
+                        ? CupertinoColors.systemRed
+                        : CupertinoColors.systemBlue,
                 size: 20,
               ),
             ),
@@ -485,9 +493,10 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isDestructive
-                          ? CupertinoColors.systemRed
-                          : CupertinoColors.label,
+                      color:
+                          isDestructive
+                              ? CupertinoColors.systemRed
+                              : CupertinoColors.label,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -522,46 +531,47 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
 
     showCupertinoDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('学期配置'),
-        content: Column(
-          children: [
-            const SizedBox(height: 8),
-            CupertinoTextField(
-              controller: dateController,
-              placeholder: '2025-09-01',
-              keyboardType: TextInputType.datetime,
+      builder:
+          (context) => CupertinoAlertDialog(
+            title: const Text('学期配置'),
+            content: Column(
+              children: [
+                const SizedBox(height: 8),
+                CupertinoTextField(
+                  controller: dateController,
+                  placeholder: '2025-09-01',
+                  keyboardType: TextInputType.datetime,
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('取消'),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () {
+                  try {
+                    final parts = dateController.text.split('-');
+                    if (parts.length == 3) {
+                      final date = DateTime(
+                        int.parse(parts[0]),
+                        int.parse(parts[1]),
+                        int.parse(parts[2]),
+                      );
+                      provider.setSemesterStartDate(date);
+                      Navigator.pop(context);
+                      _showCupertinoAlert('配置已更新', '学期开始日期已保存');
+                    }
+                  } catch (e) {
+                    _showCupertinoAlert('错误', '日期格式错误，请使用 YYYY-MM-DD');
+                  }
+                },
+                child: const Text('保存'),
+              ),
+            ],
           ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () {
-              try {
-                final parts = dateController.text.split('-');
-                if (parts.length == 3) {
-                  final date = DateTime(
-                    int.parse(parts[0]),
-                    int.parse(parts[1]),
-                    int.parse(parts[2]),
-                  );
-                  provider.setSemesterStartDate(date);
-                  Navigator.pop(context);
-                  _showCupertinoAlert('配置已更新', '学期开始日期已保存');
-                }
-              } catch (e) {
-                _showCupertinoAlert('错误', '日期格式错误，请使用 YYYY-MM-DD');
-              }
-            },
-            child: const Text('保存'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -571,156 +581,165 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
 
     showCupertinoDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('课程表历史记录'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 300,
-          child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: dataImportService.getAllHistory(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CupertinoActivityIndicator());
-              }
+      builder:
+          (context) => CupertinoAlertDialog(
+            title: const Text('课程表历史记录'),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 300,
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: dataImportService.getAllHistory(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CupertinoActivityIndicator());
+                  }
 
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        CupertinoIcons.clock,
-                        size: 40,
-                        color: CupertinoColors.systemGrey,
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            CupertinoIcons.clock,
+                            size: 40,
+                            color: CupertinoColors.systemGrey,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            '暂无历史记录',
+                            style: TextStyle(color: CupertinoColors.systemGrey),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        '暂无历史记录',
-                        style: TextStyle(color: CupertinoColors.systemGrey),
-                      ),
-                    ],
-                  ),
-                );
-              }
+                    );
+                  }
 
-              final history = snapshot.data!;
-              final activeSchedule = history.firstWhere(
-                (item) => item['is_active'] == 1,
-                orElse: () => {},
-              );
-
-              return ListView.builder(
-                itemCount: history.length,
-                itemBuilder: (context, index) {
-                  final item = history[index];
-                  final isActive = item['id'] == activeSchedule['id'];
-                  final createdAt = DateTime.fromMillisecondsSinceEpoch(
-                    item['created_at'],
+                  final history = snapshot.data!;
+                  final activeSchedule = history.firstWhere(
+                    (item) => item['is_active'] == 1,
+                    orElse: () => {},
                   );
 
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemBackground,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: CupertinoColors.systemGrey5),
-                    ),
-                    child: CupertinoButton(
-                      padding: const EdgeInsets.all(12),
-                      onPressed: null,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['name'],
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                    color: isActive
-                                        ? CupertinoColors.systemBlue
-                                        : CupertinoColors.label,
-                                  ),
+                  return ListView.builder(
+                    itemCount: history.length,
+                    itemBuilder: (context, index) {
+                      final item = history[index];
+                      final isActive = item['id'] == activeSchedule['id'];
+                      final createdAt = DateTime.fromMillisecondsSinceEpoch(
+                        item['created_at'],
+                      );
+
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemBackground,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: CupertinoColors.systemGrey5,
+                          ),
+                        ),
+                        child: CupertinoButton(
+                          padding: const EdgeInsets.all(12),
+                          onPressed: null,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item['name'],
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        color:
+                                            isActive
+                                                ? CupertinoColors.systemBlue
+                                                : CupertinoColors.label,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${item['source_type'].toUpperCase()} | ${item['semester']} | ${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: CupertinoColors.secondaryLabel,
+                                      ),
+                                    ),
+                                    if (isActive) ...[
+                                      const SizedBox(height: 4),
+                                      const Text(
+                                        '✓ 当前使用',
+                                        style: TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${item['source_type'].toUpperCase()} | ${item['semester']} | ${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: CupertinoColors.secondaryLabel,
-                                  ),
-                                ),
-                                if (isActive) ...[
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    '✓ 当前使用',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontSize: 11,
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CupertinoButton(
+                                    padding: const EdgeInsets.all(4),
+                                    onPressed:
+                                        isActive
+                                            ? null
+                                            : () async {
+                                              final success =
+                                                  await dataImportService
+                                                      .switchToHistory(
+                                                        item['id'],
+                                                      );
+                                              if (success && context.mounted) {
+                                                Navigator.pop(context);
+                                                _showCupertinoAlert(
+                                                  '已切换',
+                                                  '已切换到 ${item['name']}',
+                                                );
+                                                context
+                                                    .read<ScheduleProvider>()
+                                                    .loadSavedData();
+                                              }
+                                            },
+                                    child: const Icon(
+                                      CupertinoIcons.arrow_2_squarepath,
+                                      size: 18,
                                     ),
                                   ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CupertinoButton(
-                                padding: const EdgeInsets.all(4),
-                                onPressed: isActive
-                                    ? null
-                                    : () async {
-                                        final success = await dataImportService
-                                            .switchToHistory(item['id']);
-                                        if (success && context.mounted) {
-                                          Navigator.pop(context);
-                                          _showCupertinoAlert(
-                                            '已切换',
-                                            '已切换到 ${item['name']}',
-                                          );
-                                          context
-                                              .read<ScheduleProvider>()
-                                              .loadSavedData();
-                                        }
-                                      },
-                                child: const Icon(
-                                  CupertinoIcons.arrow_2_squarepath,
-                                  size: 18,
-                                ),
-                              ),
-                              CupertinoButton(
-                                padding: const EdgeInsets.all(4),
-                                onPressed: () async {
-                                  final success = await dataImportService
-                                      .exportHistoryToIcs(item['id']);
-                                  if (success && context.mounted) {
-                                    _showCupertinoAlert('导出成功', 'ICS文件已导出');
-                                  }
-                                },
-                                child: const Icon(
-                                  CupertinoIcons.square_arrow_down,
-                                  size: 18,
-                                ),
-                              ),
-                              CupertinoButton(
-                                padding: const EdgeInsets.all(4),
-                                onPressed: () async {
-                                  final confirm =
-                                      await showCupertinoDialog<bool>(
+                                  CupertinoButton(
+                                    padding: const EdgeInsets.all(4),
+                                    onPressed: () async {
+                                      final success = await dataImportService
+                                          .exportHistoryToIcs(item['id']);
+                                      if (success && context.mounted) {
+                                        _showCupertinoAlert('导出成功', 'ICS文件已导出');
+                                      }
+                                    },
+                                    child: const Icon(
+                                      CupertinoIcons.square_arrow_down,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  CupertinoButton(
+                                    padding: const EdgeInsets.all(4),
+                                    onPressed: () async {
+                                      final confirm = await showCupertinoDialog<
+                                        bool
+                                      >(
                                         context: context,
-                                        builder: (context) =>
-                                            CupertinoAlertDialog(
+                                        builder:
+                                            (context) => CupertinoAlertDialog(
                                               title: const Text('确认删除'),
                                               content: Text(
                                                 '确定要删除 "${item['name']}" 吗？',
                                               ),
                                               actions: [
                                                 CupertinoDialogAction(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
+                                                  onPressed:
+                                                      () => Navigator.pop(
                                                         context,
                                                         false,
                                                       ),
@@ -728,8 +747,8 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                                                 ),
                                                 CupertinoDialogAction(
                                                   isDestructiveAction: true,
-                                                  onPressed: () =>
-                                                      Navigator.pop(
+                                                  onPressed:
+                                                      () => Navigator.pop(
                                                         context,
                                                         true,
                                                       ),
@@ -739,39 +758,39 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                                             ),
                                       );
 
-                                  if (confirm == true) {
-                                    final success = await dataImportService
-                                        .deleteHistory(item['id']);
-                                    if (success && context.mounted) {
-                                      _showCupertinoAlert('已删除', '记录已删除');
-                                      setState(() {});
-                                    }
-                                  }
-                                },
-                                child: const Icon(
-                                  CupertinoIcons.delete,
-                                  size: 18,
-                                  color: CupertinoColors.systemRed,
-                                ),
+                                      if (confirm == true) {
+                                        final success = await dataImportService
+                                            .deleteHistory(item['id']);
+                                        if (success && context.mounted) {
+                                          _showCupertinoAlert('已删除', '记录已删除');
+                                          setState(() {});
+                                        }
+                                      }
+                                    },
+                                    child: const Icon(
+                                      CupertinoIcons.delete,
+                                      size: 18,
+                                      color: CupertinoColors.systemRed,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
+              ),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('关闭'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -907,9 +926,10 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                           vertical: 0,
                         ),
                         borderRadius: BorderRadius.circular(8),
-                        color: isSelected
-                            ? CupertinoColors.systemBlue
-                            : CupertinoColors.systemGrey5,
+                        color:
+                            isSelected
+                                ? CupertinoColors.systemBlue
+                                : CupertinoColors.systemGrey5,
                         onPressed: () {
                           provider.setCurrentWeek(week);
                         },
@@ -917,12 +937,12 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                           '第$week周',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                            color: isSelected
-                                ? CupertinoColors.white
-                                : CupertinoColors.label,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w400,
+                            color:
+                                isSelected
+                                    ? CupertinoColors.white
+                                    : CupertinoColors.label,
                           ),
                         ),
                       ),
@@ -962,9 +982,10 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
               borderRadius: BorderRadius.circular(6),
-              color: isSelected
-                  ? CupertinoColors.systemGreen
-                  : CupertinoColors.systemGrey5,
+              color:
+                  isSelected
+                      ? CupertinoColors.systemGreen
+                      : CupertinoColors.systemGrey5,
               onPressed: () {
                 provider.setCurrentDay(day);
               },
@@ -973,9 +994,10 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected
-                      ? CupertinoColors.white
-                      : CupertinoColors.label,
+                  color:
+                      isSelected
+                          ? CupertinoColors.white
+                          : CupertinoColors.label,
                 ),
               ),
             ),
@@ -1025,13 +1047,12 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
             duration: const Duration(milliseconds: 300),
             transitionBuilder: (Widget child, Animation<double> animation) {
               return SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(1.0, 0.0),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(parent: animation, curve: Curves.easeOut),
-                    ),
+                position: Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                ),
                 child: FadeTransition(opacity: animation, child: child),
               );
             },
@@ -1148,51 +1169,53 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
   void _showCourseActions(CourseEvent course) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: Text(course.name),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _editCourse(course);
-            },
-            child: const Text('编辑课程'),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () async {
-              Navigator.pop(context);
-              final confirm = await showCupertinoDialog<bool>(
-                context: context,
-                builder: (context) => CupertinoAlertDialog(
-                  title: const Text('确认删除'),
-                  content: Text('确定要删除 "${course.name}" 吗？'),
-                  actions: [
-                    CupertinoDialogAction(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('取消'),
-                    ),
-                    CupertinoDialogAction(
-                      isDestructiveAction: true,
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('删除'),
-                    ),
-                  ],
-                ),
-              );
+      builder:
+          (context) => CupertinoActionSheet(
+            title: Text(course.name),
+            actions: [
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _editCourse(course);
+                },
+                child: const Text('编辑课程'),
+              ),
+              CupertinoActionSheetAction(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final confirm = await showCupertinoDialog<bool>(
+                    context: context,
+                    builder:
+                        (context) => CupertinoAlertDialog(
+                          title: const Text('确认删除'),
+                          content: Text('确定要删除 "${course.name}" 吗？'),
+                          actions: [
+                            CupertinoDialogAction(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('取消'),
+                            ),
+                            CupertinoDialogAction(
+                              isDestructiveAction: true,
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('删除'),
+                            ),
+                          ],
+                        ),
+                  );
 
-              if (confirm == true) {
-                await _deleteCourse(course);
-              }
-            },
-            isDestructiveAction: true,
-            child: const Text('删除课程'),
+                  if (confirm == true) {
+                    await _deleteCourse(course);
+                  }
+                },
+                isDestructiveAction: true,
+                child: const Text('删除课程'),
+              ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
           ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
-        ),
-      ),
     );
   }
 
@@ -1200,12 +1223,13 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
   void _editCourse(CourseEvent course) {
     Navigator.push(
       context,
-      CupertinoPageRoute(
-        builder: (context) => CourseEditScreen(
-          course: course,
-          week: context.read<ScheduleProvider>().currentWeek,
-          day: context.read<ScheduleProvider>().currentDay,
-        ),
+      TransparentMaterialPageRoute(
+        builder:
+            (context) => CourseEditScreen(
+              course: course,
+              week: context.read<ScheduleProvider>().currentWeek,
+              day: context.read<ScheduleProvider>().currentDay,
+            ),
       ),
     );
   }
@@ -1220,34 +1244,36 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
       if (mounted) {
         showCupertinoDialog(
           context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('成功'),
-            content: Text('已删除 "${course.name}"'),
-            actions: [
-              CupertinoDialogAction(
-                isDefaultAction: true,
-                onPressed: () => Navigator.pop(context),
-                child: const Text('确定'),
+          builder:
+              (context) => CupertinoAlertDialog(
+                title: const Text('成功'),
+                content: Text('已删除 "${course.name}"'),
+                actions: [
+                  CupertinoDialogAction(
+                    isDefaultAction: true,
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('确定'),
+                  ),
+                ],
               ),
-            ],
-          ),
         );
       }
     } catch (e) {
       if (mounted) {
         showCupertinoDialog(
           context: context,
-          builder: (context) => CupertinoAlertDialog(
-            title: const Text('错误'),
-            content: Text('删除失败: $e'),
-            actions: [
-              CupertinoDialogAction(
-                isDefaultAction: true,
-                onPressed: () => Navigator.pop(context),
-                child: const Text('确定'),
+          builder:
+              (context) => CupertinoAlertDialog(
+                title: const Text('错误'),
+                content: Text('删除失败: $e'),
+                actions: [
+                  CupertinoDialogAction(
+                    isDefaultAction: true,
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('确定'),
+                  ),
+                ],
               ),
-            ],
-          ),
         );
       }
     }
@@ -1274,38 +1300,39 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
   void _showCourseDetailDialog(CourseEvent course) {
     showCupertinoDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('课程详情'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDetailRow('课程名称', course.name),
-            _buildDetailRow('上课时间', course.timeStr),
-            _buildDetailRow('上课地点', course.location),
-            _buildDetailRow('任课教师', course.teacher),
-            _buildDetailRow('日期', course.dateStr),
-            _buildDetailRow(
-              '星期',
-              context.read<ScheduleProvider>().getDayName(course.weekday),
+      builder:
+          (context) => CupertinoAlertDialog(
+            title: const Text('课程详情'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDetailRow('课程名称', course.name),
+                _buildDetailRow('上课时间', course.timeStr),
+                _buildDetailRow('上课地点', course.location),
+                _buildDetailRow('任课教师', course.teacher),
+                _buildDetailRow('日期', course.dateStr),
+                _buildDetailRow(
+                  '星期',
+                  context.read<ScheduleProvider>().getDayName(course.weekday),
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () {
-              Navigator.pop(context);
-              _editCourse(course);
-            },
-            child: const Text('编辑'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _editCourse(course);
+                },
+                child: const Text('编辑'),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(context),
+                child: const Text('关闭'),
+              ),
+            ],
           ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
-          ),
-        ],
-      ),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:io';
+import 'dart:ui'; // [v2.4.8] PointerDeviceKind for Windows scroll behavior
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 // 引入超椭圆库
 import 'package:figma_squircle/figma_squircle.dart';
@@ -18,6 +19,7 @@ import 'ui/screens/schedule_screen.dart';
 import 'ui/screens/android_liquid_glass_main.dart';
 import 'ui/screens/windows_custom_window.dart';
 import 'ui/screens/onboarding_screen.dart';
+import 'ui/transitions/smooth_slide_transitions.dart'; // [v2.4.8] 平滑过渡动画
 import 'dart:async';
 
 bool globalUseDarkMode = false;
@@ -82,7 +84,7 @@ void main() async {
   // [v2.1.10] 初始化主题服务
   await ThemeService().initialize();
 
-  // [v2.4.1] TODO: 切换至 Flutter 3.41.0 环境后，可使用相关 shader 的同步 API 消除一帧延迟
+  // [v2.4.1] 初始化 Liquid Glass
   await LiquidGlassWidgets.initialize();
 
   // [v2.2.9] 初始化后台任务服务（仅 Android）
@@ -98,21 +100,22 @@ void main() async {
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
-    // [v2.4.3] 重新使用完全自定义无边框方案，修复系统DWM原生按钮导致的渲染问题
-    WindowOptions windowOptions = const WindowOptions(
+    // [v2.4.8] 使用 TitleBarStyle.hidden 替代 setAsFrameless()
+    // hidden 模式保留系统原生的 DWM 最大化/最小化动画
+    // setAsFrameless() 则完全移除窗口边框导致无动画
+    const WindowOptions windowOptions = WindowOptions(
       size: Size(1024, 768),
       center: true,
       skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.normal, // 初始化以normal避免初始化黑块
+      titleBarStyle: TitleBarStyle.hidden,
     );
     windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.setAsFrameless(); // 完全自定义边框
       await windowManager.setHasShadow(true);
       await windowManager.show();
       await windowManager.focus();
     });
 
-    // [v2.3.0修复] Windows 托盘服务初始化
+    // [v2.3.0] Windows 托盘服务初始化
     if (Platform.isWindows) {
       // 设置窗口关闭时不退出应用，而是隐藏到托盘
       await windowManager.setPreventClose(true);
@@ -184,8 +187,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _completeOnboarding() {
-    setState(() {
-      _showOnboarding = false;
+    // [v2.4.7] 引导完成后主动 reload ScheduleProvider 数据
+    final provider = context.read<ScheduleProvider>();
+    provider.loadSavedData().then((_) {
+      if (mounted) {
+        setState(() {
+          _showOnboarding = false;
+        });
+      }
     });
   }
 
@@ -207,36 +216,48 @@ class _MyAppState extends State<MyApp> {
     return ValueListenableBuilder<String?>(
       valueListenable: globalBackgroundPath,
       builder: (context, backgroundPath, _) {
-        // [v2.2.8修复] 添加调试信息
+        // [v2.2.8] 添加调试信息
         debugPrint('🎨 当前背景路径: $backgroundPath, 深色模式: $globalUseDarkMode');
 
         return Consumer<ThemeService>(
           builder: (context, themeService, child) {
             return material.MaterialApp(
-              key: ValueKey(themeService.primaryColor.value), // 强制全量刷新UI
+              key: ValueKey(themeService.primaryColor.value),
               debugShowCheckedModeBanner: false,
               theme: material.ThemeData(
                 useMaterial3: true,
                 colorScheme: material.ColorScheme.fromSeed(
                   seedColor: themeService.primaryColor,
-                  brightness: material.Theme.of(context).brightness, // 使用当前环境亮度
+                  brightness: material.Theme.of(context).brightness,
                 ),
-                pageTransitionsTheme: material.PageTransitionsTheme(
+                // [v2.4.4] 全局字体统一使用萍方和SF Pro
+                fontFamily: 'PingFangSC',
+                fontFamilyFallback: const ['SFPro'],
+                // [v2.4.4] 全局加粗标题
+                textTheme: const material.TextTheme(
+                  titleLarge: TextStyle(fontWeight: FontWeight.bold),
+                  titleMedium: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                // [v2.4.8] 自定义页面过渡动画 — 不裁切前一页
+                pageTransitionsTheme: const material.PageTransitionsTheme(
                   builders: {
                     material.TargetPlatform.android:
-                        const LiquidPageTransitionsBuilder(),
+                        SmoothSlideTransitionsBuilder(),
                     material.TargetPlatform.iOS:
-                        const LiquidPageTransitionsBuilder(),
+                        SmoothSlideTransitionsBuilder(),
                     material.TargetPlatform.windows:
-                        const LiquidPageTransitionsBuilder(),
+                        SmoothSlideTransitionsBuilder(),
                   },
                 ),
               ),
+              // [v2.4.9] Windows 平滑滚动 — BouncingScrollPhysics + 鼠标拖拽
+              scrollBehavior:
+                  Platform.isWindows ? _SmoothWindowsScrollBehavior() : null,
               builder: (context, child) {
                 // 构建背景组件
                 Widget backgroundWidget;
 
-                // [v2.3.0修复] 根据深色模式调整背景亮度
+                // [v2.3.0] 根据深色模式调整背景亮度
                 final darkenAlpha = globalUseDarkMode ? 0.6 : 0.2;
 
                 if (backgroundPath != null && backgroundPath.isNotEmpty) {
@@ -253,7 +274,6 @@ class _MyAppState extends State<MyApp> {
                           image: AssetImage(assetPath),
                           fit: BoxFit.cover,
                           colorFilter: ColorFilter.mode(
-                            // [v2.3.0修复] 深色模式大幅降低背景亮度
                             Colors.black.withValues(alpha: darkenAlpha),
                             BlendMode.darken,
                           ),
@@ -270,7 +290,6 @@ class _MyAppState extends State<MyApp> {
                           image: FileImage(File(backgroundPath)),
                           fit: BoxFit.cover,
                           colorFilter: ColorFilter.mode(
-                            // [v2.3.0修复] 深色模式大幅降低背景亮度
                             Colors.black.withValues(alpha: darkenAlpha),
                             BlendMode.darken,
                           ),
@@ -287,19 +306,22 @@ class _MyAppState extends State<MyApp> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: globalUseDarkMode
-                            ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
-                            : [
-                                const Color(0xFFE0C3FC),
-                                const Color(0xFF8EC5FC),
-                              ],
+                        colors:
+                            globalUseDarkMode
+                                ? [
+                                  const Color(0xFF1A1A2E),
+                                  const Color(0xFF16213E),
+                                ]
+                                : [
+                                  const Color(0xFFE0C3FC),
+                                  const Color(0xFF8EC5FC),
+                                ],
                       ),
                     ),
                   );
                 }
 
                 // 【核心修复】如果是 Windows，强制裁切背景为超椭圆
-                // 这样背景图就不会溢出到圆角之外，实现真正的窗口圆角效果
                 if (Platform.isWindows) {
                   backgroundWidget = ClipSmoothRect(
                     radius: SmoothBorderRadius(
@@ -310,7 +332,7 @@ class _MyAppState extends State<MyApp> {
                   );
                 }
 
-                // [v2.4.1修复] 核心优化：彻底隔离背景层，防止二级页面切换时引发玻璃滤镜的重绘掉帧
+                // [v2.4.1] 隔离背景层，防止二级页面切换时引发玻璃滤镜的重绘掉帧
                 backgroundWidget = RepaintBoundary(child: backgroundWidget);
 
                 return LiquidGlassScope.stack(
@@ -321,9 +343,10 @@ class _MyAppState extends State<MyApp> {
                   ),
                 );
               },
-              home: _showOnboarding
-                  ? OnboardingScreen(onComplete: _completeOnboarding)
-                  : _getHomeParams(),
+              home:
+                  _showOnboarding
+                      ? OnboardingScreen(onComplete: _completeOnboarding)
+                      : _getHomeParams(),
             );
           },
         );
@@ -338,45 +361,22 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class LiquidPageTransitionsBuilder extends material.PageTransitionsBuilder {
-  const LiquidPageTransitionsBuilder();
+/// [v2.4.9] Windows 平滑滚动行为
+/// 使用 BouncingScrollPhysics（iOS 风格）替代默认的 ClampingScrollPhysics
+/// 让鼠标滚轮滚动有惯性和弹性效果
+class _SmoothWindowsScrollBehavior extends material.MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
 
   @override
-  Widget buildTransitions<T>(
-    PageRoute<T> route,
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    // 进入动画：从右侧滑入 + 淡入
-    final slideIn = SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(0.3, 0.0), // [v2.3.2] 缩短滑入距离，更像原生 iOS
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-      child: FadeTransition(opacity: animation, child: child),
-    );
-
-    // 退出动画：当前页面缩放退出 (depth effect)
-    return ScaleTransition(
-      scale:
-          Tween<double>(
-            begin: 1.0,
-            end: 0.92, // [v2.3.2] 退出时稍微缩小，制造深度感
-          ).animate(
-            CurvedAnimation(
-              parent: secondaryAnimation,
-              curve: Curves.easeInOut,
-            ),
-          ),
-      child: FadeTransition(
-        opacity: Tween<double>(
-          begin: 1.0,
-          end: 0.5, // [v2.3.2] 退出时半透明
-        ).animate(secondaryAnimation),
-        child: slideIn,
-      ),
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    // 使用 BouncingScrollPhysics 让滚动有 iOS 风格的惯性和弹性
+    return const BouncingScrollPhysics(
+      decelerationRate: ScrollDecelerationRate.normal,
     );
   }
 }

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../constants/theme_constants.dart';
 import '../../utils/responsive_utils.dart';
-import 'new_settings_screen.dart'; 
-import 'settings_general_screen.dart'; 
-import 'settings_about_screen.dart'; 
+import 'new_settings_screen.dart';
+import 'settings_general_screen.dart';
+import 'settings_about_screen.dart';
 import 'settings_data_screen.dart';
 import 'settings_notification_screen.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import '../transitions/smooth_slide_transitions.dart';
 
 /// [v2.2.8] 设置主界面 - 添加通知设置
 class SettingsMainScreen extends StatefulWidget {
@@ -17,17 +18,17 @@ class SettingsMainScreen extends StatefulWidget {
 }
 
 class _SettingsMainScreenState extends State<SettingsMainScreen> {
-  Color get _textColor => Colors.white; 
+  Color get _textColor => Colors.white;
 
   @override
   Widget build(BuildContext context) {
     final isTablet = ResponsiveUtils.isTabletMode(context);
-    
+
     // [v2.2.8] 自适应顶部间距：平板16，手机8
     final topPadding = isTablet ? 16.0 : 8.0;
-    
+
     return Scaffold(
-      backgroundColor: Colors.transparent, 
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.fromLTRB(16, topPadding, 16, 120),
@@ -154,9 +155,7 @@ class _SettingsMainScreenState extends State<SettingsMainScreen> {
     // [v2.3.0修复] 使用 MaterialPageRoute 提供原生流畅动画
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => screen,
-      ),
+      TransparentMaterialPageRoute(builder: (context) => screen),
     );
   }
 }

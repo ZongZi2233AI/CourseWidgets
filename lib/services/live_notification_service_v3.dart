@@ -5,12 +5,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/course_event.dart';
 
 /// [v2.2.9] Live Update 实时通知服务 V3
-/// 
+///
 /// 修复后台保活问题：
 /// - 使用 Foreground Service 确保后台持续运行
 /// - 符合 Android Live Update 规范
 /// - 解决 Timer.periodic 在后台被挂起的问题
-/// 
+///
 /// 架构：
 /// - Foreground Service: 保持应用在后台运行
 /// - Notification: 显示实时进度条
@@ -19,10 +19,10 @@ class LiveNotificationServiceV3 {
   static const String _channelId = 'live_update_channel';
   static const String _channelName = 'Live Update';
   static const int _notificationId = 1001;
-  
-  final FlutterLocalNotificationsPlugin _notifications = 
+
+  final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
-  
+
   CourseEvent? _currentCourse;
   bool _isRunning = false;
 
@@ -30,7 +30,9 @@ class LiveNotificationServiceV3 {
   Future<void> initialize() async {
     try {
       // 初始化通知
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
       const initSettings = InitializationSettings(android: androidSettings);
       await _notifications.initialize(
         settings: initSettings,
@@ -38,7 +40,7 @@ class LiveNotificationServiceV3 {
           // 处理通知点击
         },
       );
-      
+
       // 初始化前台服务
       FlutterForegroundTask.init(
         androidNotificationOptions: AndroidNotificationOptions(
@@ -59,7 +61,7 @@ class LiveNotificationServiceV3 {
           allowWifiLock: false,
         ),
       );
-      
+
       debugPrint('✅ LiveNotificationServiceV3 初始化完成');
     } catch (e) {
       debugPrint('❌ LiveNotificationServiceV3 初始化失败: $e');
@@ -93,7 +95,7 @@ class LiveNotificationServiceV3 {
         'startTime': course.startTime,
         'endTime': course.endTime,
       });
-      
+
       debugPrint('🚀 Live Update 已启动: ${course.name}');
     } catch (e) {
       debugPrint('❌ 启动 Live Update 失败: $e');
@@ -107,13 +109,11 @@ class LiveNotificationServiceV3 {
 
     try {
       await FlutterForegroundTask.stopService();
-      await _notifications.cancel(
-        id: _notificationId,
-      );
-      
+      await _notifications.cancel(id: _notificationId);
+
       _currentCourse = null;
       _isRunning = false;
-      
+
       debugPrint('🛑 Live Update 已停止');
     } catch (e) {
       debugPrint('❌ 停止 Live Update 失败: $e');
@@ -122,7 +122,7 @@ class LiveNotificationServiceV3 {
 
   /// 检查是否正在运行
   bool get isRunning => _isRunning;
-  
+
   /// 获取当前课程
   CourseEvent? get currentCourse => _currentCourse;
 }
@@ -136,9 +136,9 @@ void startCallback() {
 
 /// Live Update 任务处理器
 class LiveUpdateTaskHandler extends TaskHandler {
-  final FlutterLocalNotificationsPlugin _notifications = 
+  final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
-  
+
   String _courseName = '';
   String _courseLocation = '';
   int _startTime = 0;
@@ -168,7 +168,7 @@ class LiveUpdateTaskHandler extends TaskHandler {
       _courseLocation = data['courseLocation'] as String? ?? '';
       _startTime = data['startTime'] as int? ?? 0;
       _endTime = data['endTime'] as int? ?? 0;
-      
+
       debugPrint('📚 收到课程数据: $_courseName');
       _updateNotification();
     }
@@ -200,11 +200,6 @@ class LiveUpdateTaskHandler extends TaskHandler {
       final end = DateTime.fromMillisecondsSinceEpoch(_endTime);
       final diff = start.difference(now);
 
-      // 计算进度
-      final totalMinutes = end.difference(start).inMinutes;
-      final remainingMinutes = diff.inMinutes;
-      final progress = ((totalMinutes - remainingMinutes) / totalMinutes * 100).clamp(0, 100).toInt();
-
       // 格式化时间
       String timeText;
       if (diff.isNegative) {
@@ -226,23 +221,29 @@ class LiveUpdateTaskHandler extends TaskHandler {
         }
       }
 
-      // 构建通知
+      // [v2.4.9] 构建 Live Update 通知 — 不使用进度条，使用 BigTextStyle
       final androidDetails = AndroidNotificationDetails(
         'live_update_channel',
         'Live Update',
         channelDescription: '课程倒计时实时更新',
-        importance: Importance.low,
-        priority: Priority.low,
-        ongoing: true, // 持续通知
+        importance: Importance.defaultImportance, // 正常重要性，不用 low
+        priority: Priority.defaultPriority,
+        ongoing: true, // 持续通知 — 不可滑动关闭
         autoCancel: false,
-        showProgress: true,
-        maxProgress: 100,
-        progress: progress,
+        showProgress: false, // [v2.4.9修复] 不显示进度条
         playSound: false,
         enableVibration: false,
+        onlyAlertOnce: true, // 只在第一次提醒
+        category: AndroidNotificationCategory.status, // 状态类通知
+        colorized: false, // Live Update 不允许 colorized
+        usesChronometer: true, // 显示计时器
+        chronometerCountDown: !diff.isNegative, // 倒计时或正计时
+        when: start.millisecondsSinceEpoch, // 课程开始时间
+        subText: _courseLocation, // 副标题显示地点
         styleInformation: BigTextStyleInformation(
-          '$timeText\n$_courseLocation',
-          contentTitle: _courseName,
+          '$timeText\n📍 $_courseLocation',
+          contentTitle: '📚 $_courseName',
+          summaryText: '课程实时更新',
         ),
       );
 

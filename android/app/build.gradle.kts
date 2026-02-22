@@ -26,8 +26,16 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 34  // Android 14
         targetSdk = 36  // Android 16
-        versionCode = 10002400
-        versionName = "2.4.0"
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { localProperties.load(it) }
+        }
+        val flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
+        val flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
+        
+        versionCode = flutterVersionCode.toInt()
+        versionName = flutterVersionName
         
         // 移除abiFilters，使用splits进行ABI拆分
     }

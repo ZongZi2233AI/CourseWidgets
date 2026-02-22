@@ -16,11 +16,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.3.1+10002301
+version: 2.4.9+10002409
 
 environment:
-  sdk: ^3.10.7
-  flutter: ^3.38.7
+  sdk: ^3.7.0
+  flutter: ^3.29.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -45,7 +45,7 @@ dependencies:
   
   # 图片处理 - 莫奈取色
   image: ^4.3.0
-  material_color_utilities: ^0.11.1
+  material_color_utilities: ^0.13.0
   
   # 数据库
   sqflite: ^2.4.2
@@ -58,13 +58,13 @@ dependencies:
   
   # 日期处理和时区
   intl: ^0.20.2
-  timezone: ^0.10.1
+  timezone: ^0.11.0
   
   # Windows系统托盘
-  system_tray: ^2.0.3
+  tray_manager: ^0.5.2
   
   # 通知提醒
-  flutter_local_notifications: ^20.0.0-dev.3
+  flutter_local_notifications: ^21.0.0-dev.1
   permission_handler: ^12.0.1
   
   # [v2.2.9] 后台任务管理
@@ -88,7 +88,7 @@ dependencies:
   # 圆角处理
   figma_squircle: ^0.6.3
   liquid_glass_renderer: ^0.2.0-dev.4
-  liquid_glass_widgets: ^0.2.1-dev.7
+  liquid_glass_widgets: ^0.3.0-dev.1
 
 dev_dependencies:
   flutter_test:
@@ -117,12 +117,14 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/calendar.ics
     - assets/icon.png
     - assets/app_icon.ico
+    - assets/tray_icon.ico
     # 背景壁纸
-    - assets/tahoe.jpg
-    - assets/mobile wallpaper light.png
+    - path: assets/tahoe.jpg
+      platforms: [windows, macos, linux, web, android]
+    - path: assets/mobile wallpaper light.png
+      platforms: [android, ios]
     # 导航栏图标
     - assets/ios-settings.png
     - assets/ios-calendar.png

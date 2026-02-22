@@ -11,7 +11,7 @@ import flutter_local_notifications
 import mmkv_ios
 import screen_retriever_macos
 import sqflite_darwin
-import system_tray
+import tray_manager
 import window_manager
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
@@ -21,6 +21,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   MMKVPlugin.register(with: registry.registrar(forPlugin: "MMKVPlugin"))
   ScreenRetrieverMacosPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverMacosPlugin"))
   SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
-  SystemTrayPlugin.register(with: registry.registrar(forPlugin: "SystemTrayPlugin"))
+  TrayManagerPlugin.register(with: registry.registrar(forPlugin: "TrayManagerPlugin"))
   WindowManagerPlugin.register(with: registry.registrar(forPlugin: "WindowManagerPlugin"))
 }

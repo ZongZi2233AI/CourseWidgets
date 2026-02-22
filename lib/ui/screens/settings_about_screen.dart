@@ -47,229 +47,240 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          // Header
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  const liquid.LiquidBackButton(),
-                  const SizedBox(width: 12),
-                  const Text(
-                    '关于软件',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
-          Expanded(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: ListView(
-                  padding: const EdgeInsets.all(20),
-                  physics: const BouncingScrollPhysics(),
+      // [v2.4.8] LiquidGlassLayer 预热 shader，消除 Touch Me 白闪
+      body: LiquidGlassLayer(
+        settings: LiquidGlassSettings(
+          thickness: 20,
+          blur: 8.0,
+          lightIntensity: 0.6,
+          saturation: 1.8,
+        ),
+        child: Column(
+          children: [
+            // Header
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
                   children: [
-                    // App Icon & Name Card
-                    liquid.LiquidCard(
-                      borderRadius: 32,
-                      padding: 32,
-                      glassColor: Colors.white.withValues(alpha: 0.03),
-                      quality: GlassQuality.standard,
-                      child: Column(
-                        children: [
-                          // App Icon with glow effect
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(32),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppThemeColors.babyPink.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  blurRadius: 30,
-                                  spreadRadius: 5,
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(32),
-                              child: Image.asset(
-                                'assets/icon.png',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // App Name
-                          const Text(
-                            'CourseWidgets',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Version Badge
-                          liquid.LiquidCard(
-                            borderRadius: 16,
-                            padding: 8,
-                            styleType: liquid.LiquidStyleType.micro,
-                            glassColor: AppThemeColors.babyPink.withValues(
-                              alpha: 0.2,
-                            ),
-                            quality: GlassQuality.standard,
-                            child: Text(
-                              'v$appVersion',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+                    const liquid.LiquidBackButton(),
+                    const SizedBox(width: 12),
+                    const Text(
+                      '关于软件',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-
-                    const SizedBox(height: 20),
-
-                    // Premium Glass Demo Card
-                    _buildPremiumGlassDemo(),
-
-                    const SizedBox(height: 20),
-
-                    // Copyright Card
-                    liquid.LiquidCard(
-                      borderRadius: 28,
-                      padding: 20,
-                      glassColor: Colors.white.withValues(alpha: 0.01),
-                      quality: GlassQuality.standard,
-                      child: Column(
-                        children: [
-                          Icon(
-                            CupertinoIcons.heart_fill,
-                            color: AppThemeColors.babyPink.withValues(
-                              alpha: 0.6,
-                            ),
-                            size: 32,
-                          ),
-                          const SizedBox(height: 12),
-                          // [v2.1.8修复5] 修改copyright为开发者名称
-                          const Text(
-                            'Copyright © 2025-2026 ZongZi',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white70,
-                              height: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // [v2.2.1] 修改为 Apache 2.0 License
-                          const Text(
-                            'Open Source under Apache 2.0 License',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white54,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Made with Flutter & Liquid Glass',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.4),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(
-                      height: 100,
-                    ), // Bottom padding for navigation bar
                   ],
                 ),
               ),
             ),
-          ),
-        ],
+
+            // Content
+            Expanded(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: ListView(
+                    padding: const EdgeInsets.all(20),
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      // App Icon & Name Card
+                      liquid.LiquidCard(
+                        borderRadius: 32,
+                        padding: 32,
+                        glassColor: Colors.white.withValues(alpha: 0.03),
+                        quality: GlassQuality.standard,
+                        child: Column(
+                          children: [
+                            // App Icon with glow effect
+                            Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(32),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppThemeColors.babyPink.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    blurRadius: 30,
+                                    spreadRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(32),
+                                child: Image.asset(
+                                  'assets/icon.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+
+                            // App Name
+                            const Text(
+                              'CourseWidgets',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // Version Badge
+                            liquid.LiquidCard(
+                              borderRadius: 16,
+                              padding: 8,
+                              styleType: liquid.LiquidStyleType.micro,
+                              glassColor: AppThemeColors.babyPink.withValues(
+                                alpha: 0.2,
+                              ),
+                              quality: GlassQuality.standard,
+                              child: Text(
+                                'v$appVersion',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Premium Glass Demo Card
+                      _buildPremiumGlassDemo(),
+
+                      const SizedBox(height: 20),
+
+                      // Copyright Card
+                      liquid.LiquidCard(
+                        borderRadius: 28,
+                        padding: 20,
+                        glassColor: Colors.white.withValues(alpha: 0.01),
+                        quality: GlassQuality.standard,
+                        child: Column(
+                          children: [
+                            Icon(
+                              CupertinoIcons.heart_fill,
+                              color: AppThemeColors.babyPink.withValues(
+                                alpha: 0.6,
+                              ),
+                              size: 32,
+                            ),
+                            const SizedBox(height: 12),
+                            // [v2.1.8修复5] 修改copyright为开发者名称
+                            const Text(
+                              'Copyright © 2025-2026 ZongZi',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white70,
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // [v2.2.1] 修改为 Apache 2.0 License
+                            const Text(
+                              'Open Source under Apache 2.0 License',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white54,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Made with Flutter & Liquid Glass',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white.withValues(alpha: 0.4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(
+                        height: 100,
+                      ), // Bottom padding for navigation bar
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPremiumGlassDemo() {
-    // [v2.4.3修复] 移除 LiquidGlassScope.stack 避免由于透明图层在滚动列表下复合导致的 Impeller 渲染灰块问题
-    return GestureDetector(
+    // [v2.4.8] 使用 GlassButton.custom 获得完整的拉伸/按压/高光互动效果
+    // 按 API 文档：GlassQuality.premium 用于静态布局，提供最高视觉质量
+    // useOwnLayer: true 让 Touch Me 有自己的完整玻璃图层
+    return GlassButton.custom(
       onTap: () {
         HapticFeedback.heavyImpact();
       },
-      child: SizedBox(
-        height: 120,
-        width: double.infinity,
-        child: Center(
-          child: GlassContainer(
-            width: double.infinity,
-            height: 120,
-            useOwnLayer: false, // [v2.4.3修复] 必须关闭独立图层
-            shape: const LiquidRoundedSuperellipse(borderRadius: 28),
-            quality: GlassQuality.standard, // 使用标准质量的 BackdropFilter 是安全的
-            settings: LiquidGlassSettings(
-              glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
-              blur: 30,
-              thickness: 25,
+      width: double.infinity,
+      height: 120,
+      style: GlassButtonStyle.filled,
+      useOwnLayer: true, // 独立图层，shader 预渲染
+      quality: GlassQuality.premium, // 最高质量 — 包括纹理捕获和色散
+      settings: LiquidGlassSettings(
+        glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
+        blur: 1, // 用户要求模糊降到最低
+        thickness: 50, // 高厚度 — 让折射/深度感明显可见
+        refractiveIndex: 1.8, // 高折射 — 让透过玻璃的背景有明显变形
+        lightIntensity: 0.8, // 高光照 — 增强光泽感
+        chromaticAberration: 0.03, // 色散效果 — 边缘可见彩虹色
+        saturation: 1.5, // 高饱和度
+      ),
+      shape: const LiquidRoundedSuperellipse(borderRadius: 28),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              CupertinoIcons.hand_point_right_fill,
+              color: Colors.white,
+              size: 32,
             ),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    CupertinoIcons.hand_point_right_fill,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Touch me',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Premium Liquid Glass Demo',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 12),
+            const Text(
+              'Touch me',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.0,
               ),
             ),
-          ),
+            const SizedBox(height: 4),
+            Text(
+              'Premium Liquid Glass Demo',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
         ),
       ),
     );

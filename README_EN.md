@@ -2,233 +2,197 @@
 
 <div align="center">
 
-![CourseWidgets Logo](assets/icon.png)
+<img src="https://github.com/ZongZi2233AI/CourseWidgets/blob/main/assets/icon.png" width="128px">
 
 **A Modern Course Schedule App with iOS 26 Liquid Glass Design**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Flutter](https://img.shields.io/badge/Flutter-3.38.7+-02569B?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.10.7+-0175C2?logo=dart)](https://dart.dev)
+[![Version](https://img.shields.io/badge/Version-2.4.9-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
 
 English | [简体中文](README.md)
 
 </div>
 
+> **Note**: This application is built entirely with AI-assisted development — [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash), Claude Sonnet 4.5, Gemini 3.0 Pro, and Gemini 3.1 Pro.
+
+---
+
 ## ✨ Features
 
 ### 🎨 Liquid Glass Design
 - Full implementation of Apple iOS 26 Liquid Glass design system
-- Premium quality rendering
-- Smooth animations and interactions
+- Real-time shader rendering with Impeller engine
+- Unified superellipse (squircle) corners throughout
 - Adaptive dark/light mode
+- Premium interactive effects: stretch, press feedback, chromatic aberration
 
 ### 📅 Smart Schedule Management
-- ICS calendar format import
-- HTML schedule parsing
-- Automatic course time and location recognition
-- Multi-semester schedule management
-- History switching
+
+| Feature | Description |
+|---------|-------------|
+| ICS Import | Import `.ics` calendar files from other apps |
+| HTML Import | Parse HTML schedules exported from school systems |
+| Multi-Semester | Unlimited schedule imports with history switching |
+| Auto Recognition | Automatic course time, location, and teacher detection |
 
 ### 🔔 Smart Notifications
-- Android 16 Live Updates real-time notifications
-- Automatic reminders before class
-- Tap notification to view course details
-- System tray integration (Windows/macOS)
+- **Android 16 Live Updates**: Real-time notifications with chronometer (not progress bars)
+- **Dual Reminders**: 15 min + 5 min before class
+- **System Tray**: Windows tray icon with background operation
+- **Click to View**: Tap notification to jump to course details
 
-### 🎯 Multi-Platform Support
-- ✅ Android (Phone & Tablet)
-- ✅ Windows (Desktop)
-- ✅ macOS (Desktop)
-- ✅ iOS (Phone & Tablet)
-- ✅ Linux (Desktop)
+### 🎯 Multi-Platform
 
-### 🌈 Personalized Themes
-- Default baby pink theme
-- Android 12+ Material You dynamic colors
-- Monet color extraction (from background image)
-- Custom background images
+| Platform | Status |
+|----------|--------|
+| ✅ Android | Released (Phone + Tablet) |
+| ✅ Windows | Released (Custom window + sidebar + tray) |
+| 🔧 macOS | In development |
+| 🔧 iOS / iPadOS | In development |
+| ❌ Linux | Contributions welcome |
+
+### 🌈 Personalization
+- Default baby pink gradient theme
+- Android 12+ **Material You** dynamic colors
+- **Monet color extraction** from background images
+- Custom background images (Android 14+ Photo Picker)
+
+---
 
 ## 🚀 Quick Start
 
 ### Requirements
 
-- Flutter SDK: 3.38.7+
-- Dart SDK: 3.10.7+
-- Android Studio / VS Code
-- Xcode (for macOS/iOS development)
-- Visual Studio (for Windows development)
-
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/coursewidgets.git
-cd coursewidgets
+```
+Flutter SDK    ≥ 3.38.7
+Dart SDK       ≥ 3.10.7
+AGP            ≥ 9.0
+Kotlin         ≥ 2.3
+Java           21
 ```
 
-2. **Install dependencies**
+### Install & Run
+
 ```bash
+# 1. Clone
+git clone https://github.com/ZongZi2233AI/CourseWidgets.git
+cd CourseWidgets
+
+# 2. Dependencies
 flutter pub get
-```
 
-3. **Run the app**
-```bash
-# Android
-flutter run -d android
-
-# iOS
-flutter run -d ios
-
-# Windows
-flutter run -d windows
-
-# macOS
-flutter run -d macos
-
-# Linux
-flutter run -d linux
+# 3. Run
+flutter run -d android    # Android
+flutter run -d windows    # Windows
+flutter run -d macos      # macOS
 ```
 
 ### Build Release
 
 ```bash
-# Android APK
-flutter build apk --release
-
-# Android App Bundle
-flutter build appbundle --release
-
-# iOS
-flutter build ios --release
+# Android (recommended: split ABI + obfuscation)
+flutter build apk --split-per-abi --obfuscate --split-debug-info=build/debug-info
 
 # Windows
 flutter build windows --release
 
 # macOS
 flutter build macos --release
-
-# Linux
-flutter build linux --release
 ```
+
+---
 
 ## 📖 User Guide
 
 ### Import Schedule
 
-#### Method 1: ICS File Import
-1. Open Settings → Data Management
-2. Tap "Import ICS Calendar"
-3. Select `.ics` file
-4. Automatically parse and import courses
-
-#### Method 2: HTML Schedule Import
-1. Open Settings → Data Management
-2. Tap "Import HTML Schedule"
-3. Select HTML file exported from school system
-4. Automatically parse course information
+| Method | Steps |
+|--------|-------|
+| **ICS File** | Settings → Data → Import ICS Calendar → Select `.ics` file |
+| **HTML File** | Settings → Data → Import HTML Schedule → Select HTML from school system |
 
 ### Course Management
 
-- **View Courses**: Main screen shows weekly course grid
-- **Edit Course**: Tap course card → Edit
-- **Switch Week**: Swipe left/right or tap week button
-- **Switch Semester**: Settings → Data Management → History Management
+| Action | How |
+|--------|-----|
+| View | Main screen shows weekly course grid |
+| Edit | Tap course card → Edit |
+| Switch Week | Swipe left/right or tap week button |
+| Switch Semester | Settings → Data → History |
 
-### Theme Settings
+### Theme & Background
 
-1. Open Settings → General Settings → Theme Settings
-2. Select theme mode:
-   - **Default Theme**: Baby pink gradient
-   - **System Theme**: Material You dynamic colors (Android 12+)
-   - **Monet Colors**: Extract colors from background image
+1. Settings → General → Theme Color
+   - **Default** (Baby Pink) · **System** (Material You) · **Monet** (from background)
+2. Settings → General → Change Background Image
 
-### Background Image
+---
 
-1. Open Settings → General Settings
-2. Tap "Change Background Image"
-3. Select image (supports Android 14+ Photo Picker)
-4. If using Monet colors, theme will update automatically
+## 🏗️ Project Structure
+
+```
+lib/
+├── constants/            # Theme & version constants
+├── models/               # Data models
+├── providers/            # State management (Provider)
+├── services/             # Business logic
+│   ├── notification_manager.dart       # Unified notification manager
+│   ├── live_notification_service_v3.dart  # Android Live Update
+│   ├── windows_tray_service.dart       # Windows system tray
+│   └── ...
+├── ui/
+│   ├── screens/          # Pages (Android, Windows, macOS, Settings)
+│   ├── widgets/          # Liquid glass components, grids
+│   └── transitions/      # Page transition animations
+└── utils/                # Utilities
+```
+
+---
 
 ## 🛠️ Tech Stack
 
-### Core Framework
-- **Flutter**: Cross-platform UI framework
-- **Dart**: Programming language
+| Category | Technology |
+|----------|-----------|
+| **Framework** | Flutter + Dart |
+| **UI** | `liquid_glass_widgets` · `liquid_glass_renderer` · `figma_squircle` |
+| **State** | Provider |
+| **Storage** | SQLite · MMKV |
+| **Notifications** | `flutter_local_notifications` · `flutter_foreground_task` |
+| **Desktop** | `window_manager` · `tray_manager` |
+| **Data** | `icalendar_parser` · `rrule` · `intl` |
 
-### UI Components
-- **liquid_glass_widgets**: Liquid glass component library
-- **liquid_glass_renderer**: Liquid glass rendering engine
-- **figma_squircle**: Superellipse shapes
-
-### State Management
-- **Provider**: Lightweight state management
-
-### Data Storage
-- **SQLite**: Local database
-- **MMKV**: High-performance key-value storage
-
-### Platform Features
-- **flutter_local_notifications**: Local notifications
-- **window_manager**: Window management (desktop)
-- **system_tray**: System tray (desktop)
-- **file_selector**: File picker
-
-### Data Processing
-- **icalendar_parser**: ICS calendar parsing
-- **rrule**: Recurrence rule processing
-- **intl**: Internationalization support
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
-
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'feat: Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+3. Commit changes (`git commit -m 'feat: Add AmazingFeature'`)
+4. Push and open a Pull Request
 
-## 📄 License
-
-This project is licensed under the [Apache 2.0 License](LICENSE).
-
-### Third-Party Licenses
-
-For all third-party dependency licenses, see [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
-
-Main dependency licenses:
-- Flutter Framework: BSD 3-Clause
-- liquid_glass_widgets: MIT
-- liquid_glass_renderer: MIT
-- MMKV: BSD 3-Clause
-- Provider: MIT
-
-## 🙏 Acknowledgments
-
-- [Flutter](https://flutter.dev) - Excellent cross-platform framework
-- [liquid_glass_widgets](https://pub.dev/packages/liquid_glass_widgets) - Liquid glass component library
-- [liquid_glass_renderer](https://pub.dev/packages/liquid_glass_renderer) - Liquid glass rendering engine
-- All open source contributors
-
-## 📮 Contact
-
-- **Author**: ZongZi
-- **Email**: your.email@example.com
-- **Issues**: [GitHub Issues](https://github.com/yourusername/coursewidgets/issues)
+---
 
 ## 🗺️ Roadmap
 
-### v2.3.0 (Planned)
-- [ ] Course conflict detection
-- [ ] Course statistics
-- [ ] Export to PDF
-- [ ] Cloud sync support
+### v2.5.0 — Planned
 
-### v2.4.0 (Planned)
-- [ ] Widget support
-- [ ] Apple Watch support
-- [ ] More theme options
-- [ ] AI schedule recognition
+- [ ] Nested Navigator for Windows secondary pages
+- [ ] Native Android Live Update via MethodChannel
+- [ ] Course conflict detection
+- [ ] Export to PDF
+- [ ] Apple Watch / WearOS support
+
+---
+
+## 📄 License
+
+Licensed under the [Apache 2.0 License](LICENSE). Third-party licenses: [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
+## 📮 Contact
+
+- **Issues**: [GitHub Issues](https://github.com/ZongZi2233AI/CourseWidgets/issues)
 
 ## ⭐ Star History
 
@@ -236,5 +200,4 @@ If this project helps you, please give it a Star ⭐
 
 ---
 
-**Copyright © 2025-2026 ZongZi**  
-Made with ❤️ and Flutter
+**Copyright © 2025-2026 ZongZi** · Made with ❤️ and Flutter
