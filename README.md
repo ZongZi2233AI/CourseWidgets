@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![CourseWidgets Logo]("assets/icon.png"width=300x)
+<img src="https://github.com/ZongZi2233AI/CourseWidgets/blob/main/assets/icon.png" width="300px">
 
 **液态玻璃设计的大学课程表应用**
 
