@@ -73,8 +73,8 @@
 ### 环境要求
 
 ```
-Flutter SDK    ≥ 3.38.7
-Dart SDK       ≥ 3.10.7
+Flutter SDK    ≥ 3.41.2
+Dart SDK       ≥ 3.11.0
 AGP            ≥ 9.0
 Kotlin         ≥ 2.3
 Java           21
@@ -217,9 +217,7 @@ refactor: 重构        chore: 构建/工具
 - [ ] Windows 嵌套 Navigator（二级页面保留标题栏）
 - [ ] Android Live Update 原生 MethodChannel
 - [ ] 课程冲突检测
-- [ ] 课表导出为 PDF
 - [ ] 更多主题选项
-- [ ] Apple Watch / WearOS 支持
 
 ---
 
