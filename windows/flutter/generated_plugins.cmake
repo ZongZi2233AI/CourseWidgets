@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
+  local_notifier
   mmkv_win32
   permission_handler_windows
   screen_retriever_windows

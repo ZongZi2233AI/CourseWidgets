@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// 当前版本：[v2.4.9] Live Update, Windows UX, Animation Curves
-const String appVersion = '2.4.9';
-const int buildNumber = 10002409;
+/// 当前版本：[v2.5.3] Full Slide Transitions, Windows UX, Live Update
+const String appVersion = '2.5.3';
+const int buildNumber = 10005003;
 const String copyright = '© 2025-2026 CourseWidgets. All rights reserved.';
 
 // 全局状态

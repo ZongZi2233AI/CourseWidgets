@@ -15,9 +15,9 @@ class GlassSettingsHelper {
     // 深色模式：黑色玻璃，中等透明度（像晚上的玻璃窗）
     // 浅色模式：白色玻璃，低透明度
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: 0.4)  // [v2.2.9修复] 增加深色模式透明度
+        ? Colors.black.withValues(alpha: 0.4) // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: 0.08);
-    
+
     return LiquidGlassSettings(
       glassColor: glassColor,
       blur: blur ?? 15.0,
@@ -26,16 +26,15 @@ class GlassSettingsHelper {
   }
 
   /// 获取卡片玻璃设置
-  static LiquidGlassSettings getCardSettings({
-    double? alpha,
-  }) {
+  static LiquidGlassSettings getCardSettings({double? alpha}) {
+    // [v2.5.3] 极其通透的玻璃质感：大幅度降低遮罩颜色，提高模糊阻力，让背景透过来
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: alpha ?? 0.35)  // [v2.2.9修复] 增加深色模式透明度
-        : Colors.white.withValues(alpha: alpha ?? 0.05);
-    
+        ? Colors.black.withValues(alpha: alpha ?? 0.15)
+        : Colors.white.withValues(alpha: alpha ?? 0.01);
+
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: 12.0,
+      blur: 25.0,
       thickness: 0.8,
     );
   }
@@ -46,33 +45,29 @@ class GlassSettingsHelper {
     Color? selectedColor,
   }) {
     Color glassColor;
-    
+
     if (isSelected) {
       // 选中状态：使用主题色
       final baseColor = selectedColor ?? Colors.blue;
       glassColor = globalUseDarkMode
-          ? baseColor.withValues(alpha: 0.45)  // [v2.2.9修复] 增加深色模式透明度
+          ? baseColor.withValues(alpha: 0.45) // [v2.2.9修复] 增加深色模式透明度
           : baseColor.withValues(alpha: 0.3);
     } else {
       // 未选中状态
       glassColor = globalUseDarkMode
-          ? Colors.white.withValues(alpha: 0.1)  // [v2.2.9修复] 增加深色模式透明度
+          ? Colors.white.withValues(alpha: 0.1) // [v2.2.9修复] 增加深色模式透明度
           : Colors.white.withValues(alpha: 0.05);
     }
-    
-    return LiquidGlassSettings(
-      glassColor: glassColor,
-      blur: 0,
-      thickness: 10,
-    );
+
+    return LiquidGlassSettings(glassColor: glassColor, blur: 0, thickness: 10);
   }
 
   /// 获取对话框玻璃设置
   static LiquidGlassSettings getDialogSettings() {
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: 0.5)  // [v2.2.9修复] 增加深色模式透明度
+        ? Colors.black.withValues(alpha: 0.5) // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: 0.15);
-    
+
     return LiquidGlassSettings(
       glassColor: glassColor,
       blur: 25.0,
@@ -83,9 +78,9 @@ class GlassSettingsHelper {
   /// 获取输入框玻璃设置
   static LiquidGlassSettings getInputSettings() {
     final glassColor = globalUseDarkMode
-        ? Colors.white.withValues(alpha: 0.12)  // [v2.2.9修复] 增加深色模式透明度
+        ? Colors.white.withValues(alpha: 0.12) // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: 0.05);
-    
+
     return LiquidGlassSettings(
       glassColor: glassColor,
       blur: 10.0,
@@ -96,22 +91,18 @@ class GlassSettingsHelper {
   /// 获取底部导航栏玻璃设置
   static LiquidGlassSettings getBottomBarSettings() {
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: 0.55)  // [v2.2.9修复] 增加深色模式透明度
+        ? Colors.black.withValues(alpha: 0.55) // [v2.2.9修复] 增加深色模式透明度
         : Colors.black.withValues(alpha: 0.4);
-    
-    return LiquidGlassSettings(
-      glassColor: glassColor,
-      blur: 20,
-      thickness: 15,
-    );
+
+    return LiquidGlassSettings(glassColor: glassColor, blur: 20, thickness: 15);
   }
 
   /// 获取侧边栏玻璃设置
   static LiquidGlassSettings getSidebarSettings() {
     final glassColor = globalUseDarkMode
-        ? Colors.black.withValues(alpha: 0.45)  // [v2.2.9修复] 增加深色模式透明度
+        ? Colors.black.withValues(alpha: 0.45) // [v2.2.9修复] 增加深色模式透明度
         : Colors.white.withValues(alpha: 0.05);
-    
+
     return LiquidGlassSettings(
       glassColor: glassColor,
       blur: 20,
@@ -131,7 +122,7 @@ class GlassSettingsHelper {
 
   /// 获取禁用文本颜色（根据深色模式）
   static Color getDisabledTextColor() {
-    return globalUseDarkMode 
+    return globalUseDarkMode
         ? Colors.white.withValues(alpha: 0.3)
         : Colors.black.withValues(alpha: 0.3);
   }
@@ -150,4 +141,3 @@ class GlassSettingsHelper {
         : Colors.black.withValues(alpha: 0.1);
   }
 }
-

@@ -22,8 +22,10 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     with WindowListener, TickerProviderStateMixin {
   int _selectedIndex = 0;
   bool _isMaximized = false;
+  final GlobalKey<NavigatorState> _localNavigatorKey =
+      GlobalKey<NavigatorState>();
 
-  // [v2.4.8] 自定义窗口动画控制器 — macOS Tahoe 风格
+  // [v2.5.1反馈] 恢复真·自定义窗口最大最小化动画
   late AnimationController _windowAnimController;
   late Animation<double> _scaleAnim;
   late Animation<double> _opacityAnim;
@@ -33,7 +35,7 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     super.initState();
     windowManager.addListener(this);
 
-    // [v2.4.8] 初始化窗口动画
+    // [v2.5.1] 初始化窗口动画
     _windowAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 250),
@@ -63,6 +65,15 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
           final provider = context.read<ScheduleProvider>();
           tray.startCourseReminder(provider);
         }
+
+        // [v2.5.0] 监听托盘菜单的页面切换事件
+        tray.navigationStream.listen((index) {
+          if (mounted) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          }
+        });
 
         debugPrint('✅ Windows 托盘服务已初始化并启动课程提醒');
       } catch (e) {
@@ -129,6 +140,8 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   @override
   Future<void> onWindowClose() async {
     // 阻止窗口关闭，改为隐藏到托盘
+    // [v2.5.3] 添加恢复窗口时的放大淡入动画，完成自定义最小化/恢复闭环
+    await _windowAnimController.forward();
     await windowManager.hide();
 
     // 进入后台模式
@@ -138,16 +151,25 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     debugPrint('🌙 窗口已最小化到托盘，进程继续运行');
   }
 
-  // [v2.4.8] 自定义最小化动画 — 缩小 + 淡出 → 最小化
-  void _animatedMinimize() async {
-    await _windowAnimController.forward();
+  // [v2.5.5修复] 直接调用系统级别的最小化，去除多余的 _windowAnimController 层面的缩放，使得背景和窗口组件同步缩小
+  void _handleMinimize() async {
     await windowManager.minimize();
-    // 恢复动画状态，等窗口恢复时立即可见
-    _windowAnimController.reset();
   }
 
-  // [v2.4.8] 自定义最大化/还原动画
+  // [v2.5.3] 监听窗口从托盘或任务栏恢复
+  @override
+  void onWindowRestore() {
+    setState(() {});
+    debugPrint('🌟 窗口已恢复(DWM原生重绘)');
+  }
+
+  @override
+  void onWindowFocus() {
+    // nothing
+  }
+
   void _handleMaximize() async {
+    // 移除花哨但冲突的缩放，直接交由原生 DWM 处理以避免冲突和闪烁
     if (_isMaximized) {
       await windowManager.unmaximize();
     } else {
@@ -158,12 +180,15 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   @override
   Widget build(BuildContext context) {
     // [v2.2.1修复] 根据最大化状态调整圆角
+    // [v2.5.4紧急修复] 如果 radius 为 0，必须将 smoothing 也置为 0，否则底层的 figma_squircle 会在绘制路径时产生 NaN/除零错误，
+    // 导致 Debug 红屏，以及 Release 混淆模式下的 GPU 线程直接死锁（黑屏崩盘无响应）。
     final borderRadius = _isMaximized ? 0.0 : 16.0;
+    final smoothing = _isMaximized ? 0.0 : 1.0;
 
     return ClipSmoothRect(
       radius: SmoothBorderRadius(
         cornerRadius: borderRadius,
-        cornerSmoothing: 1.0,
+        cornerSmoothing: smoothing,
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -186,16 +211,27 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
               children: [
                 _buildTitleBar(),
                 Expanded(
-                  child: Row(
-                    children: [
-                      _buildSidebar(),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: _buildContent(),
+                  child: Navigator(
+                    key: _localNavigatorKey,
+                    initialRoute: '/',
+                    onGenerateRoute: (settings) {
+                      return MaterialPageRoute(
+                        builder: (context) => Scaffold(
+                          backgroundColor: Colors.transparent, // 继承外层透明
+                          body: Row(
+                            children: [
+                              _buildSidebar(),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: _buildContent(),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -234,8 +270,8 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
             // 自定义窗口按钮
             _buildWindowButton(
               Icons.remove,
-              _animatedMinimize,
-            ), // [v2.4.8] 动画最小化
+              _handleMinimize,
+            ), // [v2.5.0] 使用原生最小化
             _buildWindowButton(
               _isMaximized ? Icons.filter_none : Icons.crop_square,
               _handleMaximize,
@@ -310,10 +346,9 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
       height: 48,
       style: GlassButtonStyle.filled,
       settings: LiquidGlassSettings(
-        glassColor:
-            isSelected
-                ? AppThemeColors.babyPink.withValues(alpha: 0.3)
-                : Colors.white.withValues(alpha: 0.05),
+        glassColor: isSelected
+            ? AppThemeColors.babyPink.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.05),
         blur: 0,
       ),
       shape: LiquidRoundedSuperellipse(borderRadius: 12),

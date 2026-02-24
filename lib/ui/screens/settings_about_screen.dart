@@ -241,16 +241,22 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen>
       width: double.infinity,
       height: 120,
       style: GlassButtonStyle.filled,
-      useOwnLayer: true, // 独立图层，shader 预渲染
+      // [v2.5.0修复] 关闭独立图层。使用 useOwnLayer=true 虽然能做shader预渲染，
+      // 但在部分 Android 设备上初次绘制会白屏闪烁。关闭它即可解决闪烁。
+      useOwnLayer: false,
       quality: GlassQuality.premium, // 最高质量 — 包括纹理捕获和色散
+      // [v2.5.4修复] 真·果冻触控：使用更夸张的大形变系数和极轻盈的阻尼
+      // 去除会导致塑料感的模糊，拉升厚度呈现纯粹的物理折射
+      stretch: 5.0, // 继续暴涨形变阻力拉伸，增强拖拽和长按边界反馈
+      resistance: 0.005, // 几乎无阻尼的果冻感
+      interactionScale: 0.6, // [v2.5.5修复] 深按大幅度回缩的形变反馈，解决Android侧无响应感
       settings: LiquidGlassSettings(
-        glassColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
-        blur: 1, // 用户要求模糊降到最低
-        thickness: 50, // 高厚度 — 让折射/深度感明显可见
-        refractiveIndex: 1.8, // 高折射 — 让透过玻璃的背景有明显变形
-        lightIntensity: 0.8, // 高光照 — 增强光泽感
-        chromaticAberration: 0.03, // 色散效果 — 边缘可见彩虹色
-        saturation: 1.5, // 高饱和度
+        glassColor: Colors.transparent, // 完全无色透明
+        blur: 1.0, // 仅保留边缘的一点点模糊，展现清晰的折射扭曲
+        thickness: 500, // 极度夸张的厚度，让背后内容严重折射错位
+        refractiveIndex: 2.5, // 极高折射率（钻石级别）
+        lightIntensity: 1.5,
+        chromaticAberration: 0.2, // 明显的色差
       ),
       shape: const LiquidRoundedSuperellipse(borderRadius: 28),
       child: Center(

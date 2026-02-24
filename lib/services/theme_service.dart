@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image/image.dart' as img;
 import 'package:material_color_utilities/material_color_utilities.dart';
 import 'storage_service.dart';
+import '../main.dart'; // For globalUseDarkMode
 
 /// 主题模式
 enum ThemeMode {
@@ -34,6 +34,9 @@ class ThemeService extends ChangeNotifier {
   Color get primaryColor => _primaryColor;
   Color get secondaryColor => _secondaryColor;
   ThemeMode get themeMode => _themeMode;
+
+  // [v2.5.0] 快捷获取深色模式状态 (从 main.dart 的全局变量获取)
+  bool get isDarkMode => globalUseDarkMode;
 
   /// 初始化主题服务
   Future<void> initialize() async {
@@ -155,63 +158,33 @@ class ThemeService extends ChangeNotifier {
   /// 从图片提取莫奈颜色（背景图片取色）
   Future<void> extractColorsFromImage(String imagePath) async {
     try {
-      // 读取图片文件
-      final imageFile = File(imagePath);
-      if (!await imageFile.exists()) {
-        debugPrint('图片文件不存在: $imagePath');
-        return;
+      ImageProvider provider;
+      if (imagePath.startsWith('asset:')) {
+        provider = AssetImage(imagePath.substring(6));
+      } else {
+        final imageFile = File(imagePath);
+        if (!await imageFile.exists()) {
+          debugPrint('图片文件不存在: $imagePath');
+          return;
+        }
+        provider = FileImage(imageFile);
       }
 
-      final bytes = await imageFile.readAsBytes();
-      final image = img.decodeImage(bytes);
-
-      if (image == null) {
-        debugPrint('无法解码图片');
-        return;
-      }
-
-      // 缩小图片以提高性能（最大 128x128）
-      final resized = img.copyResize(
-        image,
-        width: image.width > 128 ? 128 : image.width,
-        height: image.height > 128 ? 128 : image.height,
+      // [v2.5.5修复] 支持从 Asset 或 File 中提取原生 Material You 色系
+      final colorScheme = await ColorScheme.fromImageProvider(
+        provider: provider,
+        brightness: Brightness.light,
       );
 
-      // 提取主色调
-      final pixels = <int>[];
-      for (int y = 0; y < resized.height; y++) {
-        for (int x = 0; x < resized.width; x++) {
-          final pixel = resized.getPixel(x, y);
-          // 转换为 ARGB 格式
-          final a = pixel.a.toInt();
-          final r = pixel.r.toInt();
-          final g = pixel.g.toInt();
-          final b = pixel.b.toInt();
-          final argb = (a << 24) | (r << 16) | (g << 8) | b;
-          pixels.add(argb);
-        }
-      }
+      _primaryColor = colorScheme.primary;
+      _secondaryColor = colorScheme.secondary;
 
-      // 使用 Material Color Utilities 生成调色板
-      final result = await QuantizerCelebi().quantize(pixels, 128);
-      final ranked = Score.score(result.colorToCount, desired: 1);
-
-      if (ranked.isNotEmpty) {
-        final dominantColor = Color(ranked.first);
-
-        // 生成 Material You 风格的调色板
-        final corePalette = CorePalette.of(dominantColor.toARGB32());
-
-        _primaryColor = Color(corePalette.primary.get(40));
-        _secondaryColor = Color(corePalette.secondary.get(40));
-
-        await _storage.setInt(
-          StorageService.keyCustomThemeColor,
-          _primaryColor.toARGB32(),
-        );
-        notifyListeners();
-        debugPrint('莫奈取色完成: $_primaryColor');
-      }
+      await _storage.setInt(
+        StorageService.keyCustomThemeColor,
+        _primaryColor.toARGB32(),
+      );
+      notifyListeners();
+      debugPrint('✅ 莫奈取色原生提取完成: $_primaryColor');
     } catch (e) {
       debugPrint('莫奈取色失败: $e');
       _primaryColor = defaultPrimaryColor;

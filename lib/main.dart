@@ -9,10 +9,11 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 // 引入超椭圆库
 import 'package:figma_squircle/figma_squircle.dart';
 import 'providers/schedule_provider.dart';
-import 'services/windows_tray_service.dart';
-import 'services/storage_service.dart';
+import 'package:local_notifier/local_notifier.dart';
 import 'services/theme_service.dart';
 import 'services/onboarding_service.dart';
+import 'services/windows_tray_service.dart';
+import 'services/storage_service.dart';
 import 'services/background_task_service.dart'; // [v2.2.9] 后台任务服务
 import 'utils/glass_opacity_manager.dart'; // [v2.3.0] 玻璃透明度管理器
 import 'ui/screens/schedule_screen.dart';
@@ -100,6 +101,15 @@ void main() async {
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
+
+    // [v2.5.1] 初始化本地桌面通知
+    if (Platform.isWindows) {
+      await localNotifier.setup(
+        appName: 'CourseWidgets',
+        shortcutPolicy: ShortcutPolicy.requireCreate,
+      );
+    }
+
     // [v2.4.8] 使用 TitleBarStyle.hidden 替代 setAsFrameless()
     // hidden 模式保留系统原生的 DWM 最大化/最小化动画
     // setAsFrameless() 则完全移除窗口边框导致无动画
@@ -238,11 +248,11 @@ class _MyAppState extends State<MyApp> {
                   titleLarge: TextStyle(fontWeight: FontWeight.bold),
                   titleMedium: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                // [v2.4.8] 自定义页面过渡动画 — 不裁切前一页
+                // [v2.5.5修复] 彻底纯粹采用原生预测性侧滑返回，不掺杂任何自制动画混合，保证手势无缝衔接
                 pageTransitionsTheme: const material.PageTransitionsTheme(
                   builders: {
                     material.TargetPlatform.android:
-                        SmoothSlideTransitionsBuilder(),
+                        material.PredictiveBackPageTransitionsBuilder(),
                     material.TargetPlatform.iOS:
                         SmoothSlideTransitionsBuilder(),
                     material.TargetPlatform.windows:
@@ -251,8 +261,9 @@ class _MyAppState extends State<MyApp> {
                 ),
               ),
               // [v2.4.9] Windows 平滑滚动 — BouncingScrollPhysics + 鼠标拖拽
-              scrollBehavior:
-                  Platform.isWindows ? _SmoothWindowsScrollBehavior() : null,
+              scrollBehavior: Platform.isWindows
+                  ? _SmoothWindowsScrollBehavior()
+                  : null,
               builder: (context, child) {
                 // 构建背景组件
                 Widget backgroundWidget;
@@ -306,16 +317,12 @@ class _MyAppState extends State<MyApp> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors:
-                            globalUseDarkMode
-                                ? [
-                                  const Color(0xFF1A1A2E),
-                                  const Color(0xFF16213E),
-                                ]
-                                : [
-                                  const Color(0xFFE0C3FC),
-                                  const Color(0xFF8EC5FC),
-                                ],
+                        colors: globalUseDarkMode
+                            ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+                            : [
+                                const Color(0xFFE0C3FC),
+                                const Color(0xFF8EC5FC),
+                              ],
                       ),
                     ),
                   );
@@ -343,10 +350,9 @@ class _MyAppState extends State<MyApp> {
                   ),
                 );
               },
-              home:
-                  _showOnboarding
-                      ? OnboardingScreen(onComplete: _completeOnboarding)
-                      : _getHomeParams(),
+              home: _showOnboarding
+                  ? OnboardingScreen(onComplete: _completeOnboarding)
+                  : _getHomeParams(),
             );
           },
         );

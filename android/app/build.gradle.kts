@@ -114,3 +114,12 @@ dependencies {
 kotlin {
     jvmToolchain(21) 
 }
+
+// [v2.5.1] Kotlin 编译极致并行化，利用多核心超线程
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-Xbackend-threads=8"
+        )
+    }
+}

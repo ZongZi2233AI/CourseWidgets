@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../constants/theme_constants.dart';
+import '../../services/theme_service.dart';
+import '../../utils/glass_settings_helper.dart'; // Added import
 import '../../utils/responsive_utils.dart';
 import 'new_settings_screen.dart';
 import 'settings_general_screen.dart';
@@ -18,10 +20,9 @@ class SettingsMainScreen extends StatefulWidget {
 }
 
 class _SettingsMainScreenState extends State<SettingsMainScreen> {
-  Color get _textColor => Colors.white;
-
   @override
   Widget build(BuildContext context) {
+    final isDark = ThemeService().isDarkMode;
     final isTablet = ResponsiveUtils.isTabletMode(context);
 
     // [v2.2.8] 自适应顶部间距：平板16，手机8
@@ -29,52 +30,70 @@ class _SettingsMainScreenState extends State<SettingsMainScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(16, topPadding, 16, 120),
-          physics: const BouncingScrollPhysics(),
-          children: [
-            _buildSettingsEntry(
-              title: '课程设置',
-              subtitle: '添加课程、学期配置、课时配置',
-              icon: Icons.school_rounded,
-              color: AppThemeColors.babyPink,
-              onTap: () => _navigateTo(const NewSettingsScreen()),
-            ),
-            const SizedBox(height: 16),
-            _buildSettingsEntry(
-              title: '课程通知',
-              subtitle: '提醒时间、双次提醒、Live Activities',
-              icon: Icons.notifications_rounded,
-              color: AppThemeColors.softCoral,
-              onTap: () => _navigateTo(const SettingsNotificationScreen()),
-            ),
-            const SizedBox(height: 16),
-            _buildSettingsEntry(
-              title: '通用设置',
-              subtitle: '深色模式、历史记录、背景图片',
-              icon: Icons.tune_rounded,
-              color: AppThemeColors.paleApricot,
-              onTap: () => _navigateTo(const SettingsGeneralScreen()),
-            ),
-            const SizedBox(height: 16),
-            _buildSettingsEntry(
-              title: '数据管理',
-              subtitle: '导入导出、清理数据',
-              icon: Icons.cloud_sync_rounded,
-              color: Colors.blueAccent,
-              onTap: () => _navigateTo(const SettingsDataScreen()),
-            ),
-            const SizedBox(height: 16),
-            _buildSettingsEntry(
-              title: '关于软件',
-              subtitle: '版本信息、开发者信息',
-              icon: Icons.info_outline_rounded,
-              color: Colors.purpleAccent,
-              onTap: () => _navigateTo(const SettingsAboutScreen()),
-            ),
-          ],
+      // [v2.5.1反馈] extendBody属性让沉浸式全屏生效，内容可以滑到导航栏下
+      extendBody: true,
+      body: CustomScrollView(
+        // [v2.5.1反馈] 恢复原生弹性滚动物理，消除掉帧
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
         ),
+        slivers: [
+          SliverSafeArea(
+            bottom: false, // 底部不留安全区，让内容可以被玻璃底栏遮盖再滑出
+            sliver: SliverPadding(
+              padding: EdgeInsets.fromLTRB(16, topPadding, 16, 120),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildSettingsEntry(
+                    title: '课程设置',
+                    subtitle: '添加课程、学期配置、课时配置',
+                    icon: Icons.school_rounded,
+                    color: AppThemeColors.babyPink,
+                    onTap: () => _navigateTo(const NewSettingsScreen()),
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSettingsEntry(
+                    title: '课程通知',
+                    subtitle: '提醒时间、双次提醒、Live Activities',
+                    icon: Icons.notifications_rounded,
+                    color: AppThemeColors.softCoral,
+                    onTap: () =>
+                        _navigateTo(const SettingsNotificationScreen()),
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSettingsEntry(
+                    title: '通用设置',
+                    subtitle: '深色模式、历史记录、背景图片',
+                    icon: Icons.tune_rounded,
+                    color: AppThemeColors.paleApricot,
+                    onTap: () => _navigateTo(const SettingsGeneralScreen()),
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSettingsEntry(
+                    title: '数据管理',
+                    subtitle: '导入导出、清理数据',
+                    icon: Icons.cloud_sync_rounded,
+                    color: Colors.blueAccent,
+                    onTap: () => _navigateTo(const SettingsDataScreen()),
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSettingsEntry(
+                    title: '关于软件',
+                    subtitle: '版本信息、开发者信息',
+                    icon: Icons.info_outline_rounded,
+                    color: Colors.purpleAccent,
+                    onTap: () => _navigateTo(const SettingsAboutScreen()),
+                    isDark: isDark,
+                  ),
+                ]),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -85,12 +104,14 @@ class _SettingsMainScreenState extends State<SettingsMainScreen> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     // [v2.4.0] 使用 Material + InkWell 实现水波纹和触控反馈
     return liquid.LiquidCard(
       borderRadius: 24,
       padding: 0, // 移除内边距，由内部的一级容器控制，以便水波纹填满
-      glassColor: Colors.white.withValues(alpha: 0.04),
+      // [v2.5.3] 统一使用纯净高对比度玻璃
+      glassColor: GlassSettingsHelper.getCardSettings().glassColor,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -129,14 +150,14 @@ class _SettingsMainScreenState extends State<SettingsMainScreen> {
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
-                          color: _textColor,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       Text(
                         subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Colors.white60,
+                          color: isDark ? Colors.white60 : Colors.black54,
                         ),
                       ),
                     ],

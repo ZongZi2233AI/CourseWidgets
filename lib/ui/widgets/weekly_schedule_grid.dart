@@ -75,91 +75,82 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => GlassSheet(
-            settings: LiquidGlassSettings(
-              glassColor: Colors.black.withValues(alpha: 0.4),
-              blur: 20,
-              thickness: 15,
-            ),
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 标题
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      '选择周次',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+      builder: (context) => GlassSheet(
+        settings: LiquidGlassSettings(
+          glassColor: Colors.black.withValues(alpha: 0.4),
+          blur: 20,
+          thickness: 15,
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 标题
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  '选择周次',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  // 周次网格
-                  Container(
-                    height: 300,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: 1.5,
-                          ),
-                      itemCount: weeks.length,
-                      itemBuilder: (context, index) {
-                        final week = weeks[index];
-                        final isSelected = week == provider.currentWeek;
-
-                        return GlassButton.custom(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            provider.setCurrentWeek(week);
-                            Navigator.pop(context);
-                          },
-                          width: double.infinity,
-                          height: double.infinity,
-                          style: GlassButtonStyle.filled,
-                          settings: LiquidGlassSettings(
-                            glassColor:
-                                isSelected
-                                    ? AppThemeColors.babyPink.withValues(
-                                      alpha: 0.3,
-                                    )
-                                    : Colors.white.withValues(alpha: 0.05),
-                            blur: 0,
-                            thickness: 10,
-                          ),
-                          shape: const LiquidRoundedSuperellipse(
-                            borderRadius: 12,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '第$week周',
-                              style: TextStyle(
-                                color:
-                                    isSelected ? Colors.white : Colors.white70,
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                ),
               ),
-            ),
+              // 周次网格
+              Container(
+                height: 300,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 1.5,
+                  ),
+                  itemCount: weeks.length,
+                  itemBuilder: (context, index) {
+                    final week = weeks[index];
+                    final isSelected = week == provider.currentWeek;
+
+                    return GlassButton.custom(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        provider.setCurrentWeek(week);
+                        Navigator.pop(context);
+                      },
+                      width: double.infinity,
+                      height: double.infinity,
+                      style: GlassButtonStyle.filled,
+                      settings: LiquidGlassSettings(
+                        glassColor: isSelected
+                            ? AppThemeColors.babyPink.withValues(alpha: 0.3)
+                            : Colors.white.withValues(alpha: 0.05),
+                        blur: 0,
+                        thickness: 10,
+                      ),
+                      shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+                      child: Center(
+                        child: Text(
+                          '第$week周',
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.white70,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -168,26 +159,20 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
     return liquid.LiquidCard(
       borderRadius: 20,
       padding: 16,
-      glassColor: Colors.white.withValues(alpha: 0.03),
       quality: GlassQuality.standard,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // 上一周
           GlassButton.custom(
-            onTap:
-                () => _changeWeek(
-                  provider,
-                  provider.currentWeek - 1,
-                ), // [v2.2.1] 使用验证方法
+            onTap: () => _changeWeek(
+              provider,
+              provider.currentWeek - 1,
+            ), // [v2.2.1] 使用验证方法
             width: 100,
             height: 40,
             style: GlassButtonStyle.filled,
-            settings: LiquidGlassSettings(
-              glassColor: Colors.white.withValues(alpha: 0.1),
-              blur: 0,
-              thickness: 10,
-            ),
+            settings: LiquidGlassSettings(blur: 0, thickness: 10),
             shape: const LiquidRoundedSuperellipse(borderRadius: 12),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -244,19 +229,14 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
 
           // 下一周
           GlassButton.custom(
-            onTap:
-                () => _changeWeek(
-                  provider,
-                  provider.currentWeek + 1,
-                ), // [v2.2.1] 使用验证方法
+            onTap: () => _changeWeek(
+              provider,
+              provider.currentWeek + 1,
+            ), // [v2.2.1] 使用验证方法
             width: 100,
             height: 40,
             style: GlassButtonStyle.filled,
-            settings: LiquidGlassSettings(
-              glassColor: Colors.white.withValues(alpha: 0.1),
-              blur: 0,
-              thickness: 10,
-            ),
+            settings: LiquidGlassSettings(blur: 0, thickness: 10),
             shape: const LiquidRoundedSuperellipse(borderRadius: 12),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -311,7 +291,6 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
     return liquid.LiquidCard(
       borderRadius: 20,
       padding: 12,
-      glassColor: Colors.white.withValues(alpha: 0.02),
       quality: GlassQuality.standard,
       child: Column(
         children: [
@@ -332,31 +311,30 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
 
           // 课程列表
           Expanded(
-            child:
-                courses.isEmpty
-                    ? Center(
-                      child: Text(
-                        '无课',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          fontSize: 12,
-                        ),
+            child: courses.isEmpty
+                ? Center(
+                    child: Text(
+                      '无课',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        fontSize: 12,
                       ),
-                    )
-                    : ListView.builder(
-                      padding: EdgeInsets.zero,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      // [v2.2.8修复] 增加缓存范围，防止滚动时降级渲染
-                      cacheExtent: 100,
-                      itemCount: courses.length,
-                      itemBuilder: (context, index) {
-                        final course = courses[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: _buildCourseCard(context, course),
-                        );
-                      },
                     ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    // [v2.2.8修复] 增加缓存范围，防止滚动时降级渲染
+                    cacheExtent: 100,
+                    itemCount: courses.length,
+                    itemBuilder: (context, index) {
+                      final course = courses[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildCourseCard(context, course),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

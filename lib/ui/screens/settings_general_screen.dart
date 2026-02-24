@@ -25,16 +25,11 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
   bool _adaptiveDarkMode = false;
   theme.ThemeMode _currentThemeMode = theme.ThemeMode.defaultMode;
 
-  bool get _isDarkMode {
-    if (_adaptiveDarkMode) {
-      return MediaQuery.of(context).platformBrightness == Brightness.dark;
-    }
-    return globalUseDarkMode;
-  }
+  bool get _isDarkMode => _themeService.isDarkMode;
 
-  Color get _textColor => _isDarkMode ? Colors.white : const Color(0xFF1A1A2E);
+  Color get _textColor => _isDarkMode ? Colors.white : Colors.black87;
   Color get _textSecondaryColor =>
-      _isDarkMode ? Colors.white70 : const Color(0xFF666666);
+      _isDarkMode ? Colors.white60 : Colors.black54;
 
   @override
   void initState() {
@@ -145,71 +140,79 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
   }
 
   void _showThemeModeBottomSheet() {
-    showCupertinoModalPopup(
+    // [v2.5.2] 从 CupertinoModalPopup 迁移到 showModalBottomSheet 支持下滑关闭与小圆条拖拽
+    showModalBottomSheet(
       context: context,
-      builder:
-          (BuildContext context) => GlassSheet(
-            settings: GlassSettingsHelper.getDialogSettings(),
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 标题
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      '主题色设置',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: GlassSettingsHelper.getTextColor(),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      enableDrag: true,
+      showDragHandle: true,
+      isScrollControlled: true,
+      // [v2.5.2] 增加 RepaintBoundary 防止底部表单内高斯模糊拖降全局帧率
+      builder: (BuildContext context) => RepaintBoundary(
+        child: GlassSheet(
+          settings: GlassSettingsHelper.getDialogSettings(),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 标题
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    '主题色设置',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: _textColor,
+                    ),
+                  ),
+                ),
+
+                // 选项列表
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      _buildThemeModeOption(
+                        theme.ThemeMode.defaultMode,
+                        '默认主题',
+                        '使用应用默认的嫩粉色主题',
+                        CupertinoIcons.paintbrush,
                       ),
-                    ),
-                  ),
-
-                  // 选项列表
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: [
+                      const SizedBox(height: 12),
+                      if (Platform.isAndroid) ...[
                         _buildThemeModeOption(
-                          theme.ThemeMode.defaultMode,
-                          '默认主题',
-                          '使用应用默认的嫩粉色主题',
-                          CupertinoIcons.paintbrush,
+                          theme.ThemeMode.system,
+                          '系统主题',
+                          'Android 12+ Material You 动态颜色',
+                          CupertinoIcons.device_phone_portrait,
                         ),
                         const SizedBox(height: 12),
-                        if (Platform.isAndroid) ...[
-                          _buildThemeModeOption(
-                            theme.ThemeMode.system,
-                            '系统主题',
-                            'Android 12+ Material You 动态颜色',
-                            CupertinoIcons.device_phone_portrait,
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        _buildThemeModeOption(
-                          theme.ThemeMode.monet,
-                          '莫奈取色',
-                          '从背景图片提取主题色',
-                          CupertinoIcons.photo,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildThemeModeOption(
-                          theme.ThemeMode.custom,
-                          '自定义主题色',
-                          '选择你喜欢的任意颜色',
-                          CupertinoIcons.color_filter,
-                        ),
                       ],
-                    ),
+                      _buildThemeModeOption(
+                        theme.ThemeMode.monet,
+                        '莫奈取色',
+                        '从背景图片提取主题色',
+                        CupertinoIcons.photo,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildThemeModeOption(
+                        theme.ThemeMode.custom,
+                        '自定义主题色',
+                        '选择你喜欢的任意颜色',
+                        CupertinoIcons.color_filter,
+                      ),
+                    ],
                   ),
+                ),
 
-                  const SizedBox(height: 20),
-                ],
-              ),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
+        ),
+      ),
     );
   }
 
@@ -232,11 +235,21 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
           return;
         }
 
-        // [v2.3.0修复] 莫奈取色需要先选择背景图片
+        // [v2.5.2修复] 莫奈取色：如果当前无背景，直接唤起相册，并且在选择后自动切换为莫奈模式
         if (mode == theme.ThemeMode.monet &&
             globalBackgroundPath.value == null) {
           Navigator.pop(context);
-          _showToast('请先选择背景图片');
+          await _pickBackgroundImage();
+
+          if (globalBackgroundPath.value != null) {
+            setState(() => _currentThemeMode = theme.ThemeMode.monet);
+            await _themeService.setThemeMode(theme.ThemeMode.monet);
+            await _themeService.extractColorsFromImage(
+              globalBackgroundPath.value!,
+            );
+            if (mounted) setState(() {});
+            _showToast('已应用背景并切换为莫奈取色');
+          }
           return;
         }
 
@@ -259,25 +272,22 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient:
-              isSelected
-                  ? LinearGradient(
-                    colors: [
-                      AppThemeColors.babyPink.withValues(alpha: 0.3),
-                      AppThemeColors.softCoral.withValues(alpha: 0.3),
-                    ],
-                  )
-                  : null,
-          color:
-              isSelected
-                  ? null
-                  : GlassSettingsHelper.getCardSettings().glassColor,
+          gradient: isSelected
+              ? LinearGradient(
+                  colors: [
+                    AppThemeColors.babyPink.withValues(alpha: 0.3),
+                    AppThemeColors.softCoral.withValues(alpha: 0.3),
+                  ],
+                )
+              : null,
+          color: isSelected
+              ? null
+              : GlassSettingsHelper.getCardSettings().glassColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color:
-                isSelected
-                    ? AppThemeColors.babyPink.withValues(alpha: 0.5)
-                    : Colors.white.withValues(alpha: 0.1),
+            color: isSelected
+                ? AppThemeColors.babyPink.withValues(alpha: 0.5)
+                : _textColor.withValues(alpha: 0.1),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -287,19 +297,18 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                gradient:
-                    isSelected
-                        ? LinearGradient(
-                          colors: [
-                            AppThemeColors.babyPink.withValues(alpha: 0.3),
-                            AppThemeColors.softCoral.withValues(alpha: 0.3),
-                          ],
-                        )
-                        : null,
-                color: isSelected ? null : Colors.white.withValues(alpha: 0.1),
+                gradient: isSelected
+                    ? LinearGradient(
+                        colors: [
+                          AppThemeColors.babyPink.withValues(alpha: 0.3),
+                          AppThemeColors.softCoral.withValues(alpha: 0.3),
+                        ],
+                      )
+                    : null,
+                color: isSelected ? null : _textColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: Colors.white, size: 20),
+              child: Icon(icon, color: _textColor, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -309,18 +318,15 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      color: GlassSettingsHelper.getTextColor(),
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      color: _textColor,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: GlassSettingsHelper.getSecondaryTextColor(),
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(fontSize: 12, color: _textSecondaryColor),
                   ),
                 ],
               ),
@@ -368,8 +374,8 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
       body: LiquidGlassLayer(
         settings: LiquidGlassSettings(
           thickness: 0.8,
-          blur: 12.0,
-          glassColor: Colors.white.withValues(alpha: 0.1),
+          blur: 15.0, // Let the background glass be stronger
+          glassColor: GlassSettingsHelper.getStandardSettings().glassColor,
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -449,13 +455,22 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
     // 预设颜色
     final presetColors = [
       AppThemeColors.babyPink, // 默认粉色
-      const Color(0xFFFF6B6B), // 红色
-      const Color(0xFFFFB347), // 橙色
-      const Color(0xFFFFD93D), // 黄色
-      const Color(0xFF6BCB77), // 绿色
-      const Color(0xFF4D96FF), // 蓝色
-      const Color(0xFF9D84B7), // 紫色
-      const Color(0xFFFF85A2), // 粉红
+      const Color(0xFFFF6B6B), // 珊瑚红
+      const Color(0xFFFFB347), // 柑橘橙
+      const Color(0xFFFFD93D), // 奶酪黄
+      const Color(0xFF6BCB77), // 薄荷绿
+      const Color(0xFF4D96FF), // 晴空蓝
+      const Color(0xFF9D84B7), // 丁香紫
+      const Color(0xFFFF85A2), // 桃金粉
+      // [v2.5.2 扩编] 增加更多现代美学色彩
+      const Color(0xFF00C9A7), // 翡翠绿
+      const Color(0xFF845EC2), // 皇家紫
+      const Color(0xFFFF9671), // 蜜桃红
+      const Color(0xFF0081C9), // 海洋蓝
+      const Color(0xFFB0A8B9), // 莫兰迪雾灰
+      const Color(0xFFC34A36), // 砖红琥珀
+      const Color(0xFF537188), // 钢青蓝
+      const Color(0xFFE2B714), // 芥末黄
     ];
 
     Color? selectedColor;
@@ -469,34 +484,33 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
           child: Wrap(
             spacing: 12,
             runSpacing: 12,
-            children:
-                presetColors.map((color) {
-                  return GestureDetector(
-                    onTap: () {
-                      selectedColor = color;
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: color.withValues(alpha: 0.3),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
+            children: presetColors.map((color) {
+              return GestureDetector(
+                onTap: () {
+                  selectedColor = color;
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 2,
                     ),
-                  );
-                }).toList(),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ),
         actions: [
@@ -544,7 +558,7 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: liquid.LiquidCard(
         onTap: () => onChanged(!value),
-        glassColor: Colors.white.withValues(alpha: 0.04),
+        glassColor: GlassSettingsHelper.getCardSettings().glassColor,
         padding: 16,
         borderRadius: 20,
         child: Row(
@@ -597,7 +611,7 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: liquid.LiquidCard(
-          glassColor: Colors.white.withValues(alpha: 0.04),
+          glassColor: GlassSettingsHelper.getCardSettings().glassColor,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(

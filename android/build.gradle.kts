@@ -36,19 +36,12 @@ allprojects {
     }
     configurations.all {
         resolutionStrategy.eachDependency {
-            if (requested.group == "org.jetbrains.kotlin") {
-                useVersion("2.3.0") // 统一强制使用一个版本
+            // [v2.5.0] 统一 Kotlin 版本，但排除 build-tools（必须与 KGP 严格对齐）
+            if (requested.group == "org.jetbrains.kotlin" &&
+                !requested.name.startsWith("kotlin-build-tools")) {
+                useVersion("2.3.0")
             }
         }
     }
 }
-// 强制统一 Kotlin 版本，解决 "Build Tools API Version Mismatch"
-allprojects {
-    configurations.all {
-        resolutionStrategy.eachDependency {
-            if (requested.group == "org.jetbrains.kotlin") {
-                useVersion("2.2.10") // 强制使用与 KGP 匹配的版本
-            }
-        }
-    }
-}
+// [v2.5.0] Kotlin 版本统一在上方 allprojects 中为 2.3.0

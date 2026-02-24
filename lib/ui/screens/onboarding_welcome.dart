@@ -10,11 +10,8 @@ import '../../constants/theme_constants.dart';
 /// Logo 动画 + Glassify 文字效果 + "开始使用" 按钮
 class OnboardingWelcome extends StatefulWidget {
   final VoidCallback onNext;
-  
-  const OnboardingWelcome({
-    super.key,
-    required this.onNext,
-  });
+
+  const OnboardingWelcome({super.key, required this.onNext});
 
   @override
   State<OnboardingWelcome> createState() => _OnboardingWelcomeState();
@@ -30,39 +27,36 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
+
     // Logo 向上移动动画
-    _logoAnimation = Tween<double>(
-      begin: 0.0,
-      end: -120.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOutCubic),
-    ));
-    
+    _logoAnimation = Tween<double>(begin: 0.0, end: -120.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOutCubic),
+      ),
+    );
+
     // 文字淡入动画
-    _textAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
-    ));
-    
+    _textAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
+      ),
+    );
+
     // 按钮淡入动画
-    _buttonAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
-    ));
-    
+    _buttonAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
     // 启动动画
     _controller.forward();
   }
@@ -89,7 +83,7 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
                   child: _buildLogoGlass(),
                 ),
               ),
-              
+
               // "欢迎使用" Glassify 文字
               Center(
                 child: Transform.translate(
@@ -100,7 +94,7 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
                   ),
                 ),
               ),
-              
+
               // "开始使用" 按钮
               Positioned(
                 left: 40,
@@ -143,7 +137,7 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 24),
-            
+
             // App Name - [v2.3.0修复] 缩小字号避免换行
             const Text(
               'CourseWidgets',
@@ -168,9 +162,9 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
     // [v2.2.9] 使用 Glassify 为文字添加玻璃效果
     // Windows 端降级为普通 Container (性能优化)
     // 参考: https://pub.dev/documentation/liquid_glass_renderer/latest/experimental/Glassify-class.html
-    
+
     final isWindows = !kIsWeb && Platform.isWindows;
-    
+
     if (isWindows) {
       // Windows 降级版本 - 使用简单的渐变背景
       return Container(
@@ -206,7 +200,7 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
         ),
       );
     }
-    
+
     // Android/iOS - 使用 Glassify 效果
     return Glassify(
       settings: const LiquidGlassSettings(
@@ -221,11 +215,7 @@ class _OnboardingWelcomeState extends State<OnboardingWelcome>
           color: Colors.white,
           letterSpacing: 8.0,
           shadows: [
-            Shadow(
-              color: Colors.black26,
-              offset: Offset(0, 2),
-              blurRadius: 4,
-            ),
+            Shadow(color: Colors.black26, offset: Offset(0, 2), blurRadius: 1),
           ],
         ),
       ),

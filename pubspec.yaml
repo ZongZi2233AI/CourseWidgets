@@ -16,11 +16,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.4.9+10002409
+version: 2.5.3+10005003
 
 environment:
-  sdk: ^3.7.0
-  flutter: ^3.29.0
+  sdk: ^3.11.0
+  flutter: ^3.41.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -87,8 +87,9 @@ dependencies:
   
   # 圆角处理
   figma_squircle: ^0.6.3
-  liquid_glass_renderer: ^0.2.0-dev.4
-  liquid_glass_widgets: ^0.3.0-dev.1
+  liquid_glass_renderer: any
+  liquid_glass_widgets: any
+  local_notifier: ^0.1.6
 
 dev_dependencies:
   flutter_test:

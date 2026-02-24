@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
+  local_notifier
   mmkv_linux
   screen_retriever_linux
   tray_manager

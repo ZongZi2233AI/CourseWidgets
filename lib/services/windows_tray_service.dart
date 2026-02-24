@@ -18,6 +18,11 @@ class WindowsTrayService with TrayListener {
   bool _isBackgroundMode = false;
   final NotificationManager _notificationManager = NotificationManager();
 
+  // [v2.5.0] 用于通知 UI 切换页面的流控制器
+  final StreamController<int> _navigationController =
+      StreamController<int>.broadcast();
+  Stream<int> get navigationStream => _navigationController.stream;
+
   /// 初始化托盘服务
   Future<void> initialize() async {
     if (kIsWeb || !Platform.isWindows) {
@@ -112,11 +117,13 @@ class WindowsTrayService with TrayListener {
   Future<void> _createTrayMenu() async {
     Menu menu = Menu(
       items: [
-        MenuItem(key: 'show', label: '显示窗口'),
+        MenuItem(key: 'course', label: '课程'),
+        MenuItem(key: 'calendar', label: '日历'),
+        MenuItem(key: 'general_settings', label: '通用设置'),
+        MenuItem(key: 'course_settings', label: '课程设置'),
+        MenuItem(key: 'about', label: '关于软件'),
         MenuItem.separator(),
-        MenuItem(key: 'notification', label: '通知设置'),
-        MenuItem.separator(),
-        MenuItem(key: 'exit', label: '退出'),
+        MenuItem(key: 'exit', label: '退出软件'),
       ],
     );
     await trayManager.setContextMenu(menu);
@@ -139,12 +146,16 @@ class WindowsTrayService with TrayListener {
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
     switch (menuItem.key) {
-      case 'show':
-        _showWindow();
+      case 'course':
+        _showWindowAndNavigate(0); // 假设 0 是课程页面
         break;
-      case 'notification':
-        _showWindow();
-        // TODO: 导航到通知设置页面
+      case 'calendar':
+        _showWindowAndNavigate(1); // 假设 1 是日历页面
+        break;
+      case 'general_settings':
+      case 'course_settings':
+      case 'about':
+        _showWindowAndNavigate(2); // 假设 2 是设置页面，暂统一跳设置主页
         break;
       case 'exit':
         _exitApp();
@@ -157,6 +168,12 @@ class WindowsTrayService with TrayListener {
     await dispose();
     await windowManager.destroy();
     exit(0); // [v2.4.8] 确保 Dart isolate 终止
+  }
+
+  /// 显示窗口并导航
+  Future<void> _showWindowAndNavigate(int tabIndex) async {
+    await _showWindow();
+    _navigationController.add(tabIndex);
   }
 
   /// 显示窗口
@@ -214,6 +231,7 @@ class WindowsTrayService with TrayListener {
 
   /// 清理资源
   Future<void> dispose() async {
+    _navigationController.close();
     _notificationManager.stopCourseCheck();
     trayManager.removeListener(this);
     await trayManager.destroy();
