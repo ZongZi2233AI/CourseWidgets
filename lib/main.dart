@@ -21,7 +21,9 @@ import 'ui/screens/android_liquid_glass_main.dart';
 import 'ui/screens/windows_custom_window.dart';
 import 'ui/screens/onboarding_screen.dart';
 import 'ui/transitions/smooth_slide_transitions.dart'; // [v2.4.8] 平滑过渡动画
+import 'ui/transitions/custom_predictive_back_transitions.dart'; // [v2.5.6] 修正白屏预测返回
 import 'dart:async';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 bool globalUseDarkMode = false;
 final ValueNotifier<String?> globalBackgroundPath = ValueNotifier<String?>(
@@ -139,12 +141,14 @@ void main() async {
   await loadGlobalBackground();
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ScheduleProvider()),
-        ChangeNotifierProvider.value(value: ThemeService()),
-      ],
-      child: const MyApp(),
+    Phoenix(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ScheduleProvider()),
+          ChangeNotifierProvider.value(value: ThemeService()),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 
@@ -248,15 +252,15 @@ class _MyAppState extends State<MyApp> {
                   titleLarge: TextStyle(fontWeight: FontWeight.bold),
                   titleMedium: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                // [v2.5.5修复] 彻底纯粹采用原生预测性侧滑返回，不掺杂任何自制动画混合，保证手势无缝衔接
+                // [v2.5.5修复] 采用拼接版预测性返回：进入使用Slide，拉手势触发Native缩放
                 pageTransitionsTheme: const material.PageTransitionsTheme(
                   builders: {
                     material.TargetPlatform.android:
-                        material.PredictiveBackPageTransitionsBuilder(),
+                        const CustomPredictiveBackPageTransitionsBuilder(),
                     material.TargetPlatform.iOS:
-                        SmoothSlideTransitionsBuilder(),
+                        const SmoothSlideTransitionsBuilder(),
                     material.TargetPlatform.windows:
-                        SmoothSlideTransitionsBuilder(),
+                        const SmoothSlideTransitionsBuilder(),
                   },
                 ),
               ),
@@ -342,13 +346,33 @@ class _MyAppState extends State<MyApp> {
                 // [v2.4.1] 隔离背景层，防止二级页面切换时引发玻璃滤镜的重绘掉帧
                 backgroundWidget = RepaintBoundary(child: backgroundWidget);
 
-                return LiquidGlassScope.stack(
+                final coreStack = LiquidGlassScope.stack(
                   background: backgroundWidget,
                   content: material.Material(
                     type: material.MaterialType.transparency,
                     child: child ?? const SizedBox(),
                   ),
                 );
+
+                // [v2.5.6修复] 修复 Windows 最小化时背景不随之缩放的问题，通过全局可观察量拉动背景
+                if (Platform.isWindows) {
+                  return ValueListenableBuilder<double>(
+                    valueListenable: windowsGlobalScale,
+                    builder: (context, scale, _) {
+                      return ValueListenableBuilder<double>(
+                        valueListenable: windowsGlobalOpacity,
+                        builder: (context, opacity, _) {
+                          return Transform.scale(
+                            scale: scale,
+                            child: Opacity(opacity: opacity, child: coreStack),
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+
+                return coreStack;
               },
               home: _showOnboarding
                   ? OnboardingScreen(onComplete: _completeOnboarding)

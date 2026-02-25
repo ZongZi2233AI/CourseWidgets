@@ -234,59 +234,64 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen>
     // [v2.4.8] 使用 GlassButton.custom 获得完整的拉伸/按压/高光互动效果
     // 按 API 文档：GlassQuality.premium 用于静态布局，提供最高视觉质量
     // useOwnLayer: true 让 Touch Me 有自己的完整玻璃图层
-    return GlassButton.custom(
-      onTap: () {
-        HapticFeedback.heavyImpact();
+    return GestureDetector(
+      onTapDown: (_) {
+        // [v2.5.6修复] 在最外层拦截 onTapDown，强制触发系统级别的触觉震动反馈，确保 Android 侧点按时有物理反馈
+        HapticFeedback.lightImpact();
       },
-      width: double.infinity,
-      height: 120,
-      style: GlassButtonStyle.filled,
-      // [v2.5.0修复] 关闭独立图层。使用 useOwnLayer=true 虽然能做shader预渲染，
-      // 但在部分 Android 设备上初次绘制会白屏闪烁。关闭它即可解决闪烁。
-      useOwnLayer: false,
-      quality: GlassQuality.premium, // 最高质量 — 包括纹理捕获和色散
-      // [v2.5.4修复] 真·果冻触控：使用更夸张的大形变系数和极轻盈的阻尼
-      // 去除会导致塑料感的模糊，拉升厚度呈现纯粹的物理折射
-      stretch: 5.0, // 继续暴涨形变阻力拉伸，增强拖拽和长按边界反馈
-      resistance: 0.005, // 几乎无阻尼的果冻感
-      interactionScale: 0.6, // [v2.5.5修复] 深按大幅度回缩的形变反馈，解决Android侧无响应感
-      settings: LiquidGlassSettings(
-        glassColor: Colors.transparent, // 完全无色透明
-        blur: 1.0, // 仅保留边缘的一点点模糊，展现清晰的折射扭曲
-        thickness: 500, // 极度夸张的厚度，让背后内容严重折射错位
-        refractiveIndex: 2.5, // 极高折射率（钻石级别）
-        lightIntensity: 1.5,
-        chromaticAberration: 0.2, // 明显的色差
-      ),
-      shape: const LiquidRoundedSuperellipse(borderRadius: 28),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              CupertinoIcons.hand_point_right_fill,
-              color: Colors.white,
-              size: 32,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Touch me',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      child: GlassButton.custom(
+        onTap: () {
+          HapticFeedback.heavyImpact();
+        },
+        width: double.infinity,
+        height: 120,
+        style: GlassButtonStyle.filled,
+        // [v2.5.0修复] 关闭独立图层。使用 useOwnLayer=true 虽然能做shader预渲染，
+        // 但在部分 Android 设备上初次绘制会白屏闪烁。关闭它即可解决闪烁。
+        useOwnLayer: false,
+        quality: GlassQuality.premium, // 最高质量 — 包括纹理捕获和色散
+        // [v2.5.6修复] 将形变系数恢复到正常水平，解决 Windows 端拖拽失控乱飞的问题
+        stretch: 0.8, // 适度的拉伸形变
+        resistance: 0.05, // 保持一定的阻力感
+        interactionScale: 0.9, // [v2.5.6修复] 恢复正常的按压回缩比例 (0.9)
+        settings: LiquidGlassSettings(
+          glassColor: Colors.transparent, // 完全无色透明
+          blur: 1.0, // 仅保留边缘的一点点模糊，展现清晰的折射扭曲
+          thickness: 500, // 极度夸张的厚度，让背后内容严重折射错位
+          refractiveIndex: 2.5, // 极高折射率（钻石级别）
+          lightIntensity: 1.5,
+          chromaticAberration: 0.2, // 明显的色差
+        ),
+        shape: const LiquidRoundedSuperellipse(borderRadius: 28),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                CupertinoIcons.hand_point_right_fill,
                 color: Colors.white,
-                letterSpacing: 1.0,
+                size: 32,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Premium Liquid Glass Demo',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.white.withValues(alpha: 0.8),
+              const SizedBox(height: 12),
+              const Text(
+                'Touch me',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1.0,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'Premium Liquid Glass Demo',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import '../../providers/schedule_provider.dart';
 import '../../models/course_event.dart';
 import '../../services/data_import_service.dart';
@@ -118,11 +119,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               Navigator.push(
                 context,
                 TransparentMaterialPageRoute(
-                  builder:
-                      (context) => CourseEditScreen(
-                        week: context.read<ScheduleProvider>().currentWeek,
-                        day: context.read<ScheduleProvider>().currentDay,
-                      ),
+                  builder: (context) => CourseEditScreen(
+                    week: context.read<ScheduleProvider>().currentWeek,
+                    day: context.read<ScheduleProvider>().currentDay,
+                  ),
                 ),
               );
             },
@@ -152,68 +152,60 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             onPressed: () async {
               final confirm = await showDialog<bool>(
                 context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text('确认清除'),
-                      content: const Text('确定要清除所有课表数据吗？'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('取消'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text(
-                            '确定',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      ],
+                builder: (context) => AlertDialog(
+                  title: const Text('确认清除'),
+                  content: const Text('确定要清除所有课表数据吗？'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('取消'),
                     ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text(
+                        '确定',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
               );
 
               if (confirm == true) {
                 await provider.clearData();
                 if (mounted && context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('数据已清除')));
+                  Phoenix.rebirth(context);
                 }
               }
             },
           ),
         ],
       ),
-      body:
-          provider.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : provider.errorMessage != null
-              ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      provider.errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => provider.loadSavedData(),
-                      child: const Text('重试'),
-                    ),
-                  ],
-                ),
-              )
-              : provider.hasData
-              ? _buildScheduleView(provider)
-              : _buildEmptyView(),
+      body: provider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : provider.errorMessage != null
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    provider.errorMessage!,
+                    style: const TextStyle(color: Colors.red, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => provider.loadSavedData(),
+                    child: const Text('重试'),
+                  ),
+                ],
+              ),
+            )
+          : provider.hasData
+          ? _buildScheduleView(provider)
+          : _buildEmptyView(),
     );
   }
 
@@ -254,8 +246,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           TextButton(
             onPressed: () async {
               // 从assets导入测试数据
-              final result =
-                  await context.read<ScheduleProvider>().importFromAssets();
+              final result = await context
+                  .read<ScheduleProvider>()
+                  .importFromAssets();
               if (result && mounted && context.mounted) {
                 ScaffoldMessenger.of(
                   context,
@@ -301,40 +294,37 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
-                  children:
-                      weeks.map((week) {
-                        final isSelected = week == provider.currentWeek;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: ChoiceChip(
-                            label: Text('第$week周'),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              if (selected) {
-                                provider.setCurrentWeek(week);
-                              }
-                            },
-                            selectedColor: Colors.blue[600],
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black,
-                              fontWeight:
-                                  isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                            ),
-                            backgroundColor: Colors.grey[100],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(
-                                color:
-                                    isSelected
-                                        ? Colors.blue[600]!
-                                        : Colors.grey[300]!,
-                              ),
-                            ),
+                  children: weeks.map((week) {
+                    final isSelected = week == provider.currentWeek;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ChoiceChip(
+                        label: Text('第$week周'),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            provider.setCurrentWeek(week);
+                          }
+                        },
+                        selectedColor: Colors.blue[600],
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                        backgroundColor: Colors.grey[100],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                            color: isSelected
+                                ? Colors.blue[600]!
+                                : Colors.grey[300]!,
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               );
             },
@@ -360,36 +350,33 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        children:
-            days.map((day) {
-              final isSelected = day == provider.currentDay;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: FilterChip(
-                  label: Text(provider.getDayName(day)),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      provider.setCurrentDay(day);
-                    }
-                  },
-                  selectedColor: Colors.green[600],
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  backgroundColor: Colors.grey[100],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    side: BorderSide(
-                      color:
-                          isSelected ? Colors.green[600]! : Colors.grey[300]!,
-                    ),
-                  ),
+        children: days.map((day) {
+          final isSelected = day == provider.currentDay;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: FilterChip(
+              label: Text(provider.getDayName(day)),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  provider.setCurrentDay(day);
+                }
+              },
+              selectedColor: Colors.green[600],
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : Colors.black,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+              backgroundColor: Colors.grey[100],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+                side: BorderSide(
+                  color: isSelected ? Colors.green[600]! : Colors.grey[300]!,
                 ),
-              );
-            }).toList(),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -518,61 +505,59 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   void _showCourseActions(BuildContext context, CourseEvent course) {
     showModalBottomSheet(
       context: context,
-      builder:
-          (context) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.edit, color: Colors.blue),
-                title: const Text('编辑课程'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _editCourse(course);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('删除课程'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: const Text('确认删除'),
-                          content: Text('确定要删除 "${course.name}" 吗？'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('取消'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text(
-                                '删除',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        ),
-                  );
-
-                  if (confirm == true) {
-                    _deleteCourse(course);
-                  }
-                },
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('取消'),
-                ),
-              ),
-            ],
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.edit, color: Colors.blue),
+            title: const Text('编辑课程'),
+            onTap: () {
+              Navigator.pop(context);
+              _editCourse(course);
+            },
           ),
+          ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: const Text('删除课程'),
+            onTap: () async {
+              Navigator.pop(context);
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('确认删除'),
+                  content: Text('确定要删除 "${course.name}" 吗？'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('取消'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text(
+                        '删除',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                _deleteCourse(course);
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -581,12 +566,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     Navigator.push(
       context,
       TransparentMaterialPageRoute(
-        builder:
-            (context) => CourseEditScreen(
-              course: course,
-              week: context.read<ScheduleProvider>().currentWeek,
-              day: context.read<ScheduleProvider>().currentDay,
-            ),
+        builder: (context) => CourseEditScreen(
+          course: course,
+          week: context.read<ScheduleProvider>().currentWeek,
+          day: context.read<ScheduleProvider>().currentDay,
+        ),
       ),
     );
   }
@@ -636,31 +620,30 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   void _showCourseDetailDialog(BuildContext context, CourseEvent course) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('课程详情'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDetailRow('课程名称', course.name),
-                _buildDetailRow('上课时间', course.timeStr),
-                _buildDetailRow('上课地点', course.location),
-                _buildDetailRow('任课教师', course.teacher),
-                _buildDetailRow('日期', course.dateStr),
-                _buildDetailRow(
-                  '星期',
-                  context.read<ScheduleProvider>().getDayName(course.weekday),
-                ),
-              ],
+      builder: (context) => AlertDialog(
+        title: const Text('课程详情'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDetailRow('课程名称', course.name),
+            _buildDetailRow('上课时间', course.timeStr),
+            _buildDetailRow('上课地点', course.location),
+            _buildDetailRow('任课教师', course.teacher),
+            _buildDetailRow('日期', course.dateStr),
+            _buildDetailRow(
+              '星期',
+              context.read<ScheduleProvider>().getDayName(course.weekday),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('关闭'),
-              ),
-            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
           ),
+        ],
+      ),
     );
   }
 
@@ -696,91 +679,90 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('学期配置'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: dateController,
-                    decoration: const InputDecoration(
-                      labelText: '学期开始日期',
-                      hintText: '2025-09-01',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 20,
-                      ), // 增加内边距
-                    ),
-                    style: const TextStyle(fontSize: 16),
-                    onTap: () async {
-                      // 弹出日期选择器
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: provider.semesterStartDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2030),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              textTheme: const TextTheme(
-                                bodyLarge: TextStyle(fontSize: 16),
-                                bodyMedium: TextStyle(fontSize: 14),
-                                labelLarge: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
+      builder: (context) => AlertDialog(
+        title: const Text('学期配置'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: dateController,
+                decoration: const InputDecoration(
+                  labelText: '学期开始日期',
+                  hintText: '2025-09-01',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
+                  ), // 增加内边距
+                ),
+                style: const TextStyle(fontSize: 16),
+                onTap: () async {
+                  // 弹出日期选择器
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: provider.semesterStartDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          textTheme: const TextTheme(
+                            bodyLarge: TextStyle(fontSize: 16),
+                            bodyMedium: TextStyle(fontSize: 14),
+                            labelLarge: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        child: child!,
                       );
-                      if (date != null) {
-                        dateController.text =
-                            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-                      }
                     },
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '提示: 选择本学期的开始日期，用于计算当前周次',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('取消'),
-              ),
-              TextButton(
-                onPressed: () {
-                  try {
-                    final parts = dateController.text.split('-');
-                    if (parts.length == 3) {
-                      final date = DateTime(
-                        int.parse(parts[0]),
-                        int.parse(parts[1]),
-                        int.parse(parts[2]),
-                      );
-                      provider.setSemesterStartDate(date);
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text('配置已更新')));
-                    }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('日期格式错误，请使用 YYYY-MM-DD')),
-                    );
+                  );
+                  if (date != null) {
+                    dateController.text =
+                        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
                   }
                 },
-                child: const Text('保存'),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '提示: 选择本学期的开始日期，用于计算当前周次',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              try {
+                final parts = dateController.text.split('-');
+                if (parts.length == 3) {
+                  final date = DateTime(
+                    int.parse(parts[0]),
+                    int.parse(parts[1]),
+                    int.parse(parts[2]),
+                  );
+                  provider.setSemesterStartDate(date);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('配置已更新')));
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('日期格式错误，请使用 YYYY-MM-DD')),
+                );
+              }
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -807,200 +789,179 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('课程表历史记录'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: dataImportService.getAllHistory(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+      builder: (context) => AlertDialog(
+        title: const Text('课程表历史记录'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: dataImportService.getAllHistory(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.history, size: 48, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text('暂无历史记录', style: TextStyle(color: Colors.grey)),
-                        ],
-                      ),
-                    );
-                  }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.history, size: 48, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text('暂无历史记录', style: TextStyle(color: Colors.grey)),
+                    ],
+                  ),
+                );
+              }
 
-                  final history = snapshot.data!;
-                  final activeSchedule = history.firstWhere(
-                    (item) => item['is_active'] == 1,
-                    orElse: () => {},
+              final history = snapshot.data!;
+              final activeSchedule = history.firstWhere(
+                (item) => item['is_active'] == 1,
+                orElse: () => {},
+              );
+
+              return ListView.builder(
+                itemCount: history.length,
+                itemBuilder: (context, index) {
+                  final item = history[index];
+                  final isActive = item['id'] == activeSchedule['id'];
+                  final createdAt = DateTime.fromMillisecondsSinceEpoch(
+                    item['created_at'],
                   );
 
-                  return ListView.builder(
-                    itemCount: history.length,
-                    itemBuilder: (context, index) {
-                      final item = history[index];
-                      final isActive = item['id'] == activeSchedule['id'];
-                      final createdAt = DateTime.fromMillisecondsSinceEpoch(
-                        item['created_at'],
-                      );
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        color: isActive ? Colors.blue[50] : null,
-                        child: ListTile(
-                          title: Text(
-                            item['name'],
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isActive ? Colors.blue[700] : null,
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    color: isActive ? Colors.blue[50] : null,
+                    child: ListTile(
+                      title: Text(
+                        item['name'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? Colors.blue[700] : null,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('类型: ${item['source_type'].toUpperCase()}'),
+                          Text('学期: ${item['semester']}'),
+                          Text(
+                            '创建: ${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
+                          ),
+                          if (isActive)
+                            const Text(
+                              '✓ 当前使用',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('类型: ${item['source_type'].toUpperCase()}'),
-                              Text('学期: ${item['semester']}'),
-                              Text(
-                                '创建: ${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
-                              ),
-                              if (isActive)
-                                const Text(
-                                  '✓ 当前使用',
-                                  style: TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // 切换按钮
-                              IconButton(
-                                icon: Icon(
-                                  Icons.check_circle,
-                                  color: isActive ? Colors.green : Colors.grey,
-                                ),
-                                tooltip: '切换到此记录',
-                                onPressed:
-                                    isActive
-                                        ? null
-                                        : () async {
-                                          final success =
-                                              await dataImportService
-                                                  .switchToHistory(item['id']);
-                                          if (success && context.mounted) {
-                                            Navigator.pop(context);
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  '已切换到 ${item['name']}',
-                                                ),
-                                              ),
-                                            );
-                                            // 重新加载数据
-                                            context
-                                                .read<ScheduleProvider>()
-                                                .loadSavedData();
-                                          }
-                                        },
-                              ),
-                              // 导出按钮
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.download,
-                                  color: Colors.blue,
-                                ),
-                                tooltip: '导出为ICS',
-                                onPressed: () async {
-                                  final success = await dataImportService
-                                      .exportHistoryToIcs(item['id']);
-                                  if (success && context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('ICS文件已导出')),
-                                    );
-                                  }
-                                },
-                              ),
-                              // 删除按钮
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),
-                                tooltip: '删除记录',
-                                onPressed: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder:
-                                        (context) => AlertDialog(
-                                          title: const Text('确认删除'),
-                                          content: Text(
-                                            '确定要删除 "${item['name']}" 吗？',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed:
-                                                  () => Navigator.pop(
-                                                    context,
-                                                    false,
-                                                  ),
-                                              child: const Text('取消'),
-                                            ),
-                                            TextButton(
-                                              onPressed:
-                                                  () => Navigator.pop(
-                                                    context,
-                                                    true,
-                                                  ),
-                                              child: const Text(
-                                                '删除',
-                                                style: TextStyle(
-                                                  color: Colors.red,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                  );
-
-                                  if (confirm == true) {
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 切换按钮
+                          IconButton(
+                            icon: Icon(
+                              Icons.check_circle,
+                              color: isActive ? Colors.green : Colors.grey,
+                            ),
+                            tooltip: '切换到此记录',
+                            onPressed: isActive
+                                ? null
+                                : () async {
                                     final success = await dataImportService
-                                        .deleteHistory(item['id']);
+                                        .switchToHistory(item['id']);
                                     if (success && context.mounted) {
+                                      Navigator.pop(context);
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
-                                        const SnackBar(content: Text('记录已删除')),
+                                        SnackBar(
+                                          content: Text('已切换到 ${item['name']}'),
+                                        ),
                                       );
-                                      // 刷新列表
-                                      setState(() {});
+                                      // 重新加载数据
+                                      context
+                                          .read<ScheduleProvider>()
+                                          .loadSavedData();
                                     }
-                                  }
-                                },
-                              ),
-                            ],
+                                  },
                           ),
-                        ),
-                      );
-                    },
+                          // 导出按钮
+                          IconButton(
+                            icon: const Icon(
+                              Icons.download,
+                              color: Colors.blue,
+                            ),
+                            tooltip: '导出为ICS',
+                            onPressed: () async {
+                              final success = await dataImportService
+                                  .exportHistoryToIcs(item['id']);
+                              if (success && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('ICS文件已导出')),
+                                );
+                              }
+                            },
+                          ),
+                          // 删除按钮
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            tooltip: '删除记录',
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('确认删除'),
+                                  content: Text('确定要删除 "${item['name']}" 吗？'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: const Text('取消'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      child: const Text(
+                                        '删除',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                final success = await dataImportService
+                                    .deleteHistory(item['id']);
+                                if (success && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('记录已删除')),
+                                  );
+                                  // 刷新列表
+                                  setState(() {});
+                                }
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('关闭'),
-              ),
-            ],
+              );
+            },
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -181,12 +181,16 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                         CupertinoIcons.paintbrush,
                       ),
                       const SizedBox(height: 12),
-                      if (Platform.isAndroid) ...[
+                      if (Platform.isAndroid || Platform.isWindows) ...[
                         _buildThemeModeOption(
                           theme.ThemeMode.system,
                           '系统主题',
-                          'Android 12+ Material You 动态颜色',
-                          CupertinoIcons.device_phone_portrait,
+                          Platform.isWindows
+                              ? '跟随 Windows 系统强调色'
+                              : 'Android 12+ Material You 动态颜色',
+                          Platform.isWindows
+                              ? CupertinoIcons.desktopcomputer
+                              : CupertinoIcons.device_phone_portrait,
                         ),
                         const SizedBox(height: 12),
                       ],

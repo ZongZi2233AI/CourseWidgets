@@ -10,6 +10,10 @@ import 'windows_schedule_screen.dart';
 import 'settings_main_screen.dart';
 import 'calendar_view_screen.dart';
 
+/// 全局注入，使得背景跟随自定义窗口同步缩放
+final ValueNotifier<double> windowsGlobalScale = ValueNotifier(1.0);
+final ValueNotifier<double> windowsGlobalOpacity = ValueNotifier(1.0);
+
 /// [v2.2.0] 完全重构的Windows自定义窗口
 /// 修复：DPI缩放、窗口动画、托盘功能、窗口调整大小
 class WindowsCustomWindow extends StatefulWidget {
@@ -49,6 +53,11 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     _opacityAnim = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(parent: _windowAnimController, curve: Curves.easeInCubic),
     );
+
+    _windowAnimController.addListener(() {
+      windowsGlobalScale.value = _scaleAnim.value;
+      windowsGlobalOpacity.value = _opacityAnim.value;
+    });
 
     _initWindow();
 
@@ -151,15 +160,17 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     debugPrint('🌙 窗口已最小化到托盘，进程继续运行');
   }
 
-  // [v2.5.5修复] 直接调用系统级别的最小化，去除多余的 _windowAnimController 层面的缩放，使得背景和窗口组件同步缩小
+  // [v2.5.6修复] 恢复缩小动画，并通过 windowsGlobalScale 统摄背景
   void _handleMinimize() async {
+    await _windowAnimController.forward();
     await windowManager.minimize();
   }
 
   // [v2.5.3] 监听窗口从托盘或任务栏恢复
   @override
-  void onWindowRestore() {
+  void onWindowRestore() async {
     setState(() {});
+    await _windowAnimController.reverse();
     debugPrint('🌟 窗口已恢复(DWM原生重绘)');
   }
 
@@ -169,12 +180,14 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   }
 
   void _handleMaximize() async {
-    // 移除花哨但冲突的缩放，直接交由原生 DWM 处理以避免冲突和闪烁
+    // 增加一个小幅度的弹跳过渡动画
+    await _windowAnimController.forward();
     if (_isMaximized) {
       await windowManager.unmaximize();
     } else {
       await windowManager.maximize();
     }
+    await _windowAnimController.reverse();
   }
 
   @override
@@ -195,10 +208,8 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
         body: AnimatedBuilder(
           animation: _windowAnimController,
           builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnim.value,
-              child: Opacity(opacity: _opacityAnim.value, child: child),
-            );
+            // [v2.5.6修复] 缩放已转移至 main.dart 的全局外壳，此处仅保留容器本身，避免二次重叠缩放
+            return child!;
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),

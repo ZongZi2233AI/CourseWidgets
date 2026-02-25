@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_color_utilities/material_color_utilities.dart';
+import 'package:system_theme/system_theme.dart';
 import 'storage_service.dart';
 import '../main.dart'; // For globalUseDarkMode
 
@@ -115,10 +116,31 @@ class ThemeService extends ChangeNotifier {
     debugPrint('✅ 自定义主题色已设置: $_primaryColor');
   }
 
-  /// 应用系统主题色（Android 12+ Material You）
+  /// 应用系统主题色（Android 12+ Material You / Windows 强调色）
   Future<void> applySystemTheme(BuildContext context) async {
+    if (Platform.isWindows) {
+      try {
+        await SystemTheme.fallbackColor;
+        _primaryColor = SystemTheme.accentColor.accent;
+        _secondaryColor = _generateSecondaryColor(_primaryColor);
+
+        await _storage.setInt(
+          StorageService.keyCustomThemeColor,
+          _primaryColor.toARGB32(),
+        );
+        notifyListeners();
+        debugPrint('✅ Windows 系统主题色已应用: $_primaryColor');
+      } catch (e) {
+        debugPrint('获取 Windows 系统主题色失败: $e');
+        _primaryColor = defaultPrimaryColor;
+        _secondaryColor = defaultSecondaryColor;
+        notifyListeners();
+      }
+      return;
+    }
+
     if (!Platform.isAndroid) {
-      debugPrint('系统主题色仅支持 Android 12+');
+      debugPrint('系统主题色仅支持 Android 12+ 或 Windows');
       return;
     }
 

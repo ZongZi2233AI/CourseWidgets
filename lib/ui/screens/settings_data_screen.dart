@@ -9,6 +9,7 @@ import '../../services/theme_service.dart'; // Added this import
 import '../../utils/glass_settings_helper.dart';
 import '../widgets/liquid_components.dart' as liquid;
 import '../widgets/liquid_toast.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 class SettingsDataScreen extends StatelessWidget {
   const SettingsDataScreen({super.key});
@@ -366,8 +367,8 @@ class SettingsDataScreen extends StatelessWidget {
             onPressed: () async {
               await provider.clearData();
               if (context.mounted) {
-                Navigator.pop(context);
-                _showToast(context, '数据已清除');
+                // [v2.5.6修复] 清除数据后，重新显示系统启动图动画和重置教程，解决 Windows 端看不到引导页的问题
+                Phoenix.rebirth(context);
               }
             },
           ),

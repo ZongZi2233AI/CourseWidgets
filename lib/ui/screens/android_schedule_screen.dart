@@ -10,6 +10,7 @@ import 'course_edit_screen.dart';
 import 'calendar_view_screen.dart';
 import 'settings_about_screen.dart';
 import '../transitions/smooth_slide_transitions.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 // 常量定义
 const String appName = "CourseWidgets";
@@ -283,7 +284,7 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                       if (confirm == true) {
                         await provider.clearData();
                         if (mounted) {
-                          _showCupertinoAlert('已清除', '数据已清除');
+                          Phoenix.rebirth(context);
                         }
                       }
                     },

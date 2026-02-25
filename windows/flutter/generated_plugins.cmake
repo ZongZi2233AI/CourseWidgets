@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   mmkv_win32
   permission_handler_windows
   screen_retriever_windows
+  system_theme
   tray_manager
   window_manager
 )
