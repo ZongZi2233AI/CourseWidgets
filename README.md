@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.10.7+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-2.5.5-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
+[![Version](https://img.shields.io/badge/Version-2.5.7-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
 
 [English](README_EN.md) | 简体中文
 
@@ -17,7 +17,17 @@
 
 > **声明**：本软件除开源代码外完全使用 AI 辅助开发。核心由 [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash) 构建，Windows 部分使用 Claude Sonnet 4.5，部分复杂实现使用 Gemini 3.0 Pro，v2.4+ 版本由 Gemini 3.1 Pro 构建。
 
-### 📦 最新版本：[v2.5.5](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.5.5)
+### 📦 最新版本：[v2.5.7](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.5.7)
+
+#### v2.5.7 更新说明 (2026-02-28)
+- 🎨 **UI 质感跃升**：移除了标准玻璃全局灰色硬描边框，全局采用自然的高光阴影来界定边界，保留了侧面金属反射亮度。
+- ⚡ **动画与体验优化**：
+  - **预测返回优化**：修复了二三级界面滑动时背景闪现上一页的问题，新增从 0.95 到 1.0 的平滑缩放与淡入过渡。
+  - **Windows 核心体验**：修复全屏时 DPI 异常（半黑半挤压）问题，以及最小化/恢复时的黑色底板闪烁问题。
+  - **加载体验提升**：适配系统深色/浅色模式，修复 App 启动时的短暂黑屏闪烁。
+- 🐛 **问题修复**：
+  - 修复主题色设置菜单弹出时存在多重灰色拖动条 (DragHandle) 的问题。
+  - 完美适配并解决了 AGP 9.0 相关的编译兼容性警告。
 
 ---
 

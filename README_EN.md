@@ -9,13 +9,25 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.10.7+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-2.5.0-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
+[![Version](https://img.shields.io/badge/Version-2.5.7-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
 
 English | [简体中文](README.md)
 
 </div>
 
 > **Note**: This application is built entirely with AI-assisted development — [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash), Claude Sonnet 4.5, Gemini 3.0 Pro, and Gemini 3.1 Pro.
+
+### 📦 Latest Release: [v2.5.7](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.5.7)
+
+#### v2.5.7 Release Notes (2026-02-28)
+- 🎨 **UI Quality Leap**: Removed the global grey hard stroke border from standard glass, universally adopting natural specular shadows to define boundaries while preserving side metallic reflections.
+- ⚡ **Animation & Experience Optimization**:
+  - **Predictive Back Optimization**: Fixed the issue where the background flashes to the previous page during 2nd/3rd level page swiping, adding a smooth 0.95 to 1.0 scaling and fade-in transition.
+  - **Windows Core Experience**: Fixed DPI anomalies during full screen (half black/squished) and the black background flashing issue during minimize/restore.
+  - **Loading Experience Improvement**: Adapted to system dark/light modes, fixing the brief black screen flash on app launch.
+- 🐛 **Bug Fixes**:
+  - Fixed the issue with multiple grey DragHandles appearing when the theme color settings menu pops up.
+  - Perfectly adapted to and resolved compilation compatibility warnings related to AGP 9.0.
 
 ---
 

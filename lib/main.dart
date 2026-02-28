@@ -123,6 +123,8 @@ void main() async {
     );
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.setHasShadow(true);
+      // [v2.5.7修复] 修复最小化和缩放时露出的底层黑色背景
+      await windowManager.setBackgroundColor(Colors.transparent);
       await windowManager.show();
       await windowManager.focus();
     });

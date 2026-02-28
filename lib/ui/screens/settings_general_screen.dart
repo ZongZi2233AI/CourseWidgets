@@ -146,7 +146,7 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       enableDrag: true,
-      showDragHandle: true,
+      showDragHandle: false,
       isScrollControlled: true,
       // [v2.5.2] 增加 RepaintBoundary 防止底部表单内高斯模糊拖降全局帧率
       builder: (BuildContext context) => RepaintBoundary(

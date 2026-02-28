@@ -180,14 +180,14 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   }
 
   void _handleMaximize() async {
-    // 增加一个小幅度的弹跳过渡动画
-    await _windowAnimController.forward();
+    // [v2.5.7修复] 移除最大化过程中的 Flutter 强制缩放动画。
+    // 在全屏/最大化状态变化时，Flutter 引擎会重新计算 DPI 和视口边界。
+    // 如果此时叠加外层的 Transform.scale (0.9)，会导致布局计算彻底错乱，出现上下半屏黑块与拉伸。
     if (_isMaximized) {
       await windowManager.unmaximize();
     } else {
       await windowManager.maximize();
     }
-    await _windowAnimController.reverse();
   }
 
   @override
