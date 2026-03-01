@@ -17,6 +17,13 @@
 
 > **声明**：本软件除开源代码外完全使用 AI 辅助开发。核心由 [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash) 构建，Windows 部分使用 Claude Sonnet 4.5，部分复杂实现使用 Gemini 3.0 Pro，v2.4+ 版本由 Gemini 3.1 Pro 构建。
 
+###即将更新2.5.9,2.6.0
+ 具体内容
+ - 1.教务导入功能
+ - 2.重构数据库优化性能和显示
+ - 3.修复Windows显示问题
+ - 4.加入webview支持
+ - 5.修复显示问题
 ### 📦 最新版本：[v2.5.7](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.5.7)
 
 #### v2.5.7 更新说明 (2026-02-28)
