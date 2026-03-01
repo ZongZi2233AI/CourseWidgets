@@ -3,12 +3,14 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_webview_window
   file_selector_linux
   local_notifier
   mmkv_linux
   screen_retriever_linux
   system_theme
   tray_manager
+  url_launcher_linux
   window_manager
 )
 

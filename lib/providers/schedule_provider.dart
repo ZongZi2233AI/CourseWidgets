@@ -5,6 +5,7 @@ import '../services/data_import_service.dart';
 import '../services/storage_service.dart'; // [v2.3.0] 用于清除配置数据
 import '../models/schedule_config.dart';
 import '../services/database_helper.dart';
+import '../services/onboarding_service.dart'; // [v2.5.9] 引入重置引导服务
 
 /// 课表状态管理器 - 基于SQLite数据库
 class ScheduleProvider with ChangeNotifier {
@@ -59,6 +60,7 @@ class ScheduleProvider with ChangeNotifier {
       final result = await _importService.importFromIcsFile();
       if (result != null) {
         _courses = result;
+        _autoCalculateSemesterStart(_courses); // [v2.5.9] 自动计算学期开始日期并保存
         await _refreshAvailableWeeks(); // 刷新缓存
 
         // 自动跳转到当前日期对应的周次和星期
@@ -87,6 +89,7 @@ class ScheduleProvider with ChangeNotifier {
       final result = await _importService.importFromHtmlFile();
       if (result != null) {
         _courses = result;
+        _autoCalculateSemesterStart(_courses); // [v2.5.9] 自动计算学期开始日期并保存
         await _refreshAvailableWeeks(); // 刷新缓存
 
         // 自动跳转到当前日期对应的周次和星期
@@ -98,6 +101,33 @@ class ScheduleProvider with ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = 'HTML导入失败: $e';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  /// [v2.5.9] 从 HTML 字符串导入（教务系统 WebView 抓取）
+  Future<bool> importHtmlDataFromString(String htmlContent) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await _importService.importFromHtmlString(htmlContent);
+      if (result != null) {
+        _courses = result;
+        _autoCalculateSemesterStart(_courses); // [v2.5.9] 自动计算学期开始日期并保存
+        await _refreshAvailableWeeks();
+        await _jumpToCurrentDate();
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      _errorMessage = '教务导入失败: $e';
     }
 
     _isLoading = false;
@@ -141,6 +171,17 @@ class ScheduleProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // [v2.5.9] 恢复保存的学期开始时间
+      final storage = StorageService();
+      final savedSemesterDate = storage.getString('semester_start_date');
+      if (savedSemesterDate != null) {
+        try {
+          _semesterStartDate = DateTime.parse(savedSemesterDate);
+        } catch (e) {
+          debugPrint('解析已保存的学期时间失败: $e');
+        }
+      }
+
       final courses = await _importService.getAllCourses();
       if (courses.isNotEmpty) {
         _courses = courses;
@@ -191,10 +232,10 @@ class ScheduleProvider with ChangeNotifier {
 
     // [v2.3.0修复] 清除 MMKV 中的课程相关配置
     final storage = StorageService();
-    await storage.remove('semester_start_date');
-    await storage.remove('schedule_config');
-    await storage.remove('current_week');
-    await storage.remove('current_day');
+    await storage.clear(); // [v2.5.9] 彻底清空包括主题在内的所有 MMKV 数据
+
+    // 重置引导页状态，以便重启后进入引导
+    await OnboardingService().resetOnboarding();
 
     // 重置状态
     _courses = [];
@@ -313,7 +354,39 @@ class ScheduleProvider with ChangeNotifier {
   /// 设置学期开始日期
   void setSemesterStartDate(DateTime date) {
     _semesterStartDate = date;
+    final storage = StorageService();
+    storage.setString('semester_start_date', date.toIso8601String());
     notifyListeners();
+  }
+
+  /// [v2.5.9] 自动从导入的课程中计算学期开始日期（根据最早的课程推算 Week 1 的周一）
+  void _autoCalculateSemesterStart(List<CourseEvent> importedCourses) {
+    if (importedCourses.isEmpty) return;
+
+    // 找到最早的一节课
+    CourseEvent earliestCourse = importedCourses.first;
+    for (var course in importedCourses) {
+      if (course.startTime < earliestCourse.startTime) {
+        earliestCourse = course;
+      }
+    }
+
+    // 获取这节课的具体本地日期
+    final earliestDate = DateTime.fromMillisecondsSinceEpoch(
+      earliestCourse.startTime,
+    );
+
+    // 计算这节课所在星期的周一 (weekday: 1-7 = 周一到周日)
+    final monday = earliestDate.subtract(
+      Duration(days: earliestDate.weekday - 1),
+    );
+
+    // 取消时分秒，保留只有年月日部分
+    final newStartDate = DateTime(monday.year, monday.month, monday.day);
+
+    // 更新状态并持久化
+    setSemesterStartDate(newStartDate);
+    debugPrint('🎓 自动推算学期开始日期(Week 1周一)为: $newStartDate');
   }
 
   /// 更新课时配置

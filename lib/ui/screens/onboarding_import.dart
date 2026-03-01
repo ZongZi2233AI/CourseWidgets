@@ -8,12 +8,13 @@ import '../../services/database_helper.dart';
 import '../../utils/glass_settings_helper.dart';
 import '../widgets/liquid_components.dart' as liquid;
 import '../widgets/liquid_toast.dart';
+import 'webview_import_screen.dart'; // [v2.5.9] 引入教务系统导入
 
 /// [v2.2.8] 引导页面 - 导入课表
 class OnboardingImport extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
-  
+
   const OnboardingImport({
     super.key,
     required this.onNext,
@@ -59,13 +60,23 @@ class OnboardingImport extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Content
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(20),
               physics: const BouncingScrollPhysics(),
               children: [
+                _buildImportOption(
+                  context,
+                  icon: Icons.language_rounded,
+                  title: '从教务系统导入',
+                  subtitle: '通过内置浏览器登录并自动抓取',
+                  color: Colors.blueAccent,
+                  onTap: () => _importFromWebview(context),
+                ),
+                const SizedBox(height: 16),
+
                 _buildImportOption(
                   context,
                   icon: Icons.insert_drive_file_rounded,
@@ -75,7 +86,7 @@ class OnboardingImport extends StatelessWidget {
                   onTap: () => _importFromICS(context),
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildImportOption(
                   context,
                   icon: Icons.code_rounded,
@@ -85,7 +96,7 @@ class OnboardingImport extends StatelessWidget {
                   onTap: () => _importFromHTML(context),
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildImportOption(
                   context,
                   icon: Icons.data_object_rounded,
@@ -95,7 +106,7 @@ class OnboardingImport extends StatelessWidget {
                   onTap: () => _importFromJSON(context),
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildImportOption(
                   context,
                   icon: Icons.science_rounded,
@@ -105,7 +116,7 @@ class OnboardingImport extends StatelessWidget {
                   onTap: () => _importTestData(context),
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildImportOption(
                   context,
                   icon: Icons.skip_next_rounded,
@@ -117,7 +128,7 @@ class OnboardingImport extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Navigation
           SafeArea(
             top: false,
@@ -200,14 +211,14 @@ class OnboardingImport extends StatelessWidget {
   Future<void> _importFromICS(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      
+
       final provider = context.read<ScheduleProvider>();
       final success = await provider.importData();
-      
+
       if (context.mounted) {
         if (success) {
           LiquidToast.success(context, 'ICS 导入成功');
-          
+
           // 延迟后进入下一页
           Future.delayed(const Duration(milliseconds: 800), () {
             if (context.mounted) {
@@ -225,17 +236,40 @@ class OnboardingImport extends StatelessWidget {
     }
   }
 
+  Future<void> _importFromWebview(BuildContext context) async {
+    HapticFeedback.mediumImpact();
+
+    // 打开 Webview 导入页面
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const WebviewImportScreen()),
+    );
+
+    // 返回后检查是否有数据
+    if (context.mounted) {
+      final provider = context.read<ScheduleProvider>();
+      if (provider.hasData) {
+        LiquidToast.success(context, '教务导入成功');
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (context.mounted) {
+            onNext();
+          }
+        });
+      }
+    }
+  }
+
   Future<void> _importFromHTML(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      
+
       final provider = context.read<ScheduleProvider>();
       final success = await provider.importHtmlData();
-      
+
       if (context.mounted) {
         if (success) {
           LiquidToast.success(context, 'HTML 导入成功');
-          
+
           // 延迟后进入下一页
           Future.delayed(const Duration(milliseconds: 800), () {
             if (context.mounted) {
@@ -256,14 +290,15 @@ class OnboardingImport extends StatelessWidget {
   Future<void> _importFromJSON(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      
+
       final provider = context.read<ScheduleProvider>();
-      final success = await provider.importFromAssets(); // 使用 importFromAssets 作为 JSON 导入
-      
+      final success = await provider
+          .importFromAssets(); // 使用 importFromAssets 作为 JSON 导入
+
       if (context.mounted) {
         if (success) {
           LiquidToast.success(context, 'JSON 导入成功');
-          
+
           // 延迟后进入下一页
           Future.delayed(const Duration(milliseconds: 800), () {
             if (context.mounted) {
@@ -284,20 +319,20 @@ class OnboardingImport extends StatelessWidget {
   Future<void> _importTestData(BuildContext context) async {
     try {
       HapticFeedback.mediumImpact();
-      
+
       // 生成测试数据
       final testCourses = TestDataGenerator.generateTestData();
-      
+
       // 保存到数据库
       final db = DatabaseHelper.instance;
       await db.insertCourses(testCourses);
-      
+
       // 重新加载数据
       if (context.mounted) {
         await context.read<ScheduleProvider>().loadSavedData();
-        
+
         LiquidToast.success(context, '已导入 ${testCourses.length} 节测试课程');
-        
+
         // 延迟后进入下一页
         Future.delayed(const Duration(milliseconds: 800), () {
           if (context.mounted) {

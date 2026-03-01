@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../constants/theme_constants.dart';
 import '../../constants/version.dart';
+import 'dart:io' show Platform;
 import '../widgets/liquid_components.dart' as liquid;
 
 /// [修复7] iOS 26 液态玻璃风格关于软件页面
@@ -162,8 +163,8 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen>
 
                       const SizedBox(height: 20),
 
-                      // Premium Glass Demo Card
-                      _buildPremiumGlassDemo(),
+                      // Premium Glass Demo Card (Windows 端完全隐藏该部分，因为鼠标不适合触控质感)
+                      if (!Platform.isWindows) _buildPremiumGlassDemo(),
 
                       const SizedBox(height: 20),
 
@@ -250,10 +251,12 @@ class _SettingsAboutScreenState extends State<SettingsAboutScreen>
         // 但在部分 Android 设备上初次绘制会白屏闪烁。关闭它即可解决闪烁。
         useOwnLayer: false,
         quality: GlassQuality.premium, // 最高质量 — 包括纹理捕获和色散
-        // [v2.5.6修复] 将形变系数恢复到正常水平，解决 Windows 端拖拽失控乱飞的问题
-        stretch: 0.8, // 适度的拉伸形变
-        resistance: 0.05, // 保持一定的阻力感
-        interactionScale: 0.9, // [v2.5.6修复] 恢复正常的按压回缩比例 (0.9)
+        // [v2.5.8] TouchMe：Windows 彻底关闭形变降级渲染，Android 开启无敌狂暴果冻拉伸
+        stretch: Platform.isWindows ? 0.0 : 5.0, // Android极度拉伸形变
+        resistance: Platform.isWindows ? 0.0 : 0.005, // Android保持极低阻力感
+        interactionScale: Platform.isWindows
+            ? 1.0
+            : 0.6, // Android强烈的按压回缩比例 (0.6)
         settings: LiquidGlassSettings(
           glassColor: Colors.transparent, // 完全无色透明
           blur: 1.0, // 仅保留边缘的一点点模糊，展现清晰的折射扭曲

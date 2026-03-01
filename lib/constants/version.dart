@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// 当前版本：[v2.5.3] Full Slide Transitions, Windows UX, Live Update
-const String appVersion = '2.5.6';
-const int buildNumber = 10005003;
+/// 当前版本：[v2.5.9] 跨平台液态玻璃布局升级 (iOS & macOS), Windows 性能修复, 着色器边沿优化
+const String appVersion = 'v2.5.9';
+const int buildNumber = 10005009;
 const String copyright = '© 2025-2026 CourseWidgets. All rights reserved.';
 
 // 全局状态

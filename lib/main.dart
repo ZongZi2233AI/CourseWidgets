@@ -18,7 +18,9 @@ import 'services/background_task_service.dart'; // [v2.2.9] 后台任务服务
 import 'utils/glass_opacity_manager.dart'; // [v2.3.0] 玻璃透明度管理器
 import 'ui/screens/schedule_screen.dart';
 import 'ui/screens/android_liquid_glass_main.dart';
+import 'ui/screens/ios_liquid_glass_main.dart'; // [v2.5.9] 新增iOS原生支持
 import 'ui/screens/windows_custom_window.dart';
+import 'ui/screens/macos_custom_window.dart'; // [v2.5.9] 新增macOS支持
 import 'ui/screens/onboarding_screen.dart';
 import 'ui/transitions/smooth_slide_transitions.dart'; // [v2.4.8] 平滑过渡动画
 import 'ui/transitions/custom_predictive_back_transitions.dart'; // [v2.5.6] 修正白屏预测返回
@@ -120,6 +122,7 @@ void main() async {
       center: true,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
+      backgroundColor: Colors.transparent, // [v2.5.8] 确保初始即透明
     );
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.setHasShadow(true);
@@ -334,8 +337,8 @@ class _MyAppState extends State<MyApp> {
                   );
                 }
 
-                // 【核心修复】如果是 Windows，强制裁切背景为超椭圆
-                if (Platform.isWindows) {
+                // 【核心修复】如果是桌面端（Windows/macOS），强制裁切背景为超椭圆
+                if (Platform.isWindows || Platform.isMacOS) {
                   backgroundWidget = ClipSmoothRect(
                     radius: SmoothBorderRadius(
                       cornerRadius: 16,
@@ -348,17 +351,16 @@ class _MyAppState extends State<MyApp> {
                 // [v2.4.1] 隔离背景层，防止二级页面切换时引发玻璃滤镜的重绘掉帧
                 backgroundWidget = RepaintBoundary(child: backgroundWidget);
 
-                final coreStack = LiquidGlassScope.stack(
-                  background: backgroundWidget,
-                  content: material.Material(
-                    type: material.MaterialType.transparency,
-                    child: child ?? const SizedBox(),
-                  ),
+                // 如果是桌面端，仅对内容层（而非背景）进行缩放和渐隐
+                final Widget innerContent = material.Material(
+                  type: material.MaterialType.transparency,
+                  child: child ?? const SizedBox(),
                 );
 
-                // [v2.5.6修复] 修复 Windows 最小化时背景不随之缩放的问题，通过全局可观察量拉动背景
-                if (Platform.isWindows) {
-                  return ValueListenableBuilder<double>(
+                Widget contentWidget = innerContent;
+
+                if (Platform.isWindows || Platform.isMacOS) {
+                  contentWidget = ValueListenableBuilder<double>(
                     valueListenable: windowsGlobalScale,
                     builder: (context, scale, _) {
                       return ValueListenableBuilder<double>(
@@ -366,13 +368,21 @@ class _MyAppState extends State<MyApp> {
                         builder: (context, opacity, _) {
                           return Transform.scale(
                             scale: scale,
-                            child: Opacity(opacity: opacity, child: coreStack),
+                            child: Opacity(
+                              opacity: opacity,
+                              child: innerContent,
+                            ),
                           );
                         },
                       );
                     },
                   );
                 }
+
+                final coreStack = LiquidGlassScope.stack(
+                  background: backgroundWidget,
+                  content: contentWidget,
+                );
 
                 return coreStack;
               },
@@ -388,7 +398,9 @@ class _MyAppState extends State<MyApp> {
 
   Widget _getHomeParams() {
     if (Platform.isWindows) return const WindowsCustomWindow();
+    if (Platform.isMacOS) return const MacosCustomWindow();
     if (Platform.isAndroid) return const AndroidLiquidGlassMain();
+    if (Platform.isIOS) return const IosLiquidGlassMain();
     return const ScheduleScreen();
   }
 }

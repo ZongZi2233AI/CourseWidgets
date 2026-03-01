@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.10.7+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-2.5.7-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
+[![Version](https://img.shields.io/badge/Version-2.5.9-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
 
 [English](README_EN.md) | 简体中文
 
@@ -17,7 +17,14 @@
 
 > **声明**：本软件除开源代码外完全使用 AI 辅助开发。核心由 [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash) 构建，Windows 部分使用 Claude Sonnet 4.5，部分复杂实现使用 Gemini 3.0 Pro，v2.4+ 版本由 Gemini 3.1 Pro 构建。
 
-### 📦 最新版本：[v2.5.7](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.5.7)
+### 📦 最新版本：[v2.5.9](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.5.9)
+
+#### v2.5.9 更新说明 (2026-03-01)
+- 🖥️ **跨平台原生适配**：新增针对 macOS 和 iOS 平台的专属 Layout 支持。macOS 采用全沉浸式底部导航交互，iOS 接驳标准苹果端 UI 设计规范。
+- 🎨 **着色器品质飞跃**：再次大幅调优 Liquid Glass 着色器算法：恢复边缘折射（Edge Refraction）和高品质视觉；精简了影响性能的边缘多级算法。
+- ⚡ **核心效能 & 锯齿消解**：修复因多层 RepaintBoundary 堆叠以及高斯模糊导致的导航栏抗锯齿掉帧问题，使得帧率回归 120hz。
+- 🐛 **Windows 优化修复**：修复当从系统托盘唤醒时的透明度失效 Bug，修复全屏渲染布局受阻的纯白屏/黑边现象；重置 Windows 侧边栏为阴影悬浮按钮，去除厚重感。
+- 🪄 **预见式返回动作**：优化 Android 预见式侧滑返回动效逻辑：在退出页面时收缩至小比例，背景页面呈现更加大气的由远及近 3D 回收动画。
 
 #### v2.5.7 更新说明 (2026-02-28)
 - 🎨 **UI 质感跃升**：移除了标准玻璃全局灰色硬描边框，全局采用自然的高光阴影来界定边界，保留了侧面金属反射亮度。

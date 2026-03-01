@@ -20,7 +20,7 @@ class GlassSettingsHelper {
 
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: blur ?? 15.0,
+      blur: blur ?? 8.0, // [v2.5.9] 降低模糊度使玻璃更通透
       thickness: thickness ?? 1.0,
     );
   }
@@ -34,7 +34,7 @@ class GlassSettingsHelper {
 
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: 25.0,
+      blur: 12.0, // [v2.5.9] 降低模糊度使玻璃更通透
       thickness: 0.8,
     );
   }
@@ -70,7 +70,7 @@ class GlassSettingsHelper {
 
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: 25.0,
+      blur: 15.0, // [v2.5.9] 降低模糊度使玻璃更通透
       thickness: 18.0,
     );
   }
@@ -83,7 +83,7 @@ class GlassSettingsHelper {
 
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: 10.0,
+      blur: 5.0, // [v2.5.9] 降低模糊度使玻璃更通透
       thickness: 0.6,
     );
   }
@@ -94,7 +94,11 @@ class GlassSettingsHelper {
         ? Colors.black.withValues(alpha: 0.55) // [v2.2.9修复] 增加深色模式透明度
         : Colors.black.withValues(alpha: 0.4);
 
-    return LiquidGlassSettings(glassColor: glassColor, blur: 20, thickness: 15);
+    return LiquidGlassSettings(
+      glassColor: glassColor,
+      blur: 12,
+      thickness: 15,
+    ); // [v2.5.9] 降低模糊度
   }
 
   /// 获取侧边栏玻璃设置
@@ -105,7 +109,7 @@ class GlassSettingsHelper {
 
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: 20,
+      blur: 10, // [v2.5.9] 降低模糊度使玻璃更通透
       thickness: 0.8,
     );
   }

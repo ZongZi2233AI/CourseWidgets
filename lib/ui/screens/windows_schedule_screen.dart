@@ -42,91 +42,82 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => GlassSheet(
-            settings: LiquidGlassSettings(
-              glassColor: Colors.black.withValues(alpha: 0.4),
-              blur: 20,
-              thickness: 15,
-            ),
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 标题
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: const Text(
-                      '选择周次',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+      builder: (context) => GlassSheet(
+        settings: LiquidGlassSettings(
+          glassColor: Colors.black.withValues(alpha: 0.4),
+          blur: 20,
+          thickness: 15,
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 标题
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: const Text(
+                  '选择周次',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  // 周次网格
-                  Container(
-                    height: 300,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 5,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: 1.5,
-                          ),
-                      itemCount: weeks.length,
-                      itemBuilder: (context, index) {
-                        final week = weeks[index];
-                        final isSelected = week == provider.currentWeek;
-
-                        return GlassButton.custom(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            provider.setCurrentWeek(week);
-                            Navigator.pop(context);
-                          },
-                          width: double.infinity,
-                          height: double.infinity,
-                          style: GlassButtonStyle.filled,
-                          settings: LiquidGlassSettings(
-                            glassColor:
-                                isSelected
-                                    ? AppThemeColors.babyPink.withValues(
-                                      alpha: 0.3,
-                                    )
-                                    : Colors.white.withValues(alpha: 0.05),
-                            blur: 0,
-                            thickness: 10,
-                          ),
-                          shape: const LiquidRoundedSuperellipse(
-                            borderRadius: 12,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '第$week周',
-                              style: TextStyle(
-                                color:
-                                    isSelected ? Colors.white : Colors.white70,
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                ),
               ),
-            ),
+              // 周次网格
+              Container(
+                height: 300,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 5,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 1.5,
+                  ),
+                  itemCount: weeks.length,
+                  itemBuilder: (context, index) {
+                    final week = weeks[index];
+                    final isSelected = week == provider.currentWeek;
+
+                    return GlassButton.custom(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        provider.setCurrentWeek(week);
+                        Navigator.pop(context);
+                      },
+                      width: double.infinity,
+                      height: double.infinity,
+                      style: GlassButtonStyle.filled,
+                      settings: LiquidGlassSettings(
+                        glassColor: isSelected
+                            ? AppThemeColors.babyPink.withValues(alpha: 0.3)
+                            : Colors.white.withValues(alpha: 0.05),
+                        blur: 0,
+                        thickness: 10,
+                      ),
+                      shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+                      child: Center(
+                        child: Text(
+                          '第$week周',
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.white70,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -169,11 +160,10 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
             children: [
               // 左箭头按钮
               GlassButton.custom(
-                onTap:
-                    () => _changeWeek(
-                      provider,
-                      provider.currentWeek - 1,
-                    ), // [v2.2.1] 使用验证方法
+                onTap: () => _changeWeek(
+                  provider,
+                  provider.currentWeek - 1,
+                ), // [v2.2.1] 使用验证方法
                 width: 44,
                 height: 44,
                 style: GlassButtonStyle.filled,
@@ -203,21 +193,20 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: Container(
-                        decoration:
-                            isSelected
-                                ? BoxDecoration(
-                                  borderRadius: BorderRadius.circular(100),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppThemeColors.babyPink.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                      blurRadius: 20,
-                                      spreadRadius: 2,
+                        decoration: isSelected
+                            ? BoxDecoration(
+                                borderRadius: BorderRadius.circular(100),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppThemeColors.babyPink.withValues(
+                                      alpha: 0.4,
                                     ),
-                                  ],
-                                )
-                                : null,
+                                    blurRadius: 20,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              )
+                            : null,
                         child: GestureDetector(
                           onLongPress: () {
                             if (mounted)
@@ -235,12 +224,11 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                             height: 44,
                             style: GlassButtonStyle.filled,
                             settings: LiquidGlassSettings(
-                              glassColor:
-                                  isSelected
-                                      ? AppThemeColors.babyPink.withValues(
-                                        alpha: 0.3,
-                                      )
-                                      : Colors.white.withValues(alpha: 0.05),
+                              glassColor: isSelected
+                                  ? AppThemeColors.babyPink.withValues(
+                                      alpha: 0.3,
+                                    )
+                                  : Colors.white.withValues(alpha: 0.05),
                               blur: 0,
                               thickness: 10,
                             ),
@@ -251,10 +239,9 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                               child: Text(
                                 '第$week周',
                                 style: TextStyle(
-                                  color:
-                                      isSelected
-                                          ? Colors.white
-                                          : Colors.white70,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.white70,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),
@@ -271,11 +258,10 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
               const SizedBox(width: 8),
               // 右箭头按钮
               GlassButton.custom(
-                onTap:
-                    () => _changeWeek(
-                      provider,
-                      provider.currentWeek + 1,
-                    ), // [v2.2.1] 使用验证方法
+                onTap: () => _changeWeek(
+                  provider,
+                  provider.currentWeek + 1,
+                ), // [v2.2.1] 使用验证方法
                 width: 44,
                 height: 44,
                 style: GlassButtonStyle.filled,
@@ -360,10 +346,9 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
           GlassContainer(
             useOwnLayer: true,
             settings: LiquidGlassSettings(
-              glassColor:
-                  isToday
-                      ? AppThemeColors.babyPink.withValues(alpha: 0.3)
-                      : Colors.white.withValues(alpha: 0.05),
+              glassColor: isToday
+                  ? AppThemeColors.babyPink.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.05),
               blur: 0,
               thickness: 10,
             ),

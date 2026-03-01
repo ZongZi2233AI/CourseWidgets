@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:io';
 import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../providers/schedule_provider.dart';
@@ -10,6 +11,7 @@ import '../../utils/glass_settings_helper.dart';
 import '../widgets/liquid_components.dart' as liquid;
 import '../widgets/liquid_toast.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'webview_import_screen.dart';
 
 class SettingsDataScreen extends StatelessWidget {
   const SettingsDataScreen({super.key});
@@ -82,6 +84,31 @@ class SettingsDataScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
+                        // [v2.5.9] 教务系统导入（WebView）
+                        _buildActionCard(
+                          '教务系统导入',
+                          '',
+                          CupertinoIcons.globe,
+                          AppThemeColors.babyPink,
+                          () {
+                            if (Platform.isAndroid ||
+                                Platform.isIOS ||
+                                Platform.isWindows ||
+                                Platform.isMacOS) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const WebviewImportScreen(),
+                                ),
+                              );
+                            } else {
+                              LiquidToast.success(
+                                context,
+                                '桌面端请在浏览器中登录教务系统，下载课表 ICS/HTML 文件后使用下方导入功能',
+                              );
+                            }
+                          },
+                        ),
                         _buildActionCard(
                           '导入 ICS 日历',
                           '',
@@ -219,11 +246,21 @@ class SettingsDataScreen extends StatelessWidget {
                   final isActive = item['is_active'] == 1;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: liquid.LiquidCard(
-                      glassColor: isActive
-                          ? AppThemeColors.babyPink.withValues(alpha: 0.2)
-                          : GlassSettingsHelper.getCardSettings().glassColor,
-                      padding: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? AppThemeColors.babyPink.withValues(alpha: 0.2)
+                            : (isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.05)),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isActive
+                              ? AppThemeColors.babyPink.withValues(alpha: 0.3)
+                              : Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -254,8 +291,9 @@ class SettingsDataScreen extends StatelessWidget {
                           ),
                           if (isActive)
                             Icon(
-                              CupertinoIcons.check_mark_circled_solid,
+                              CupertinoIcons.checkmark_alt,
                               color: AppThemeColors.babyPink,
+                              size: 24,
                             )
                           else
                             IconButton(
@@ -268,7 +306,10 @@ class SettingsDataScreen extends StatelessWidget {
                                   item['id'],
                                 );
                                 if (context.mounted) {
-                                  Navigator.pop(context);
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop();
                                   await provider.loadSavedData();
                                   _showToast(context, '已切换到该课表');
                                 }
@@ -287,7 +328,7 @@ class SettingsDataScreen extends StatelessWidget {
           GlassDialogAction(
             label: '关闭',
             isPrimary: true,
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
           ),
         ],
       ),

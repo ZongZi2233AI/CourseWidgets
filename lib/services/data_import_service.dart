@@ -13,19 +13,16 @@ class DataImportService {
   /// 选择ICS文件并导入
   Future<List<CourseEvent>?> importFromIcsFile() async {
     try {
-      const typeGroup = XTypeGroup(
-        label: 'ics',
-        extensions: ['ics'],
-      );
-      
+      const typeGroup = XTypeGroup(label: 'ics', extensions: ['ics']);
+
       final file = await openFile(acceptedTypeGroups: [typeGroup]);
-      
+
       if (file == null) {
         return null;
       }
 
       String icsContent;
-      
+
       if (kIsWeb) {
         // Web平台需要特殊处理
         final bytes = await file.readAsBytes();
@@ -36,10 +33,10 @@ class DataImportService {
 
       // 解析ICS内容
       final courses = IcsParser.parse(icsContent);
-      
+
       // 保存到数据库
       await DatabaseHelper.instance.insertCourses(courses);
-      
+
       // 保存到历史记录
       await _saveToHistory(
         name: 'ICS导入_${DateTime.now().toString().substring(0, 16)}',
@@ -48,7 +45,7 @@ class DataImportService {
         courses: courses,
         semester: '2025-2026学年',
       );
-      
+
       return courses;
     } catch (e) {
       debugPrint('ICS导入失败: $e');
@@ -59,19 +56,16 @@ class DataImportService {
   /// 选择HTML文件并导入
   Future<List<CourseEvent>?> importFromHtmlFile() async {
     try {
-      const typeGroup = XTypeGroup(
-        label: 'html',
-        extensions: ['html', 'json'],
-      );
-      
+      const typeGroup = XTypeGroup(label: 'html', extensions: ['html', 'json']);
+
       final file = await openFile(acceptedTypeGroups: [typeGroup]);
-      
+
       if (file == null) {
         return null;
       }
 
       String htmlContent;
-      
+
       if (kIsWeb) {
         // Web平台需要特殊处理
         final bytes = await file.readAsBytes();
@@ -81,8 +75,10 @@ class DataImportService {
       }
 
       // 使用HTML转换器转换为ICS
-      String? icsContent = await HtmlImportService.convertHtmlToIcs(htmlContent);
-      
+      String? icsContent = await HtmlImportService.convertHtmlToIcs(
+        htmlContent,
+      );
+
       if (icsContent == null) {
         debugPrint('HTML转换ICS失败');
         return null;
@@ -90,10 +86,10 @@ class DataImportService {
 
       // 解析ICS内容
       final courses = IcsParser.parse(icsContent);
-      
+
       // 保存到数据库
       await DatabaseHelper.instance.insertCourses(courses);
-      
+
       // 保存到历史记录
       await _saveToHistory(
         name: 'HTML导入_${DateTime.now().toString().substring(0, 16)}',
@@ -102,10 +98,40 @@ class DataImportService {
         courses: courses,
         semester: '2025-2026学年',
       );
-      
+
       return courses;
     } catch (e) {
       debugPrint('HTML导入失败: $e');
+      return null;
+    }
+  }
+
+  /// [v2.5.9] 从 HTML 字符串直接导入（用于 WebView 抓取）
+  Future<List<CourseEvent>?> importFromHtmlString(String htmlContent) async {
+    try {
+      String? icsContent = await HtmlImportService.convertHtmlToIcs(
+        htmlContent,
+      );
+      if (icsContent == null) {
+        debugPrint('HTML字符串转换ICS失败');
+        return null;
+      }
+      final courses = IcsParser.parse(icsContent);
+      if (courses.isEmpty) return null;
+
+      await DatabaseHelper.instance.insertCourses(courses);
+      await _saveToHistory(
+        name: '教务导入_${DateTime.now().toString().substring(0, 16)}',
+        sourceType: 'webview_html',
+        sourceData: htmlContent.length > 10000
+            ? htmlContent.substring(0, 10000)
+            : htmlContent,
+        courses: courses,
+        semester: '2025-2026学年',
+      );
+      return courses;
+    } catch (e) {
+      debugPrint('HTML字符串导入失败: $e');
       return null;
     }
   }
@@ -116,10 +142,10 @@ class DataImportService {
       // 注意：需要在pubspec.yaml中声明assets
       final icsContent = await File('assets/calendar.ics').readAsString();
       final courses = IcsParser.parse(icsContent);
-      
+
       // 保存到数据库
       await DatabaseHelper.instance.insertCourses(courses);
-      
+
       // 保存到历史记录
       await _saveToHistory(
         name: 'Assets导入_${DateTime.now().toString().substring(0, 16)}',
@@ -128,7 +154,7 @@ class DataImportService {
         courses: courses,
         semester: '2025-2026学年',
       );
-      
+
       return courses;
     } catch (e) {
       debugPrint('从assets导入失败: $e');
@@ -148,7 +174,7 @@ class DataImportService {
       // 将课程转换为JSON数据
       final courseData = courses.map((e) => e.toMap()).toList();
       final courseDataJson = jsonEncode(courseData);
-      
+
       await DatabaseHelper.instance.saveScheduleHistory(
         name: name,
         sourceType: sourceType,
@@ -156,10 +182,10 @@ class DataImportService {
         courseData: courseDataJson,
         semester: semester,
       );
-      
+
       // 清理旧的历史记录
       await DatabaseHelper.instance.cleanupOldHistory();
-      
+
       debugPrint('已保存到历史记录: $name');
     } catch (e) {
       debugPrint('保存历史记录失败: $e');
@@ -212,7 +238,7 @@ class DataImportService {
         } else {
           exportDir = '.';
         }
-        
+
         // 确保目录存在
         final dir = Directory(exportDir);
         if (!await dir.exists()) {
@@ -222,12 +248,13 @@ class DataImportService {
         // 如果失败，使用当前工作目录
         exportDir = '.';
       }
-      
-      final fileName = 'schedule_export_${DateTime.now().millisecondsSinceEpoch}.ics';
+
+      final fileName =
+          'schedule_export_${DateTime.now().millisecondsSinceEpoch}.ics';
       final filePath = join(exportDir, fileName);
-      
+
       await File(filePath).writeAsString(icsContent);
-      
+
       debugPrint('ICS文件已导出到: $filePath');
       return true;
     } catch (e) {
@@ -255,7 +282,7 @@ class DataImportService {
         } else {
           exportDir = '.';
         }
-        
+
         // 确保目录存在
         final dir = Directory(exportDir);
         if (!await dir.exists()) {
@@ -265,16 +292,17 @@ class DataImportService {
         // 如果失败，使用当前工作目录
         exportDir = '.';
       }
-      
-      final fileName = 'schedule_export_${DateTime.now().millisecondsSinceEpoch}.json';
+
+      final fileName =
+          'schedule_export_${DateTime.now().millisecondsSinceEpoch}.json';
       final filePath = join(exportDir, fileName);
-      
+
       // 转换为可序列化的格式
       final jsonData = courses.map((e) => e.toMap()).toList();
       final jsonString = jsonEncode(jsonData);
-      
+
       await File(filePath).writeAsString(jsonString);
-      
+
       debugPrint('数据已导出到: $filePath');
       return true;
     } catch (e) {
@@ -299,7 +327,10 @@ class DataImportService {
   }
 
   /// 获取指定周次的课程
-  Future<List<CourseEvent>> getCoursesByWeek(int week, DateTime startDate) async {
+  Future<List<CourseEvent>> getCoursesByWeek(
+    int week,
+    DateTime startDate,
+  ) async {
     return await DatabaseHelper.instance.getCoursesByWeek(week, startDate);
   }
 

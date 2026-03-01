@@ -36,14 +36,17 @@ void showLiquidToast(BuildContext context, String msg) {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Text(msg, style: const TextStyle(color: Colors.white, fontSize: 14)),
+              child: Text(
+                msg,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
             ),
           ),
         ),
       ),
     ),
   );
-  
+
   overlay.insert(entry);
   Future.delayed(const Duration(seconds: 2), () => entry.remove());
 }
@@ -57,7 +60,7 @@ class LiquidCard extends StatelessWidget {
   final double padding;
   final bool isSelected;
   final LiquidStyleType styleType;
-  final bool isPanel; 
+  final bool isPanel;
   final double? stretch;
   final GlassQuality quality;
 
@@ -94,21 +97,48 @@ class LiquidCard extends StatelessWidget {
             ambientStrength: 0.8,
           )
         : (styleType == LiquidStyleType.micro
-            ? GlassSettingsHelper.getCardSettings()
-            : GlassSettingsHelper.getStandardSettings());
+              ? GlassSettingsHelper.getCardSettings()
+              : GlassSettingsHelper.getStandardSettings());
 
     Color effectiveColor = glassColor ?? settings.glassColor;
     if (isSelected) {
-      effectiveColor = AppThemeColors.babyPink.withValues(alpha: globalUseDarkMode ? 0.4 : 0.2);
+      effectiveColor = AppThemeColors.babyPink.withValues(
+        alpha: globalUseDarkMode ? 0.4 : 0.2,
+      );
     }
 
     return GestureDetector(
-      onTap: onTap != null ? () { HapticFeedback.lightImpact(); onTap!(); } : null,
+      onTap: onTap != null
+          ? () {
+              HapticFeedback.lightImpact();
+              onTap!();
+            }
+          : null,
       behavior: HitTestBehavior.opaque,
       child: LiquidStretch(
         stretch: stretch ?? (onTap != null ? 0.02 : 0.0),
         child: Container(
-          decoration: isSelected ? BoxDecoration(boxShadow: [BoxShadow(color: const Color(0x20FF9A9E).withOpacity(0.4), blurRadius: 15, spreadRadius: 1)]) : null,
+          // [v2.5.8 优化] 统加自然阴影替代硬朗的灰线描边
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(borderRadius),
+            boxShadow: [
+              if (isSelected)
+                BoxShadow(
+                  color: const Color(0x20FF9A9E).withValues(alpha: 0.4),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                )
+              else
+                BoxShadow(
+                  color: globalUseDarkMode
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 12,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 4),
+                ),
+            ],
+          ),
           child: GlassContainer(
             shape: LiquidRoundedSuperellipse(borderRadius: borderRadius),
             settings: LiquidGlassSettings(
@@ -134,14 +164,13 @@ class LiquidCard extends StatelessWidget {
       child: FakeGlass(
         shape: LiquidRoundedSuperellipse(borderRadius: borderRadius),
         settings: LiquidGlassSettings(
-          glassColor: (glassColor ?? Colors.white).withValues(alpha: isSelected ? 0.15 : 0.03),
+          glassColor: (glassColor ?? Colors.white).withValues(
+            alpha: isSelected ? 0.15 : 0.03,
+          ),
           blur: styleType == LiquidStyleType.micro ? 0 : 8,
           thickness: styleType == LiquidStyleType.micro ? 5.0 : 10.0,
         ),
-        child: Padding(
-          padding: EdgeInsets.all(padding),
-          child: child,
-        ),
+        child: Padding(padding: EdgeInsets.all(padding), child: child),
       ),
     );
   }
@@ -169,8 +198,8 @@ class LiquidButton extends StatelessWidget {
       height: 48,
       style: GlassButtonStyle.filled,
       settings: LiquidGlassSettings(
-        glassColor: isOutline 
-            ? Colors.white.withValues(alpha: 0.1) 
+        glassColor: isOutline
+            ? Colors.white.withValues(alpha: 0.1)
             : color.withValues(alpha: 0.7), // [修复3] 提高透明度
         blur: 0,
         lightIntensity: 0.5,
@@ -220,7 +249,12 @@ class LiquidGlassDialog extends StatelessWidget {
   final Widget content;
   final List<GlassDialogAction>? actions;
 
-  const LiquidGlassDialog({super.key, required this.title, required this.content, this.actions});
+  const LiquidGlassDialog({
+    super.key,
+    required this.title,
+    required this.content,
+    this.actions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -242,13 +276,15 @@ class LiquidGlassDialog extends StatelessWidget {
           textAlign: TextAlign.left,
           child: content,
         ),
-        actions: actions ?? [
-          GlassDialogAction(
-            label: '确定',
-            onPressed: () => Navigator.pop(context),
-            isPrimary: true,
-          )
-        ],
+        actions:
+            actions ??
+            [
+              GlassDialogAction(
+                label: '确定',
+                onPressed: () => Navigator.pop(context),
+                isPrimary: true,
+              ),
+            ],
         settings: LiquidGlassSettings(
           glassColor: const Color(0xFF2D2D2D).withValues(alpha: 0.4),
           blur: 20,
@@ -279,7 +315,9 @@ Future<T?> showLiquidDialog<T>({
             opacity: anim1,
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(color: Colors.black.withValues(alpha: 0.15)), // [修复] 降低遮罩不透明度
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.15),
+              ), // [修复] 降低遮罩不透明度
             ),
           ),
           ScaleTransition(
@@ -301,7 +339,16 @@ class LiquidInput extends StatelessWidget {
   final String? placeholder;
   final String? valueText;
 
-  const LiquidInput({super.key, this.controller, required this.label, required this.icon, this.isReadOnly = false, this.onTap, this.placeholder, this.valueText});
+  const LiquidInput({
+    super.key,
+    this.controller,
+    required this.label,
+    required this.icon,
+    this.isReadOnly = false,
+    this.onTap,
+    this.placeholder,
+    this.valueText,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -310,14 +357,24 @@ class LiquidInput extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 8, bottom: 6),
-          child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white70)),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.white70,
+            ),
+          ),
         ),
         GestureDetector(
           onTap: onTap,
           behavior: HitTestBehavior.opaque,
           child: GlassContainer(
             shape: LiquidRoundedSuperellipse(borderRadius: 18),
-            settings: LiquidGlassSettings(glassColor: Colors.black.withOpacity(0.3), blur: 0),
+            settings: LiquidGlassSettings(
+              glassColor: Colors.black.withOpacity(0.3),
+              blur: 0,
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               child: Row(
@@ -325,30 +382,44 @@ class LiquidInput extends StatelessWidget {
                   Icon(icon, color: AppThemeColors.babyPink, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: controller != null 
-                    ? IgnorePointer(
-                        ignoring: isReadOnly,
-                        child: CupertinoTextField(
-                          controller: controller,
-                          readOnly: isReadOnly,
-                          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 16),
-                          cursorColor: AppThemeColors.babyPink,
-                          decoration: null, 
-                          placeholder: placeholder ?? '请输入$label',
-                          placeholderStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: Text(
-                          valueText ?? placeholder ?? '',
-                          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 16),
-                        ),
-                      ),
+                    child: controller != null
+                        ? IgnorePointer(
+                            ignoring: isReadOnly,
+                            child: CupertinoTextField(
+                              controller: controller,
+                              readOnly: isReadOnly,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                              cursorColor: AppThemeColors.babyPink,
+                              decoration: null,
+                              placeholder: placeholder ?? '请输入$label',
+                              placeholderStyle: TextStyle(
+                                color: Colors.white.withOpacity(0.4),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            child: Text(
+                              valueText ?? placeholder ?? '',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
                   ),
                   if (isReadOnly || controller == null)
-                    Icon(CupertinoIcons.chevron_down, color: Colors.white.withOpacity(0.5), size: 16),
+                    Icon(
+                      CupertinoIcons.chevron_down,
+                      color: Colors.white.withOpacity(0.5),
+                      size: 16,
+                    ),
                 ],
               ),
             ),
@@ -371,13 +442,16 @@ class LiquidBackButton extends StatelessWidget {
         child: GlassContainer(
           shape: LiquidRoundedSuperellipse(borderRadius: 22),
           settings: LiquidGlassSettings(
-            glassColor: Colors.white.withOpacity(0.1), 
+            glassColor: Colors.white.withOpacity(0.1),
             blur: 10,
             lightIntensity: 0.4,
           ),
           child: const SizedBox(
-            width: 44, height: 44,
-            child: Center(child: Icon(CupertinoIcons.back, size: 24, color: Colors.white)),
+            width: 44,
+            height: 44,
+            child: Center(
+              child: Icon(CupertinoIcons.back, size: 24, color: Colors.white),
+            ),
           ),
         ),
       ),

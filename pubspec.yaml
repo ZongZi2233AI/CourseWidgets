@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.5.7+10005007
+version: 2.5.9+10005008
 
 environment:
   sdk: ^3.11.0
@@ -88,11 +88,20 @@ dependencies:
   # 圆角处理
   figma_squircle: ^0.6.3
   liquid_glass_renderer: any
-  liquid_glass_widgets: any
+  
+  # [v2.5.9] 深度自定义的玻璃组件库，源码已剥离到 plugins 文件夹
+  liquid_glass_widgets:
+    path: plugins/liquid_glass_widgets
   local_notifier: ^0.1.6
   flutter_phoenix: ^1.1.1
   system_theme:
     path: plugins/system_theme
+
+  # [v2.5.9] 教务系统导入 - 内嵌 WebView + JS 注入
+  webview_flutter: ^4.12.0
+  url_launcher: ^6.3.1
+  desktop_webview_window: ^0.2.3
+  webview_windows: ^0.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -117,6 +126,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # [v2.5.9] 确保子包中的着色器正确附带到 Release 版本
+  shaders:
+    - plugins/liquid_glass_widgets/shaders/lightweight_glass.frag
+    - plugins/liquid_glass_widgets/shaders/interactive_indicator.frag
 
   # To add assets to your application, add an assets section, like this:
   assets:
@@ -171,3 +185,6 @@ dependency_overrides:
   # [v2.3.0修复] 重构为使用 MMKV，移除 shared_preferences 依赖
   flutter_foreground_task:
     path: plugins/flutter_foreground_task-8.17.0
+  # [v2.5.9修复] webview_flutter_android AGP 9.0 冲突修复
+  webview_flutter_android:
+    path: plugins/webview_flutter_android

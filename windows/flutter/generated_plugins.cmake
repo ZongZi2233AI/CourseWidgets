@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_webview_window
   file_selector_windows
   local_notifier
   mmkv_win32
@@ -10,6 +11,8 @@ list(APPEND FLUTTER_PLUGIN_LIST
   screen_retriever_windows
   system_theme
   tray_manager
+  url_launcher_windows
+  webview_windows
   window_manager
 )
 

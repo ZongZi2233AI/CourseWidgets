@@ -16,41 +16,45 @@ class DatabaseHelper {
   /// 初始化数据库工厂（Windows平台需要）
   static Future<void> initialize() async {
     if (_initialized) return;
-    
+
     // Web平台不支持sqflite_ffi
     if (kIsWeb) {
       _initialized = true;
       return;
     }
-    
+
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       // 初始化FFI数据库工厂
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
-    
+
     _initialized = true;
   }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    
+
     // Web平台使用内存数据库
     if (kIsWeb) {
-      _database = await openDatabase(inMemoryDatabasePath, version: 1, onCreate: _createDB);
+      _database = await openDatabase(
+        inMemoryDatabasePath,
+        version: 1,
+        onCreate: _createDB,
+      );
       return _database!;
     }
-    
+
     // 确保已初始化
     await initialize();
-    
+
     _database = await _initDB('schedule.db');
-    
+
     // 确保所有表都存在（检查并创建缺失的表）
     if (_database != null) {
       await _ensureTablesExist(_database!);
     }
-    
+
     return _database!;
   }
 
@@ -59,8 +63,10 @@ class DatabaseHelper {
     // 检查 courses 表是否有 teacher 字段
     try {
       final result = await db.rawQuery('PRAGMA table_info(courses)');
-      final hasTeacherField = result.any((column) => column['name'] == 'teacher');
-      
+      final hasTeacherField = result.any(
+        (column) => column['name'] == 'teacher',
+      );
+
       if (!hasTeacherField) {
         // 添加 teacher 字段
         await db.execute('ALTER TABLE courses ADD COLUMN teacher TEXT');
@@ -69,18 +75,18 @@ class DatabaseHelper {
     } catch (e) {
       debugPrint('检查 teacher 字段失败: $e');
     }
-    
+
     // 检查并创建历史记录表
     final historyTableExists = await db.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='schedule_history'"
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='schedule_history'",
     );
     if (historyTableExists.isEmpty) {
       await _createScheduleHistoryTable(db);
     }
-    
+
     // 检查并创建配置表
     final configTableExists = await db.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='schedule_config'"
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='schedule_config'",
     );
     if (configTableExists.isEmpty) {
       await _createScheduleConfigTable(db);
@@ -91,14 +97,14 @@ class DatabaseHelper {
     // 使用应用数据目录作为数据库路径，确保跨平台兼容性
     String dbDir;
     String dbPath;
-    
+
     try {
       if (Platform.isWindows) {
         // Windows: 使用应用数据目录
         final appData = Platform.environment['APPDATA'] ?? '.';
         dbDir = appData;
         dbPath = join(dbDir, 'CourseWidgets', filePath);
-        
+
         // 确保目录存在
         final dbFile = File(dbPath);
         if (!await dbFile.parent.exists()) {
@@ -121,7 +127,7 @@ class DatabaseHelper {
       dbDir = '.';
       dbPath = join(dbDir, filePath);
     }
-    
+
     return await openDatabase(dbPath, version: 1, onCreate: _createDB);
   }
 
@@ -136,10 +142,10 @@ class DatabaseHelper {
       endTime INTEGER NOT NULL
     )
     ''');
-    
+
     // 创建历史记录表
     await _createScheduleHistoryTable(db);
-    
+
     // 创建配置表
     await _createScheduleConfigTable(db);
   }
@@ -147,23 +153,23 @@ class DatabaseHelper {
   /// 批量插入课程
   Future<void> insertCourses(List<CourseEvent> courses) async {
     final db = await database;
-    
+
     // 先清空旧数据
     await db.delete('courses');
-    
+
     final batch = db.batch();
-    
+
     for (var course in courses) {
       batch.insert('courses', course.toMap());
     }
-    
+
     await batch.commit(noResult: true);
   }
 
   /// 删除指定课程
   Future<void> deleteCourses(List<CourseEvent> courses) async {
     final db = await database;
-    
+
     for (var course in courses) {
       await db.delete(
         'courses',
@@ -183,32 +189,49 @@ class DatabaseHelper {
   /// 获取指定日期的课程
   Future<List<CourseEvent>> getCoursesByDate(DateTime date) async {
     final db = await database;
-    final startOfDay = DateTime(date.year, date.month, date.day).millisecondsSinceEpoch;
-    final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59).millisecondsSinceEpoch;
-    
+    final startOfDay = DateTime(
+      date.year,
+      date.month,
+      date.day,
+    ).millisecondsSinceEpoch;
+    final endOfDay = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      23,
+      59,
+      59,
+    ).millisecondsSinceEpoch;
+
     final result = await db.query(
       'courses',
       where: 'startTime >= ? AND startTime <= ?',
       whereArgs: [startOfDay, endOfDay],
       orderBy: 'startTime ASC',
     );
-    
+
     return result.map((e) => CourseEvent.fromMap(e)).toList();
   }
 
   /// 获取指定周次的课程
-  Future<List<CourseEvent>> getCoursesByWeek(int week, DateTime startDate) async {
+  Future<List<CourseEvent>> getCoursesByWeek(
+    int week,
+    DateTime startDate,
+  ) async {
     final weekStart = startDate.add(Duration(days: (week - 1) * 7));
     final weekEnd = weekStart.add(Duration(days: 7));
-    
+
     final db = await database;
     final result = await db.query(
       'courses',
       where: 'startTime >= ? AND startTime < ?',
-      whereArgs: [weekStart.millisecondsSinceEpoch, weekEnd.millisecondsSinceEpoch],
+      whereArgs: [
+        weekStart.millisecondsSinceEpoch,
+        weekEnd.millisecondsSinceEpoch,
+      ],
       orderBy: 'startTime ASC',
     );
-    
+
     return result.map((e) => CourseEvent.fromMap(e)).toList();
   }
 
@@ -216,14 +239,14 @@ class DatabaseHelper {
   Future<List<int>> getAvailableWeeks(DateTime startDate) async {
     final courses = await getAllCourses();
     final weeks = <int>{};
-    
+
     for (var course in courses) {
       final week = course.getWeekNumber(startDate);
       if (week > 0) {
         weeks.add(week);
       }
     }
-    
+
     return weeks.toList()..sort();
   }
 
@@ -231,26 +254,20 @@ class DatabaseHelper {
   Future<void> clearAll() async {
     final db = await database;
     await db.delete('courses');
+    await db.delete('schedule_history');
+    await db.delete('schedule_config');
   }
 
   /// [v2.2.9] 删除单节课程（根据开始时间）
   Future<void> deleteCourse(int startTime) async {
     final db = await database;
-    await db.delete(
-      'courses',
-      where: 'startTime = ?',
-      whereArgs: [startTime],
-    );
+    await db.delete('courses', where: 'startTime = ?', whereArgs: [startTime]);
   }
 
   /// [v2.2.9] 删除所有同名课程
   Future<void> deleteAllCoursesWithName(String courseName) async {
     final db = await database;
-    await db.delete(
-      'courses',
-      where: 'name = ?',
-      whereArgs: [courseName],
-    );
+    await db.delete('courses', where: 'name = ?', whereArgs: [courseName]);
   }
 
   /// 关闭数据库
@@ -302,13 +319,10 @@ class DatabaseHelper {
     required String semester,
   }) async {
     final db = await database;
-    
+
     // 如果是新导入，先将所有现有记录设为非激活
     if (sourceType == 'ics' || sourceType == 'html') {
-      await db.update(
-        'schedule_history',
-        {'is_active': 0},
-      );
+      await db.update('schedule_history', {'is_active': 0});
     }
 
     return await db.insert('schedule_history', {
@@ -346,13 +360,10 @@ class DatabaseHelper {
   /// 切换到指定的历史记录
   Future<bool> switchToSchedule(int id) async {
     final db = await database;
-    
+
     // 先将所有记录设为非激活
-    await db.update(
-      'schedule_history',
-      {'is_active': 0},
-    );
-    
+    await db.update('schedule_history', {'is_active': 0});
+
     // 激活指定记录
     final result = await db.update(
       'schedule_history',
@@ -360,7 +371,7 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [id],
     );
-    
+
     return result > 0;
   }
 
@@ -383,9 +394,9 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [id],
     );
-    
+
     if (result.isEmpty) return [];
-    
+
     final courseDataStr = result.first['course_data'] as String;
     final courseData = jsonDecode(courseDataStr) as List;
     return courseData.cast<Map<String, dynamic>>();
@@ -399,11 +410,11 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [id],
     );
-    
+
     if (result.isEmpty) return null;
-    
+
     final sourceType = result.first['source_type'] as String;
-    
+
     if (sourceType == 'ics') {
       // 如果是ICS导入的，直接返回原始数据
       return result.first['source_data'] as String;
@@ -411,15 +422,15 @@ class DatabaseHelper {
       // 如果是HTML导入的，需要重新生成ICS
       final courseDataStr = result.first['course_data'] as String;
       final courseData = jsonDecode(courseDataStr) as List<dynamic>;
-      
+
       // 使用HTML转换器重新生成ICS
       final courses = HtmlImportService.restoreCourseData(
-        courseData.cast<Map<String, dynamic>>()
+        courseData.cast<Map<String, dynamic>>(),
       );
       final config = ScheduleConfig();
       return IcsGenerator.generate(courses, config);
     }
-    
+
     return null;
   }
 
@@ -432,7 +443,7 @@ class DatabaseHelper {
       limit: 1,
       offset: 49,
     );
-    
+
     if (result.isNotEmpty) {
       final oldestTime = result.first['created_at'] as int;
       await db.delete(

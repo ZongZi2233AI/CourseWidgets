@@ -3,7 +3,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
-import '../../constants/theme_constants.dart';
 import '../../services/windows_tray_service.dart';
 import '../../providers/schedule_provider.dart';
 import 'windows_schedule_screen.dart';
@@ -160,7 +159,7 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     debugPrint('🌙 窗口已最小化到托盘，进程继续运行');
   }
 
-  // [v2.5.6修复] 恢复缩小动画，并通过 windowsGlobalScale 统摄背景
+  // [v2.5.9修复] 恢复手动实现的最小化动画
   void _handleMinimize() async {
     await _windowAnimController.forward();
     await windowManager.minimize();
@@ -176,18 +175,19 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
 
   @override
   void onWindowFocus() {
-    // nothing
+    setState(() {});
+    _windowAnimController.reverse();
   }
 
+  // [v2.5.9修复] 恢复手动实现的最大化过渡动画
   void _handleMaximize() async {
-    // [v2.5.7修复] 移除最大化过程中的 Flutter 强制缩放动画。
-    // 在全屏/最大化状态变化时，Flutter 引擎会重新计算 DPI 和视口边界。
-    // 如果此时叠加外层的 Transform.scale (0.9)，会导致布局计算彻底错乱，出现上下半屏黑块与拉伸。
+    await _windowAnimController.forward();
     if (_isMaximized) {
       await windowManager.unmaximize();
     } else {
       await windowManager.maximize();
     }
+    await _windowAnimController.reverse();
   }
 
   @override
@@ -205,33 +205,42 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: AnimatedBuilder(
-          animation: _windowAnimController,
-          builder: (context, child) {
-            // [v2.5.6修复] 缩放已转移至 main.dart 的全局外壳，此处仅保留容器本身，避免二次重叠缩放
-            return child!;
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
-            child: Column(
-              children: [
-                _buildTitleBar(),
-                Expanded(
-                  child: Navigator(
-                    key: _localNavigatorKey,
-                    initialRoute: '/',
-                    onGenerateRoute: (settings) {
-                      return MaterialPageRoute(
-                        builder: (context) => Scaffold(
-                          backgroundColor: Colors.transparent, // 继承外层透明
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          child: Column(
+            children: [
+              _buildTitleBar(),
+              Expanded(
+                child: Navigator(
+                  key: _localNavigatorKey,
+                  initialRoute: '/',
+                  onGenerateRoute: (settings) {
+                    // [v2.5.9修复] 使用 PageRouteBuilder + opaque:false
+                    // MaterialPageRoute 默认包裹一个 MaterialType.canvas (纯白) Material，
+                    // 会遮挡透明的 Scaffold 和玻璃背景层，形成 "白色遮罩"。
+                    return PageRouteBuilder(
+                      opaque: false,
+                      pageBuilder: (context, animation, secondaryAnimation) {
+                        return Scaffold(
+                          backgroundColor: Colors.transparent,
                           body: Row(
                             children: [
-                              _buildSidebar(),
+                              SingleChildScrollView(
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight:
+                                        MediaQuery.of(context).size.height - 40,
+                                  ),
+                                  child: IntrinsicHeight(
+                                    child: _buildSidebar(),
+                                  ),
+                                ),
+                              ),
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0),
@@ -240,13 +249,13 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      },
+                    );
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -267,7 +276,7 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
         child: Row(
           children: [
             const SizedBox(width: 16),
-            Icon(Icons.school, color: AppThemeColors.babyPink, size: 16),
+            Icon(Icons.school, color: Theme.of(context).primaryColor, size: 16),
             const SizedBox(width: 8),
             const Text(
               "CourseWidgets",
@@ -324,59 +333,70 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   /// 侧边栏
   Widget _buildSidebar() {
     return Container(
-      width: 200,
-      margin: const EdgeInsets.all(16),
-      child: GlassContainer(
-        shape: LiquidRoundedSuperellipse(borderRadius: 16),
-        settings: LiquidGlassSettings(
-          glassColor: Colors.white.withValues(alpha: 0.05),
-          blur: 10,
-        ),
-        quality: GlassQuality.standard,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: [
-              _buildNavItem(0, Icons.grid_view, "课程"),
-              const SizedBox(height: 8),
-              _buildNavItem(1, Icons.calendar_today, "日历"),
-              const SizedBox(height: 8),
-              _buildNavItem(2, Icons.settings, "设置"),
-            ],
-          ),
-        ),
+      width: 80,
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildNavItem(0, Icons.grid_view, "课程"),
+          const SizedBox(height: 24),
+          _buildNavItem(1, Icons.calendar_today, "日历"),
+          const Spacer(),
+          _buildNavItem(2, Icons.settings, "设置"),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String title) {
+  Widget _buildNavItem(int index, IconData icon, String tooltip) {
     final isSelected = _selectedIndex == index;
-    return GlassButton.custom(
-      onTap: () => setState(() => _selectedIndex = index),
-      width: double.infinity,
-      height: 48,
-      style: GlassButtonStyle.filled,
-      settings: LiquidGlassSettings(
-        glassColor: isSelected
-            ? AppThemeColors.babyPink.withValues(alpha: 0.3)
-            : Colors.white.withValues(alpha: 0.05),
-        blur: 0,
-      ),
-      shape: LiquidRoundedSuperellipse(borderRadius: 12),
-      child: Row(
-        children: [
-          const SizedBox(width: 12),
-          Icon(icon, color: Colors.white, size: 20),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+    // [v2.5.8 优化] Windows侧边栏：不要底板，只保留按钮，并加上悬浮阴影
+    return Tooltip(
+      message: tooltip,
+      waitDuration: const Duration(milliseconds: 500),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                blurRadius: 15,
+                spreadRadius: 2,
+              )
+            else
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 10,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: GlassButton.custom(
+          onTap: () => setState(() => _selectedIndex = index),
+          width: 48,
+          height: 48,
+          style: GlassButtonStyle.filled,
+          settings: LiquidGlassSettings(
+            glassColor: isSelected
+                ? Theme.of(context).primaryColor.withValues(alpha: 0.4)
+                : Colors.white.withValues(alpha: 0.05),
+            blur: 15,
+            thickness: 20.0,
+          ),
+          shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+          child: Center(
+            child: Icon(
+              icon,
+              color: isSelected
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.7),
+              size: 24,
             ),
           ),
-        ],
+        ),
       ),
     );
   }

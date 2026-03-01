@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import '../../services/onboarding_service.dart';
 import 'onboarding_welcome.dart';
-import 'onboarding_import.dart';
 import 'onboarding_config.dart';
+import 'onboarding_import.dart';
 import 'onboarding_theme.dart';
 
 /// [v2.2.8] 首次启动引导主框架
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
-  
-  const OnboardingScreen({
-    super.key,
-    required this.onComplete,
-  });
+
+  const OnboardingScreen({super.key, required this.onComplete});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -22,7 +20,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  
+
   final OnboardingService _onboardingService = OnboardingService();
 
   @override
@@ -55,12 +53,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _completeOnboarding() async {
     await _onboardingService.completeOnboarding();
-    
+
     if (mounted) {
       HapticFeedback.heavyImpact();
-      
+
       // 直接调用 onComplete 回调
       widget.onComplete();
+
+      // [v2.5.9] 引导结束后直接重启应用，确保所有 Provider 重新加载数据
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          Phoenix.rebirth(context);
+        }
+      });
     }
   }
 
@@ -76,22 +81,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         },
         children: [
           // 第一页：欢迎页
-          OnboardingWelcome(
-            onNext: _nextPage,
-          ),
-          
-          // 第二页：导入课表
-          OnboardingImport(
-            onNext: _nextPage,
-            onBack: _previousPage,
-          ),
-          
-          // 第三页：课时配置
-          OnboardingConfig(
-            onNext: _nextPage,
-            onBack: _previousPage,
-          ),
-          
+          OnboardingWelcome(onNext: _nextPage),
+
+          // 第二页：课时配置
+          OnboardingConfig(onNext: _nextPage, onBack: _previousPage),
+
+          // 第三页：导入课表
+          OnboardingImport(onNext: _nextPage, onBack: _previousPage),
+
           // 第四页：主题设置
           OnboardingTheme(
             onComplete: _completeOnboarding,
