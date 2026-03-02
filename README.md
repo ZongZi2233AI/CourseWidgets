@@ -8,8 +8,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.11.2+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-2.5.9-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
+[![Dart](https://img.shields.io/badge/Dart-3.11.0+-0175C2?logo=dart)](https://dart.dev)
+[![Version](https://img.shields.io/badge/Version-2.6.0-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases/)
 
 [English](README_EN.md) | 简体中文
 
@@ -17,7 +17,9 @@
 
 > **声明**：本软件除开源代码外完全使用 AI 辅助开发。核心由 [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash) 构建，Windows 部分使用 Claude Sonnet 4.5，部分复杂实现使用 Gemini 3.0 Pro，v2.4+ 版本由 Gemini 3.1 Pro 构建。
 
-### 📦 最新版本：[v2.5.9](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.5.9)
+### **提醒** 2.6.0版本移除了部分真实液态玻璃代码，因为存在部分未解决问题，为了优先完成构建，将在大约v2.6.0-beta8等版本恢复
+
+### 📦 最新版本：[v2.6.0](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0)
 
 #### v2.6.0 (Post v2.5.9 updates) Dev version
 ```
@@ -284,14 +286,8 @@ refactor: 重构        chore: 构建/工具
 
 ## 🗺️ 路线图
 
-### v2.5.x — 功能演进与性能极致打磨
-
-- [x] Windows 嵌套 Navigator 路由重构（保留标题栏与动画，DWM 原生缩放，杜绝 GPU NaN 死锁）
-- [x] 完全纯正的 Android 14+ 预见式侧滑手势返回与卡片压感联动视差
-- [x] 莫奈全局取色引擎升级，支持全资源异步快速萃取
-- [ ] 课程冲突检测算法优化
-- [ ] 课表导出为 PDF/图片 功能
-- [ ] Apple Watch / WearOS 同步支持
+### v2.6.x
+将着重在教务系统优化和UI设计改进上
 
 ---
 
