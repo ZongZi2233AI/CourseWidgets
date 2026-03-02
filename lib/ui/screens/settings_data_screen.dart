@@ -42,13 +42,7 @@ class SettingsDataScreen extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
+                    const liquid.LiquidBackButton(),
                     const SizedBox(width: 8),
                     Text(
                       '数据管理',
@@ -153,10 +147,10 @@ class SettingsDataScreen extends StatelessWidget {
                             final activeSchedule = await dataImportService
                                 .getActiveSchedule();
                             if (activeSchedule != null) {
-                              final success = await dataImportService
+                              final path = await dataImportService
                                   .exportHistoryToIcs(activeSchedule['id']);
-                              if (success && context.mounted)
-                                _showToast(context, 'ICS 导出成功');
+                              if (path != null && context.mounted)
+                                _showToast(context, 'ICS 已导出到:\n$path');
                             } else {
                               if (context.mounted)
                                 _showToast(context, '未找到当前课表');

@@ -17,11 +17,13 @@ import '../../services/notification_manager.dart';
 class OnboardingTheme extends StatefulWidget {
   final VoidCallback onComplete;
   final VoidCallback onBack;
+  final bool isLastPage;
 
   const OnboardingTheme({
     super.key,
     required this.onComplete,
     required this.onBack,
+    this.isLastPage = true,
   });
 
   @override
@@ -275,7 +277,7 @@ class _OnboardingThemeState extends State<OnboardingTheme> {
                 child: Column(
                   children: [
                     liquid.LiquidButton(
-                      text: '进入课程表',
+                      text: widget.isLastPage ? '完成设置' : '下一步',
                       onTap: _completeOnboarding,
                       color: AppThemeColors.babyPink,
                     ),

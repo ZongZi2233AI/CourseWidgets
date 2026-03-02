@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import '../../services/onboarding_service.dart';
 import 'onboarding_welcome.dart';
 import 'onboarding_config.dart';
@@ -60,11 +59,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // 直接调用 onComplete 回调
       widget.onComplete();
 
-      // [v2.5.9] 引导结束后直接重启应用，确保所有 Provider 重新加载数据
+      // [v2.6.0] 引导结束后直接彻底关闭应用
       Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) {
-          Phoenix.rebirth(context);
-        }
+        SystemNavigator.pop(); // 完全关闭 App
       });
     }
   }
@@ -83,16 +80,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // 第一页：欢迎页
           OnboardingWelcome(onNext: _nextPage),
 
-          // 第二页：课时配置
+          // 第二页：主题设置 (改版调至第二)
+          OnboardingTheme(
+            onComplete: _nextPage,
+            onBack: _previousPage,
+            isLastPage:
+                false, // [v2.6.0] 增设一个非最后一页的状态参数（需要在onboarding_theme里处理一下，这里若未实现就保持UI原样，只换逻辑）
+          ),
+
+          // 第三页：课时配置
           OnboardingConfig(onNext: _nextPage, onBack: _previousPage),
 
-          // 第三页：导入课表
-          OnboardingImport(onNext: _nextPage, onBack: _previousPage),
-
-          // 第四页：主题设置
-          OnboardingTheme(
-            onComplete: _completeOnboarding,
+          // 第四页：导入课表
+          OnboardingImport(
+            onNext: _completeOnboarding, // [v2.6.0] 改为完成引导
             onBack: _previousPage,
+            isLastPage: true, // [v2.6.0] 告诉导入页它是最后一页
           ),
         ],
       ),

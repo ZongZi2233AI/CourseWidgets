@@ -135,11 +135,17 @@ class LiquidCard extends StatelessWidget {
                       : Colors.black.withValues(alpha: 0.1),
                   blurRadius: 12,
                   spreadRadius: 0,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 0), // [v2.6.0] 均匀环绕
+                  // [v2.6.1] 浅色模式下采用 outer，仅在容器外部绘制阴影避免内部玻璃面变脏变黑；深色模式内部加深阴影能提升层次感。
+                  blurStyle: globalUseDarkMode
+                      ? BlurStyle.normal
+                      : BlurStyle.outer,
                 ),
             ],
           ),
           child: GlassContainer(
+            useOwnLayer:
+                true, // [v2.6.4] 关键：无 AdaptiveLiquidGlassLayer 时必须设为 true 才能渲染
             shape: LiquidRoundedSuperellipse(borderRadius: borderRadius),
             settings: LiquidGlassSettings(
               thickness: settings.thickness,
@@ -160,7 +166,13 @@ class LiquidCard extends StatelessWidget {
   Widget _buildDesktopFallback() {
     // [v2.2.2] Windows端使用FakeGlass避免灰条
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap != null
+          ? () {
+              HapticFeedback.lightImpact();
+              onTap!();
+            }
+          : null,
+      behavior: HitTestBehavior.opaque,
       child: FakeGlass(
         shape: LiquidRoundedSuperellipse(borderRadius: borderRadius),
         settings: LiquidGlassSettings(

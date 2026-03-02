@@ -730,11 +730,11 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                           final activeSchedule = await dataImportService
                               .getActiveSchedule();
                           if (activeSchedule != null) {
-                            final result = await dataImportService
+                            final path = await dataImportService
                                 .exportHistoryToIcs(activeSchedule['id']);
                             if (mounted) {
-                              if (result) {
-                                _showSuccessDialog('ICS文件已导出到当前目录');
+                              if (path != null) {
+                                _showSuccessDialog('ICS 已导出到:\n$path');
                               } else {
                                 _showErrorDialog('导出失败');
                               }
@@ -1170,10 +1170,10 @@ class _MacOSScheduleScreenState extends State<MacOSScheduleScreen> {
                             CupertinoButton(
                               padding: const EdgeInsets.all(4),
                               onPressed: () async {
-                                final success = await dataImportService
+                                final path = await dataImportService
                                     .exportHistoryToIcs(item['id']);
-                                if (success && context.mounted) {
-                                  _showSuccessDialog('ICS文件已导出');
+                                if (path != null && context.mounted) {
+                                  _showSuccessDialog('ICS 已导出到:\n$path');
                                 }
                               },
                               child: const Icon(

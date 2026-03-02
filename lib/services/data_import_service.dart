@@ -7,6 +7,7 @@ import 'ics_parser.dart';
 import 'database_helper.dart';
 import 'html_to_ics_converter.dart';
 import '../models/course_event.dart';
+import '../models/schedule_config.dart';
 
 /// 数据导入服务 - 支持ICS和HTML格式
 class DataImportService {
@@ -136,6 +137,129 @@ class DataImportService {
     }
   }
 
+  /// [v2.6.0] 专门接收 Webview WebView Javascript `courses` 原生解析数组
+  Future<List<CourseEvent>?> importFromJsonData(List<dynamic> jsonList) async {
+    try {
+      // 使用 ScheduleConfigModel 获取正确的节次→时间映射
+      final configModel = ScheduleConfigModel.defaultConfig();
+
+      // 步骤1: 解析所有条目，按(name, teacher, location, dayOfWeek, weeks)分组
+      // 同组内合并连续 section
+      final Map<String, _CourseGroup> groups = {};
+
+      for (var item in jsonList) {
+        if (item is! Map<String, dynamic>) continue;
+        final name = (item['name'] ?? '').toString().trim();
+        if (name.isEmpty) continue;
+
+        final teacher = (item['teacher'] ?? '').toString().trim();
+        final location = (item['location'] ?? '').toString().trim();
+        final dayOfWeekRaw = item['dayOfWeek'] ?? 1;
+        final int dayOfWeek = dayOfWeekRaw is num
+            ? dayOfWeekRaw.toInt()
+            : int.parse(dayOfWeekRaw.toString());
+        final sectionRaw = item['section'] ?? 1;
+        final int section = sectionRaw is num
+            ? sectionRaw.toInt()
+            : int.parse(sectionRaw.toString());
+        final String weeksStr = (item['weeks'] ?? '').toString();
+
+        // 解析 weeks 位串 → 周次列表
+        List<int> weeksList = [];
+        for (int i = 0; i < weeksStr.length; i++) {
+          if (weeksStr[i] == '1') weeksList.add(i + 1);
+        }
+        // 如果没有解析到周次，默认1-20周
+        if (weeksList.isEmpty) {
+          weeksList = List.generate(20, (i) => i + 1);
+        }
+
+        final key = '$name|$teacher|$location|$dayOfWeek|$weeksStr';
+        groups.putIfAbsent(
+          key,
+          () => _CourseGroup(
+            name: name,
+            teacher: teacher,
+            location: location,
+            dayOfWeek: dayOfWeek,
+            weeks: weeksList,
+          ),
+        );
+        groups[key]!.sections.add(section);
+      }
+
+      if (groups.isEmpty) return null;
+
+      // 步骤2: 合并连续节次 → 生成 CourseEvent
+      List<CourseEvent> courses = [];
+
+      for (var group in groups.values) {
+        // 排序 sections 并合并连续的
+        final sortedSections = group.sections.toList()..sort();
+        List<List<int>> mergedRanges = [];
+        List<int> current = [sortedSections.first];
+
+        for (int i = 1; i < sortedSections.length; i++) {
+          if (sortedSections[i] == current.last + 1) {
+            current.add(sortedSections[i]);
+          } else {
+            mergedRanges.add(current);
+            current = [sortedSections[i]];
+          }
+        }
+        mergedRanges.add(current);
+
+        // 对每个合并后的节次范围 × 每个周次 → 生成一个 CourseEvent
+        for (var range in mergedRanges) {
+          final startSection = range.first;
+          final endSection = range.last;
+
+          for (var week in group.weeks) {
+            final startTime = configModel.getStartTime(
+              week,
+              group.dayOfWeek,
+              startSection,
+            );
+            final endTime = configModel.getEndTimeWithDuration(
+              week,
+              group.dayOfWeek,
+              startSection,
+              endSection,
+            );
+
+            courses.add(
+              CourseEvent(
+                name: group.name,
+                location: group.location,
+                teacher: group.teacher,
+                startTime: startTime.millisecondsSinceEpoch,
+                endTime: endTime.millisecondsSinceEpoch,
+              ),
+            );
+          }
+        }
+      }
+
+      if (courses.isEmpty) return null;
+
+      // 按时间排序
+      courses.sort((a, b) => a.startTime.compareTo(b.startTime));
+
+      await DatabaseHelper.instance.insertCourses(courses);
+      await _saveToHistory(
+        name: '教务极速捕获_${DateTime.now().toString().substring(0, 16)}',
+        sourceType: 'webview_json',
+        sourceData: jsonEncode(jsonList),
+        courses: courses,
+        semester: '2025-2026学年',
+      );
+      return courses;
+    } catch (e) {
+      debugPrint('JSON原生导入失败: $e');
+      return null;
+    }
+  }
+
   /// 从assets导入（用于测试）
   Future<List<CourseEvent>?> importFromAssets() async {
     try {
@@ -219,11 +343,11 @@ class DataImportService {
     return await DatabaseHelper.instance.deleteScheduleHistory(id);
   }
 
-  /// 导出指定历史记录为ICS文件
-  Future<bool> exportHistoryToIcs(int id) async {
+  /// 导出指定历史记录为ICS文件，返回文件路径
+  Future<String?> exportHistoryToIcs(int id) async {
     try {
       final icsContent = await DatabaseHelper.instance.exportScheduleToIcs(id);
-      if (icsContent == null) return false;
+      if (icsContent == null) return null;
 
       // 保存文件 - 使用Documents目录作为导出路径
       String exportDir;
@@ -256,10 +380,10 @@ class DataImportService {
       await File(filePath).writeAsString(icsContent);
 
       debugPrint('ICS文件已导出到: $filePath');
-      return true;
+      return filePath;
     } catch (e) {
       debugPrint('导出ICS失败: $e');
-      return false;
+      return null;
     }
   }
 
@@ -362,4 +486,22 @@ class DataImportService {
       return false;
     }
   }
+}
+
+/// 课程分组辅助类
+class _CourseGroup {
+  final String name;
+  final String teacher;
+  final String location;
+  final int dayOfWeek;
+  final List<int> weeks;
+  final Set<int> sections = {};
+
+  _CourseGroup({
+    required this.name,
+    required this.teacher,
+    required this.location,
+    required this.dayOfWeek,
+    required this.weeks,
+  });
 }

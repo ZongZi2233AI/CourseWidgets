@@ -100,6 +100,32 @@ This document lists all third-party dependencies used in CourseWidgets and their
 - **License**: MIT License
 - **URL**: https://pub.dev/packages/liquid_glass_widgets
 
+### WebView Flutter (^4.4.2)
+- **License**: BSD 3-Clause License
+- **Copyright**: Flutter Authors
+- **URL**: https://pub.dev/packages/webview_flutter
+
+### WebView Windows (^0.3.0)
+- **License**: MIT License
+- **URL**: https://pub.dev/packages/webview_windows
+
+### URL Launcher (^6.2.2)
+- **License**: BSD 3-Clause License
+- **Copyright**: Flutter Authors
+- **URL**: https://pub.dev/packages/url_launcher
+
+### Local Notifier (^0.1.6)
+- **License**: MIT License
+- **URL**: https://pub.dev/packages/local_notifier
+
+### System Theme (^2.0.2)
+- **License**: MIT License
+- **URL**: https://pub.dev/packages/system_theme
+
+### Flutter Phoenix (^1.1.1)
+- **License**: MIT License
+- **URL**: https://pub.dev/packages/flutter_phoenix
+
 ## Dev Dependencies
 
 ### Flutter Lints (^6.0.0)

@@ -369,10 +369,10 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
           '通用设置',
           style: TextStyle(color: _textColor, fontWeight: FontWeight.bold),
         ),
-        // [v2.3.0修复] 恢复返回按钮，使用默认样式
-        leading: IconButton(
-          icon: Icon(CupertinoIcons.back, color: _textColor),
-          onPressed: () => Navigator.of(context).pop(),
+        // [v2.3.0修复] 恢复返回按钮，使用统一样式
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 8.0, top: 4.0, bottom: 4.0),
+          child: liquid.LiquidBackButton(),
         ),
       ),
       body: LiquidGlassLayer(

@@ -15,6 +15,7 @@ import 'services/onboarding_service.dart';
 import 'services/windows_tray_service.dart';
 import 'services/storage_service.dart';
 import 'services/background_task_service.dart'; // [v2.2.9] 后台任务服务
+import 'ui/transitions/custom_predictive_back_transitions.dart'; // [v2.6.1]
 import 'utils/glass_opacity_manager.dart'; // [v2.3.0] 玻璃透明度管理器
 import 'ui/screens/schedule_screen.dart';
 import 'ui/screens/android_liquid_glass_main.dart';
@@ -23,7 +24,6 @@ import 'ui/screens/windows_custom_window.dart';
 import 'ui/screens/macos_custom_window.dart'; // [v2.5.9] 新增macOS支持
 import 'ui/screens/onboarding_screen.dart';
 import 'ui/transitions/smooth_slide_transitions.dart'; // [v2.4.8] 平滑过渡动画
-import 'ui/transitions/custom_predictive_back_transitions.dart'; // [v2.5.6] 修正白屏预测返回
 import 'dart:async';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 
@@ -31,6 +31,9 @@ bool globalUseDarkMode = false;
 final ValueNotifier<String?> globalBackgroundPath = ValueNotifier<String?>(
   null,
 );
+
+// [v2.6.0] 全局路由监听器，用于控制底部导航栏的显示与隐藏
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 Future<void> loadGlobalBackground() async {
   try {
@@ -241,8 +244,11 @@ class _MyAppState extends State<MyApp> {
         return Consumer<ThemeService>(
           builder: (context, themeService, child) {
             return material.MaterialApp(
-              key: ValueKey(themeService.primaryColor.value),
+              // [v2.6.0] 移除了强制的 key: ValueKey(themeService.primaryColor.value)
+              // 该属性会导致每次修改主题色都会全部重建APP，丢失 OnboardingScreen 的页面进度，回退到第一页。
+              // 去掉后，Flutter可直接执行 ThemeData 的平滑过渡动画而完美保留局部 State 页面！
               debugShowCheckedModeBanner: false,
+              navigatorObservers: [routeObserver], // [v2.6.0] 注册全局路由监听器
               theme: material.ThemeData(
                 useMaterial3: true,
                 colorScheme: material.ColorScheme.fromSeed(
@@ -257,15 +263,16 @@ class _MyAppState extends State<MyApp> {
                   titleLarge: TextStyle(fontWeight: FontWeight.bold),
                   titleMedium: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                // [v2.5.5修复] 采用拼接版预测性返回：进入使用Slide，拉手势触发Native缩放
+                // [v2.6.1] 恢复使用自定义的 PredictiveBack 以响应手势，通过 CustomPredictiveBackPageTransitionsBuilder
+                // 能够有效响应用户原生侧滑，并且内部缩小幅度已扩大。非Android仍按旧版运行。
                 pageTransitionsTheme: const material.PageTransitionsTheme(
                   builders: {
                     material.TargetPlatform.android:
-                        const CustomPredictiveBackPageTransitionsBuilder(),
+                        CustomPredictiveBackPageTransitionsBuilder(),
                     material.TargetPlatform.iOS:
-                        const SmoothSlideTransitionsBuilder(),
+                        SmoothSlideTransitionsBuilder(),
                     material.TargetPlatform.windows:
-                        const SmoothSlideTransitionsBuilder(),
+                        SmoothSlideTransitionsBuilder(),
                   },
                 ),
               ),
@@ -277,8 +284,8 @@ class _MyAppState extends State<MyApp> {
                 // 构建背景组件
                 Widget backgroundWidget;
 
-                // [v2.3.0] 根据深色模式调整背景亮度
-                final darkenAlpha = globalUseDarkMode ? 0.6 : 0.2;
+                // [v2.6.2] 修复反馈: 浅色模式不再强制对背景进行变暗处理
+                final darkenAlpha = globalUseDarkMode ? 0.6 : 0.0;
 
                 if (backgroundPath != null && backgroundPath.isNotEmpty) {
                   // 检查是否是 asset 路径

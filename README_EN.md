@@ -212,4 +212,39 @@ If this project helps you, please give it a Star ⭐
 
 ---
 
+---
+
+## 📦 Open Source Dependencies
+
+This software utilizes the following exceptional open-source projects. We express our sincere gratitude to the original authors and the community. For detailed license texts, please refer to: [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)
+
+| Project Name | License | Homepage |
+| :--- | :--- | :--- |
+| **Flutter Framework** | BSD 3-Clause | `https://github.com/flutter/flutter` |
+| **Cupertino Icons** | MIT | `https://pub.dev/packages/cupertino_icons` |
+| **File Selector** | BSD 3-Clause | `https://pub.dev/packages/file_selector` |
+| **MMKV** | BSD 3-Clause | `https://pub.dev/packages/mmkv` |
+| **Image** | MIT | `https://pub.dev/packages/image` |
+| **Material Color Utilities** | Apache 2.0 | `https://pub.dev/packages/material_color_utilities` |
+| **SQLite (sqflite)** | MIT | `https://pub.dev/packages/sqflite` |
+| **iCalendar Parser** | MIT | `https://pub.dev/packages/icalendar_parser` |
+| **RRule** | MIT | `https://pub.dev/packages/rrule` |
+| **Intl** | BSD 3-Clause | `https://pub.dev/packages/intl` |
+| **Timezone** | BSD 3-Clause | `https://pub.dev/packages/timezone` |
+| **System Tray** | MIT | `https://pub.dev/packages/system_tray` |
+| **Flutter Local Notifications** | BSD 3-Clause | `https://pub.dev/packages/flutter_local_notifications` |
+| **Permission Handler** | MIT | `https://pub.dev/packages/permission_handler` |
+| **Provider** | MIT | `https://pub.dev/packages/provider` |
+| **Fluent UI** | BSD 3-Clause | `https://pub.dev/packages/fluent_ui` |
+| **Window Manager** | MIT | `https://pub.dev/packages/window_manager` |
+| **Figma Squircle** | MIT | `https://pub.dev/packages/figma_squircle` |
+| **Liquid Glass Renderer** | MIT | `https://pub.dev/packages/liquid_glass_renderer` |
+| **Liquid Glass Widgets** | MIT | `https://pub.dev/packages/liquid_glass_widgets` |
+| **WebView Flutter** | BSD 3-Clause | `https://pub.dev/packages/webview_flutter` |
+| **WebView Windows** | MIT | `https://pub.dev/packages/webview_windows` |
+| **URL Launcher** | BSD 3-Clause | `https://pub.dev/packages/url_launcher` |
+| **Local Notifier** | MIT | `https://pub.dev/packages/local_notifier` |
+| **System Theme** | MIT | `https://pub.dev/packages/system_theme` |
+| **Flutter Phoenix** | MIT | `https://pub.dev/packages/flutter_phoenix` |
+
 **Copyright © 2025-2026 ZongZi** · Made with ❤️ and Flutter

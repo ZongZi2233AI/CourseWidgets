@@ -896,9 +896,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             ),
                             tooltip: '导出为ICS',
                             onPressed: () async {
-                              final success = await dataImportService
+                              final path = await dataImportService
                                   .exportHistoryToIcs(item['id']);
-                              if (success && context.mounted) {
+                              if (path != null && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('ICS文件已导出')),
                                 );

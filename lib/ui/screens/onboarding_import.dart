@@ -14,11 +14,13 @@ import 'webview_import_screen.dart'; // [v2.5.9] 引入教务系统导入
 class OnboardingImport extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
+  final bool isLastPage;
 
   const OnboardingImport({
     super.key,
     required this.onNext,
     required this.onBack,
+    this.isLastPage = false,
   });
 
   @override
@@ -119,10 +121,12 @@ class OnboardingImport extends StatelessWidget {
 
                 _buildImportOption(
                   context,
-                  icon: Icons.skip_next_rounded,
-                  title: '暂时不导入',
-                  subtitle: '稍后可在设置中导入',
-                  color: Colors.grey,
+                  icon: isLastPage
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.skip_next_rounded,
+                  title: isLastPage ? '跳过并开始使用' : '暂时不导入',
+                  subtitle: isLastPage ? '直接进入软件，稍后可在设置中导入' : '稍后可在设置中导入',
+                  color: isLastPage ? Colors.green : Colors.grey,
                   onTap: onNext,
                 ),
               ],

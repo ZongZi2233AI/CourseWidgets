@@ -321,8 +321,10 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                 ],
               ),
             ),
-            // 7天列
-            ...List.generate(7, (index) {
+            // 7天列或5天列
+            ...List.generate(provider.currentConfig.showWeekends ? 7 : 5, (
+              index,
+            ) {
               final day = index + 1;
               return Expanded(child: _buildDayColumn(provider, day));
             }),

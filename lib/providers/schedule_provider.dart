@@ -135,6 +135,31 @@ class ScheduleProvider with ChangeNotifier {
     return false;
   }
 
+  /// [v2.6.0] 快捷抓取的 JSON 数据导入
+  Future<bool> importJsonData(List<dynamic> jsonList) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final result = await _importService.importFromJsonData(jsonList);
+      if (result != null) {
+        _courses = result;
+        _autoCalculateSemesterStart(_courses);
+        await _refreshAvailableWeeks();
+        await _jumpToCurrentDate();
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      _errorMessage = '快捷JSON导入失败: $e';
+    }
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
   /// 从assets导入（用于测试）
   Future<bool> importFromAssets() async {
     _isLoading = true;
@@ -390,9 +415,18 @@ class ScheduleProvider with ChangeNotifier {
   }
 
   /// 更新课时配置
-  void updateConfig(ScheduleConfigModel newConfig) {
+  Future<void> updateConfig(ScheduleConfigModel newConfig) async {
     _currentConfig = newConfig;
     _semesterStartDate = newConfig.semesterStartDate;
+
+    // [v2.6.0] 保存新的全局配置
+    final storage = StorageService();
+    await storage.setString('schedule_config', jsonEncode(newConfig.toJson()));
+
+    // 同步处理周次配置与双休屏蔽并重建布局
+    _autoCalculateSemesterStart(_courses);
+    await _refreshAvailableWeeks();
+
     notifyListeners();
   }
 

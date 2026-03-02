@@ -259,11 +259,14 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
     );
   }
 
-  /// 7 天课程网格
+  /// 7 天或 5 天课程网格 [v2.6.0] 支持双休隐藏
   Widget _buildWeekGrid(BuildContext context, ScheduleProvider provider) {
+    final showWeekends = provider.currentConfig.showWeekends;
+    final int daysCount = showWeekends ? 7 : 5;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: List.generate(7, (dayIndex) {
+      children: List.generate(daysCount, (dayIndex) {
         final day = dayIndex + 1;
         final courses = provider.getCoursesForDay(day);
 
@@ -271,7 +274,7 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
           child: Padding(
             padding: EdgeInsets.only(
               left: dayIndex == 0 ? 0 : 4,
-              right: dayIndex == 6 ? 0 : 4,
+              right: dayIndex == (daysCount - 1) ? 0 : 4,
             ),
             child: _buildDayColumn(context, day, courses),
           ),

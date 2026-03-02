@@ -32,19 +32,23 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
     super.initState();
     final provider = context.read<ScheduleProvider>();
     _config = provider.currentConfig;
-    
+
     // 初始化控制器
-    _semesterDateController.text = 
-      '${_config.semesterStartDate.year}-${_config.semesterStartDate.month.toString().padLeft(2, '0')}-${_config.semesterStartDate.day.toString().padLeft(2, '0')}';
+    _semesterDateController.text =
+        '${_config.semesterStartDate.year}-${_config.semesterStartDate.month.toString().padLeft(2, '0')}-${_config.semesterStartDate.day.toString().padLeft(2, '0')}';
     _breakTimeController.text = _config.breakTime.toString();
-    
+
     for (int i = 1; i <= 11; i++) {
-      _startControllers.add(TextEditingController(
-        text: _formatMinutes(_config.sectionStartTimes[i] ?? 480)
-      ));
-      _durationControllers.add(TextEditingController(
-        text: (_config.sectionDurations[i] ?? 50).toString()
-      ));
+      _startControllers.add(
+        TextEditingController(
+          text: _formatMinutes(_config.sectionStartTimes[i] ?? 480),
+        ),
+      );
+      _durationControllers.add(
+        TextEditingController(
+          text: (_config.sectionDurations[i] ?? 50).toString(),
+        ),
+      );
     }
   }
 
@@ -101,9 +105,17 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: _isDarkMode 
-                ? [const Color(0xFF1A1A2E), const Color(0xFF16213E), const Color(0xFF0F3460)]
-                : [const Color(0xFFF5F5F5), const Color(0xFFE8E8E8), const Color(0xFFDADADA)],
+            colors: _isDarkMode
+                ? [
+                    const Color(0xFF1A1A2E),
+                    const Color(0xFF16213E),
+                    const Color(0xFF0F3460),
+                  ]
+                : [
+                    const Color(0xFFF5F5F5),
+                    const Color(0xFFE8E8E8),
+                    const Color(0xFFDADADA),
+                  ],
           ),
         ),
         child: LiquidGlassLayer(
@@ -122,18 +134,23 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
                 children: [
                   // 顶部标题栏
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: _glassOverlayColor,
-                      borderRadius: BorderRadius.circular(LiquidGlassTheme.largeRadius),
+                      borderRadius: BorderRadius.circular(
+                        LiquidGlassTheme.largeRadius,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back, color: _textColor, size: 20),
-                          onPressed: () => Navigator.pop(context),
-                        ),
+                        const liquid.LiquidBackButton(),
                         const SizedBox(width: 8),
                         Text(
                           '课时配置',
@@ -145,7 +162,10 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
                         ),
                         const Spacer(),
                         CupertinoButton(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           onPressed: _saveConfig,
                           child: Text(
                             '保存',
@@ -159,7 +179,7 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
                       ],
                     ),
                   ),
-                  
+
                   // 内容区域
                   Expanded(
                     child: SingleChildScrollView(
@@ -170,12 +190,12 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
                           _buildSectionTitle('基础设置'),
                           const SizedBox(height: 8),
                           _buildGeneralSettings(),
-                          
+
                           const SizedBox(height: 20),
                           _buildSectionTitle('课时设置'),
                           const SizedBox(height: 8),
                           _buildSectionSettings(),
-                          
+
                           const SizedBox(height: 20),
                           _buildSectionTitle('快速配置'),
                           const SizedBox(height: 8),
@@ -213,11 +233,10 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
 
   Widget _buildGeneralSettings() {
     return FakeGlass(
-      shape: LiquidRoundedSuperellipse(borderRadius: LiquidGlassTheme.largeRadius),
-      settings: LiquidGlassSettings(
-        blur: 4,
-        glassColor: _glassOverlayColor,
+      shape: LiquidRoundedSuperellipse(
+        borderRadius: LiquidGlassTheme.largeRadius,
       ),
+      settings: LiquidGlassSettings(blur: 4, glassColor: _glassOverlayColor),
       child: Container(
         decoration: BoxDecoration(
           color: _glassOverlayColor,
@@ -238,14 +257,14 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
                   initialDate: _config.semesterStartDate,
                 );
                 if (date != null) {
-                  _semesterDateController.text = 
-                    '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+                  _semesterDateController.text =
+                      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
                 }
               },
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // 课间休息时间 - 修复字体大小
             _buildTextField(
               controller: _breakTimeController,
@@ -274,10 +293,14 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+        color: _isDarkMode
+            ? Colors.white.withOpacity(0.05)
+            : Colors.black.withOpacity(0.03),
         borderRadius: BorderRadius.circular(LiquidGlassTheme.mediumRadius),
         border: Border.all(
-          color: _isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+          color: _isDarkMode
+              ? Colors.white.withOpacity(0.1)
+              : Colors.black.withOpacity(0.1),
         ),
       ),
       child: Column(
@@ -304,9 +327,9 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
                 color: _textSecondaryColor,
                 fontSize: LiquidGlassTheme.bodyFontSize,
               ),
-              suffixIcon: suffixIcon != null 
-                ? Icon(suffixIcon, size: 18, color: AppThemeColors.babyPink)
-                : null,
+              suffixIcon: suffixIcon != null
+                  ? Icon(suffixIcon, size: 18, color: AppThemeColors.babyPink)
+                  : null,
             ),
             keyboardType: keyboardType,
             style: TextStyle(
@@ -323,11 +346,10 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
 
   Widget _buildSectionSettings() {
     return FakeGlass(
-      shape: LiquidRoundedSuperellipse(borderRadius: LiquidGlassTheme.largeRadius),
-      settings: LiquidGlassSettings(
-        blur: 4,
-        glassColor: _glassOverlayColor,
+      shape: LiquidRoundedSuperellipse(
+        borderRadius: LiquidGlassTheme.largeRadius,
       ),
+      settings: LiquidGlassSettings(blur: 4, glassColor: _glassOverlayColor),
       child: Container(
         decoration: BoxDecoration(
           color: _glassOverlayColor,
@@ -358,10 +380,14 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: _isDarkMode ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02),
+        color: _isDarkMode
+            ? Colors.white.withOpacity(0.03)
+            : Colors.black.withOpacity(0.02),
         borderRadius: BorderRadius.circular(LiquidGlassTheme.smallRadius),
         border: Border.all(
-          color: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+          color: _isDarkMode
+              ? Colors.white.withOpacity(0.05)
+              : Colors.black.withOpacity(0.05),
         ),
       ),
       child: Row(
@@ -379,9 +405,9 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 8),
-          
+
           // 开始时间
           Expanded(
             flex: 2,
@@ -391,9 +417,9 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
               label: '开始',
             ),
           ),
-          
+
           const SizedBox(width: 8),
-          
+
           // 时长
           Expanded(
             flex: 1,
@@ -430,10 +456,14 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
-            color: _isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+            color: _isDarkMode
+                ? Colors.white.withOpacity(0.05)
+                : Colors.black.withOpacity(0.03),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+              color: _isDarkMode
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.1),
             ),
           ),
           child: TextField(
@@ -448,10 +478,7 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
               isDense: true,
               contentPadding: EdgeInsets.zero,
               suffixText: suffixText,
-              suffixStyle: TextStyle(
-                color: _textSecondaryColor,
-                fontSize: 10,
-              ),
+              suffixStyle: TextStyle(color: _textSecondaryColor, fontSize: 10),
             ),
             keyboardType: TextInputType.number,
             style: TextStyle(
@@ -468,11 +495,10 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
 
   Widget _buildPresetButtons() {
     return FakeGlass(
-      shape: LiquidRoundedSuperellipse(borderRadius: LiquidGlassTheme.largeRadius),
-      settings: LiquidGlassSettings(
-        blur: 4,
-        glassColor: _glassOverlayColor,
+      shape: LiquidRoundedSuperellipse(
+        borderRadius: LiquidGlassTheme.largeRadius,
       ),
+      settings: LiquidGlassSettings(blur: 4, glassColor: _glassOverlayColor),
       child: Container(
         decoration: BoxDecoration(
           color: _glassOverlayColor,
@@ -483,10 +509,26 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildPresetButton('默认配置', _loadDefaultConfig, AppThemeColors.babyPink),
-            _buildPresetButton('早课配置', _loadEarlyConfig, AppThemeColors.softCoral),
-            _buildPresetButton('长课时配置', _loadLongConfig, AppThemeColors.paleApricot),
-            _buildPresetButton('短课时配置', _loadShortConfig, AppThemeColors.babyPink),
+            _buildPresetButton(
+              '默认配置',
+              _loadDefaultConfig,
+              AppThemeColors.babyPink,
+            ),
+            _buildPresetButton(
+              '早课配置',
+              _loadEarlyConfig,
+              AppThemeColors.softCoral,
+            ),
+            _buildPresetButton(
+              '长课时配置',
+              _loadLongConfig,
+              AppThemeColors.paleApricot,
+            ),
+            _buildPresetButton(
+              '短课时配置',
+              _loadShortConfig,
+              AppThemeColors.babyPink,
+            ),
           ],
         ),
       ),
@@ -495,7 +537,9 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
 
   Widget _buildPresetButton(String label, VoidCallback onPressed, Color color) {
     return LiquidGlass(
-      shape: LiquidRoundedSuperellipse(borderRadius: LiquidGlassTheme.mediumRadius),
+      shape: LiquidRoundedSuperellipse(
+        borderRadius: LiquidGlassTheme.mediumRadius,
+      ),
       child: CupertinoButton(
         onPressed: onPressed,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -523,11 +567,30 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
     final config = ScheduleConfigModel(
       semesterStartDate: DateTime(2025, 9, 8),
       sectionStartTimes: {
-        1: 450, 2: 495, 3: 540, 4: 585, 5: 630,
-        6: 705, 7: 750, 8: 795, 9: 870, 10: 915, 11: 960
+        1: 450,
+        2: 495,
+        3: 540,
+        4: 585,
+        5: 630,
+        6: 705,
+        7: 750,
+        8: 795,
+        9: 870,
+        10: 915,
+        11: 960,
       },
       sectionDurations: {
-        1: 45, 2: 45, 3: 45, 4: 45, 5: 45, 6: 45, 7: 45, 8: 45, 9: 45, 10: 45, 11: 45
+        1: 45,
+        2: 45,
+        3: 45,
+        4: 45,
+        5: 45,
+        6: 45,
+        7: 45,
+        8: 45,
+        9: 45,
+        10: 45,
+        11: 45,
       },
       breakTime: 5,
     );
@@ -539,11 +602,30 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
     final config = ScheduleConfigModel(
       semesterStartDate: DateTime(2025, 9, 8),
       sectionStartTimes: {
-        1: 480, 2: 570, 3: 660, 4: 750, 5: 840,
-        6: 930, 7: 1020, 8: 1110, 9: 1200, 10: 1290, 11: 1380
+        1: 480,
+        2: 570,
+        3: 660,
+        4: 750,
+        5: 840,
+        6: 930,
+        7: 1020,
+        8: 1110,
+        9: 1200,
+        10: 1290,
+        11: 1380,
       },
       sectionDurations: {
-        1: 90, 2: 90, 3: 90, 4: 90, 5: 90, 6: 90, 7: 90, 8: 90, 9: 90, 10: 90, 11: 90
+        1: 90,
+        2: 90,
+        3: 90,
+        4: 90,
+        5: 90,
+        6: 90,
+        7: 90,
+        8: 90,
+        9: 90,
+        10: 90,
+        11: 90,
       },
       breakTime: 10,
     );
@@ -555,11 +637,30 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
     final config = ScheduleConfigModel(
       semesterStartDate: DateTime(2025, 9, 8),
       sectionStartTimes: {
-        1: 480, 2: 525, 3: 570, 4: 615, 5: 660,
-        6: 705, 7: 750, 8: 795, 9: 840, 10: 885, 11: 930
+        1: 480,
+        2: 525,
+        3: 570,
+        4: 615,
+        5: 660,
+        6: 705,
+        7: 750,
+        8: 795,
+        9: 840,
+        10: 885,
+        11: 930,
       },
       sectionDurations: {
-        1: 40, 2: 40, 3: 40, 4: 40, 5: 40, 6: 40, 7: 40, 8: 40, 9: 40, 10: 40, 11: 40
+        1: 40,
+        2: 40,
+        3: 40,
+        4: 40,
+        5: 40,
+        6: 40,
+        7: 40,
+        8: 40,
+        9: 40,
+        10: 40,
+        11: 40,
       },
       breakTime: 5,
     );
@@ -569,13 +670,16 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
   void _updateUIFromConfig(ScheduleConfigModel config) {
     setState(() {
       _config = config;
-      _semesterDateController.text = 
-        '${config.semesterStartDate.year}-${config.semesterStartDate.month.toString().padLeft(2, '0')}-${config.semesterStartDate.day.toString().padLeft(2, '0')}';
+      _semesterDateController.text =
+          '${config.semesterStartDate.year}-${config.semesterStartDate.month.toString().padLeft(2, '0')}-${config.semesterStartDate.day.toString().padLeft(2, '0')}';
       _breakTimeController.text = config.breakTime.toString();
-      
+
       for (int i = 1; i <= 11; i++) {
-        _startControllers[i - 1].text = _formatMinutes(config.sectionStartTimes[i] ?? 480);
-        _durationControllers[i - 1].text = (config.sectionDurations[i] ?? 50).toString();
+        _startControllers[i - 1].text = _formatMinutes(
+          config.sectionStartTimes[i] ?? 480,
+        );
+        _durationControllers[i - 1].text = (config.sectionDurations[i] ?? 50)
+            .toString();
       }
     });
   }
@@ -607,7 +711,7 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
       for (int i = 1; i <= 11; i++) {
         final startTime = _parseTimeToMinutes(_startControllers[i - 1].text);
         final duration = int.tryParse(_durationControllers[i - 1].text) ?? 50;
-        
+
         sectionStartTimes[i] = startTime;
         sectionDurations[i] = duration;
       }
@@ -619,6 +723,7 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
         sectionDurations: sectionDurations,
         breakTime: breakTime,
         useCustomConfig: true,
+        showWeekends: _config.showWeekends,
       );
 
       // 验证配置
@@ -636,7 +741,6 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) Navigator.pop(context);
       });
-
     } catch (e) {
       _showCupertinoAlert('保存失败', e.toString());
     }

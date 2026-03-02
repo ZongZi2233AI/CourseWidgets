@@ -364,12 +364,13 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                       final activeSchedule = await dataImportService
                           .getActiveSchedule();
                       if (activeSchedule != null) {
-                        final result = await dataImportService
-                            .exportHistoryToIcs(activeSchedule['id']);
+                        final path = await dataImportService.exportHistoryToIcs(
+                          activeSchedule['id'],
+                        );
                         if (mounted) {
                           _showCupertinoAlert(
-                            result ? '导出成功' : '导出失败',
-                            result ? 'ICS文件已导出到当前目录' : '导出失败，请重试',
+                            path != null ? '导出成功' : '导出失败',
+                            path != null ? 'ICS 已导出到:\n$path' : '导出失败，请重试',
                           );
                         }
                       } else {
@@ -693,10 +694,13 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                               CupertinoButton(
                                 padding: const EdgeInsets.all(4),
                                 onPressed: () async {
-                                  final success = await dataImportService
+                                  final path = await dataImportService
                                       .exportHistoryToIcs(item['id']);
-                                  if (success && context.mounted) {
-                                    _showCupertinoAlert('导出成功', 'ICS文件已导出');
+                                  if (path != null && context.mounted) {
+                                    _showCupertinoAlert(
+                                      '导出成功',
+                                      'ICS 已导出到:\n$path',
+                                    );
                                   }
                                 },
                                 child: const Icon(
