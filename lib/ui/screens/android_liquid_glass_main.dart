@@ -233,52 +233,36 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain>
                 bottom: 80,
                 child: _buildWeekAndDaySelectorWrapper(),
               ),
-
-            // [v2.6.0] 底部导航栏
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: AnimatedSlide(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
-                offset: _isBottomNavVisible
-                    ? Offset.zero
-                    : const Offset(0, 1.2),
-                child: RepaintBoundary(
-                  child: GlassBottomBar(
-                    selectedIndex: _currentIndex,
-                    onTabSelected: (index) {
-                      HapticFeedback.selectionClick();
-                      setState(() => _currentIndex = index);
-                    },
-                    glassSettings: LiquidGlassSettings(
-                      blur: 1.0,
-                      thickness: 30.0,
-                      refractiveIndex: 2.0,
-                    ),
-                    indicatorColor: AppThemeColors.babyPink.withValues(
-                      alpha: 0.3,
-                    ),
-                    tabs: [
-                      GlassBottomBarTab(
-                        icon: CupertinoIcons.square_grid_2x2_fill,
-                        label: '课程',
-                      ),
-                      GlassBottomBarTab(
-                        icon: CupertinoIcons.calendar,
-                        label: '日历',
-                      ),
-                      GlassBottomBarTab(
-                        icon: CupertinoIcons.settings_solid,
-                        label: '设置',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ],
+        ),
+      ),
+      // [v2.5.5] 导航栏放回 bottomNavigationBar（恢复原始玻璃效果厚度）
+      bottomNavigationBar: AnimatedSlide(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1.2),
+        child: RepaintBoundary(
+          child: GlassBottomBar(
+            selectedIndex: _currentIndex,
+            onTabSelected: (index) {
+              HapticFeedback.selectionClick();
+              setState(() => _currentIndex = index);
+            },
+            // [v2.5.5] 恢复低模糊与高厚度
+            glassSettings: LiquidGlassSettings(blur: 3.0, thickness: 30.0),
+            indicatorColor: AppThemeColors.babyPink.withValues(alpha: 0.3),
+            tabs: [
+              GlassBottomBarTab(
+                icon: CupertinoIcons.square_grid_2x2_fill,
+                label: '课程',
+              ),
+              GlassBottomBarTab(icon: CupertinoIcons.calendar, label: '日历'),
+              GlassBottomBarTab(
+                icon: CupertinoIcons.settings_solid,
+                label: '设置',
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -484,49 +468,66 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain>
           right: 0,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 48, 20, 10),
-            child: liquid.LiquidCard(
-              borderRadius: 24,
-              padding: 16,
-              quality:
-                  GlassQuality.standard, // [v2.6.4] Android Skia 不支持 premium
-              glassColor: Colors.white.withValues(alpha: 0.03),
-              child: Row(
-                children: [
-                  Icon(
-                    CupertinoIcons.book_fill,
-                    color: AppThemeColors.babyPink,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      "CourseWidgets",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+            // [v2.6.5] CourseWidgets 标题栏 — 使用 Touch Me 同款 premium 质感
+            child: GlassButton.custom(
+              onTap: () => HapticFeedback.lightImpact(),
+              width: double.infinity,
+              height: 60,
+              style: GlassButtonStyle.filled,
+              useOwnLayer: false,
+              quality: GlassQuality.premium,
+              stretch: 2.0,
+              resistance: 0.02,
+              interactionScale: 0.95,
+              settings: LiquidGlassSettings(
+                glassColor: Colors.transparent,
+                blur: 1.0,
+                thickness: 500,
+                refractiveIndex: 2.5,
+                lightIntensity: 1.5,
+                chromaticAberration: 0.1,
+              ),
+              shape: const LiquidRoundedSuperellipse(borderRadius: 24),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Icon(
+                      CupertinoIcons.book_fill,
+                      color: AppThemeColors.babyPink,
+                      size: 28,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  liquid.LiquidCard(
-                    borderRadius: 12,
-                    padding: 6,
-                    styleType: liquid.LiquidStyleType.micro,
-                    quality: GlassQuality.standard,
-                    child: Text(
-                      'v$appVersion',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        "CourseWidgets",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    liquid.LiquidCard(
+                      borderRadius: 12,
+                      padding: 6,
+                      styleType: liquid.LiquidStyleType.micro,
+                      quality: GlassQuality.standard,
+                      child: Text(
+                        'v$appVersion',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

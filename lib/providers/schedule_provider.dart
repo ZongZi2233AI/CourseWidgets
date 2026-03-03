@@ -141,7 +141,10 @@ class ScheduleProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      final result = await _importService.importFromJsonData(jsonList);
+      final result = await _importService.importFromJsonData(
+        jsonList,
+        config: _currentConfig,
+      );
       if (result != null) {
         _courses = result;
         _autoCalculateSemesterStart(_courses);
@@ -204,6 +207,19 @@ class ScheduleProvider with ChangeNotifier {
           _semesterStartDate = DateTime.parse(savedSemesterDate);
         } catch (e) {
           debugPrint('解析已保存的学期时间失败: $e');
+        }
+      }
+
+      // [v2.6.5] 恢复完整的课时配置（包括自定义课时、时长、双休等）
+      final savedConfig = storage.getString('schedule_config');
+      if (savedConfig != null) {
+        try {
+          final configJson = jsonDecode(savedConfig) as Map<String, dynamic>;
+          _currentConfig = ScheduleConfigModel.fromJson(configJson);
+          _semesterStartDate = _currentConfig.semesterStartDate;
+          debugPrint('✅ 已恢复完整课时配置');
+        } catch (e) {
+          debugPrint('⚠️ 解析课时配置失败，使用默认配置: $e');
         }
       }
 
@@ -423,11 +439,19 @@ class ScheduleProvider with ChangeNotifier {
     final storage = StorageService();
     await storage.setString('schedule_config', jsonEncode(newConfig.toJson()));
 
-    // 同步处理周次配置与双休屏蔽并重建布局
-    _autoCalculateSemesterStart(_courses);
+    // [v2.6.5] 同步保存学期开始时间
+    await storage.setString(
+      'semester_start_date',
+      _semesterStartDate.toIso8601String(),
+    );
+
+    // [v2.6.5修复] 不再调用 _autoCalculateSemesterStart — 用户手动设置不应被覆盖
     await _refreshAvailableWeeks();
 
     notifyListeners();
+    debugPrint(
+      '✅ 配置已保存: showWeekends=${newConfig.showWeekends}, start=$_semesterStartDate',
+    );
   }
 
   /// 使用默认配置

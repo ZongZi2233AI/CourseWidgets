@@ -429,6 +429,64 @@ class DatabaseHelper {
       );
       final config = ScheduleConfig();
       return IcsGenerator.generate(courses, config);
+    } else if (sourceType == 'webview_json') {
+      // [v2.6.5] WebView JS 提取的课程数据 → 从 CourseEvent timestamps 生成 ICS
+      final courseDataStr = result.first['course_data'] as String;
+      final courseData = jsonDecode(courseDataStr) as List<dynamic>;
+      final events = courseData
+          .cast<Map<String, dynamic>>()
+          .map((e) => CourseEvent.fromMap(e))
+          .toList();
+
+      // 直接从 CourseEvent 时间戳生成 ICS
+      final sb = StringBuffer();
+      String _fmt(DateTime dt) {
+        String td(int n) => n >= 10 ? '$n' : '0$n';
+        return '${dt.year}${td(dt.month)}${td(dt.day)}T${td(dt.hour)}${td(dt.minute)}${td(dt.second)}';
+      }
+
+      final nowStr = _fmt(DateTime.now());
+
+      sb.write('BEGIN:VCALENDAR\r\n');
+      sb.write('VERSION:2.0\r\n');
+      sb.write('PRODID:-//CourseWidgets//Schedule//CN\r\n');
+      sb.write('BEGIN:VTIMEZONE\r\n');
+      sb.write('TZID:Asia/Shanghai\r\n');
+      sb.write('BEGIN:STANDARD\r\n');
+      sb.write('TZNAME:CST\r\n');
+      sb.write('TZOFFSETFROM:+0800\r\n');
+      sb.write('TZOFFSETTO:+0800\r\n');
+      sb.write('DTSTART:19700101T000000\r\n');
+      sb.write('END:STANDARD\r\n');
+      sb.write('END:VTIMEZONE\r\n');
+
+      int uid = 0;
+      for (final evt in events) {
+        final start = DateTime.fromMillisecondsSinceEpoch(evt.startTime);
+        final end = DateTime.fromMillisecondsSinceEpoch(evt.endTime);
+        sb.write('BEGIN:VEVENT\r\n');
+        sb.write('DTSTAMP:${nowStr}Z\r\n');
+        sb.write('UID:CW-${++uid}-$nowStr@coursewidgets\r\n');
+        sb.write('SUMMARY:${evt.name}\r\n');
+        sb.write('DTSTART;TZID=Asia/Shanghai:${_fmt(start)}\r\n');
+        sb.write('DTEND;TZID=Asia/Shanghai:${_fmt(end)}\r\n');
+        if (evt.location.isNotEmpty) {
+          sb.write('LOCATION:${evt.location}\r\n');
+        }
+        String desc = evt.location;
+        if (evt.teacher.isNotEmpty) {
+          desc += '\\n${evt.teacher}';
+        }
+        sb.write('DESCRIPTION:$desc\r\n');
+        sb.write('BEGIN:VALARM\r\n');
+        sb.write('ACTION:DISPLAY\r\n');
+        sb.write('TRIGGER;RELATED=START:-PT20M\r\n');
+        sb.write('DESCRIPTION:${evt.name}\r\n');
+        sb.write('END:VALARM\r\n');
+        sb.write('END:VEVENT\r\n');
+      }
+      sb.write('END:VCALENDAR\r\n');
+      return sb.toString();
     }
 
     return null;

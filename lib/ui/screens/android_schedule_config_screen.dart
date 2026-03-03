@@ -73,6 +73,9 @@ class _AndroidScheduleConfigScreenState
   }
 
   void _pickSemesterDate() async {
+    // [v2.6.5] 记录选中日期，确认时关闭弹窗
+    DateTime selectedDate = _config.semesterStartDate;
+
     // 使用液态玻璃风格的日期选择器
     liquid.showLiquidDialog(
       context: context,
@@ -83,6 +86,7 @@ class _AndroidScheduleConfigScreenState
           child: LiquidGlassDatePicker(
             initialDate: _config.semesterStartDate,
             onDateChanged: (date) {
+              selectedDate = date;
               setState(() {
                 _semesterDateController.text =
                     '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -92,9 +96,16 @@ class _AndroidScheduleConfigScreenState
         ),
         actions: [
           GlassDialogAction(
+            label: '取消',
+            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+          ),
+          GlassDialogAction(
             label: '确定',
             isPrimary: true,
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              // [v2.6.5] 确保使用 rootNavigator 关闭弹窗
+              Navigator.of(context, rootNavigator: true).pop();
+            },
           ),
         ],
       ),
@@ -150,6 +161,42 @@ class _AndroidScheduleConfigScreenState
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  void _saveConfigQuietly() {
+    try {
+      final newConfig = ScheduleConfigModel(
+        semesterStartDate: _parseDate(_semesterDateController.text),
+        breakTime: int.tryParse(_breakTimeController.text) ?? _config.breakTime,
+        showWeekends: _showWeekends,
+        sectionStartTimes: Map.from(_config.sectionStartTimes),
+        sectionDurations: Map.from(_config.sectionDurations),
+      );
+
+      // 解析时间
+      for (int i = 1; i <= 11; i++) {
+        final timeStr = _startControllers[i - 1].text;
+        final parts = timeStr.split(':');
+        if (parts.length == 2) {
+          final hour = int.tryParse(parts[0]);
+          final minute = int.tryParse(parts[1]);
+          if (hour != null && minute != null) {
+            newConfig.sectionStartTimes[i] = hour * 60 + minute;
+          }
+        }
+
+        final duration = int.tryParse(_durationControllers[i - 1].text);
+        if (duration != null) {
+          newConfig.sectionDurations[i] = duration;
+        }
+      }
+
+      if (mounted) {
+        context.read<ScheduleProvider>().updateConfig(newConfig);
+      }
+    } catch (e) {
+      debugPrint('静默保存配置失败: $e');
     }
   }
 
@@ -276,6 +323,8 @@ class _AndroidScheduleConfigScreenState
                                 setState(() {
                                   _showWeekends = val;
                                 });
+                                // [v2.6.6修复] 返回时不丢失状态
+                                _saveConfigQuietly();
                               },
                             ),
                           ],

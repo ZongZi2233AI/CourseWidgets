@@ -138,10 +138,14 @@ class DataImportService {
   }
 
   /// [v2.6.0] 专门接收 Webview WebView Javascript `courses` 原生解析数组
-  Future<List<CourseEvent>?> importFromJsonData(List<dynamic> jsonList) async {
+  /// [v2.6.5] 接受用户配置来计算正确的时间戳
+  Future<List<CourseEvent>?> importFromJsonData(
+    List<dynamic> jsonList, {
+    ScheduleConfigModel? config,
+  }) async {
     try {
-      // 使用 ScheduleConfigModel 获取正确的节次→时间映射
-      final configModel = ScheduleConfigModel.defaultConfig();
+      // [v2.6.5] 使用用户配置而非默认配置，确保时间戳与用户的学期日期匹配
+      final configModel = config ?? ScheduleConfigModel.defaultConfig();
 
       // 步骤1: 解析所有条目，按(name, teacher, location, dayOfWeek, weeks)分组
       // 同组内合并连续 section
@@ -331,9 +335,34 @@ class DataImportService {
     final success = await DatabaseHelper.instance.switchToSchedule(id);
     if (success) {
       // 重新加载该历史记录的课程数据
-      final coursesData = await DatabaseHelper.instance.getScheduleCourses(id);
-      final courses = coursesData.map((e) => CourseEvent.fromMap(e)).toList();
-      await DatabaseHelper.instance.insertCourses(courses);
+      final db = await DatabaseHelper.instance.database;
+      final historyResult = await db.query(
+        'schedule_history',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+
+      if (historyResult.isNotEmpty) {
+        final sourceType = historyResult.first['source_type'] as String;
+        final courseDataStr = historyResult.first['course_data'] as String;
+        final courseDataRaw = jsonDecode(courseDataStr) as List;
+        final courseDataList = courseDataRaw.cast<Map<String, dynamic>>();
+
+        List<CourseEvent> courses = [];
+        if (sourceType == 'html') {
+          // [v2.6.5修复] HTML导入通过 ICS 转换器生成完整的 CourseEvent（带时间戳）
+          final htmlCourses = HtmlImportService.restoreCourseData(courseDataList);
+          // 使用应用当前的排课配置对象而不是固定时间
+          final fakeConfig = ScheduleConfig(); 
+          final icsStr = IcsGenerator.generate(htmlCourses, fakeConfig);
+          courses = IcsParser.parse(icsStr);
+        } else {
+          // webview_json 或常规完整 ICS 导入，直接带有完整 toMap 结构
+          courses = courseDataList.map((e) => CourseEvent.fromMap(e)).toList();
+        }
+
+        await DatabaseHelper.instance.insertCourses(courses);
+      }
     }
     return success;
   }
