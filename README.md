@@ -17,7 +17,7 @@
 
 > **声明**：本软件除开源代码外完全使用 AI 辅助开发。核心由 [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash) 构建，Windows 部分使用 Claude Sonnet 4.5，部分复杂实现使用 Gemini 3.0 Pro，v2.4+ 版本由 Gemini 3.1 Pro 构建。
 
-### **提醒** 2.6.0版本移除了部分真实液态玻璃代码，因为存在部分未解决问题，为了优先完成构建，将在大约v2.6.0-beta8等版本恢复
+### **提醒** 2.6.0版本移除了部分真实液态玻璃代码，因为存在部分未解决问题，为了优先完成构建，将在大约v2.6.0-beta8等版本恢复（目前已完成着色器重构和渲染管线优化以及渲染错误的修复）
 
 ### 📦 最新版本：[v2.6.0](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0.beta9)
 
