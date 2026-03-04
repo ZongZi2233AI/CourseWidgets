@@ -92,6 +92,14 @@ void main() async {
   // [v2.1.10] 初始化主题服务
   await ThemeService().initialize();
 
+  // [v2.7.0] 初始化着色器质量偏好（必须在 LiquidGlass 初始化之前）
+  final shaderStorage = StorageService();
+  GlassEffect.useHighPerformanceShader =
+      shaderStorage.getBool('high_performance_shader') ?? false;
+  debugPrint(
+    '🎨 着色器模式: ${GlassEffect.useHighPerformanceShader ? "高性能" : "高质量"}',
+  );
+
   // [v2.4.1] 初始化 Liquid Glass
   await LiquidGlassWidgets.initialize();
 

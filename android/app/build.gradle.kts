@@ -119,7 +119,7 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions {
         freeCompilerArgs.addAll(
-            "-Xbackend-threads=8"
+            "-Xbackend-threads=12"
         )
     }
 }

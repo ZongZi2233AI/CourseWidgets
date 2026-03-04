@@ -73,11 +73,10 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
                       Navigator.push(
                         context,
                         TransparentMaterialPageRoute(
-                          builder:
-                              (_) => CourseEditScreen(
-                                week: provider.currentWeek,
-                                day: provider.currentDay,
-                              ),
+                          builder: (_) => CourseEditScreen(
+                            week: provider.currentWeek,
+                            day: provider.currentDay,
+                          ),
                         ),
                       );
                     },
@@ -87,30 +86,35 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
                     subtitle: '调整每节课的时间',
                     icon: CupertinoIcons.time,
                     color: AppThemeColors.softCoral,
-                    onTap:
-                        () => Navigator.push(
-                          context,
-                          TransparentMaterialPageRoute(
-                            builder: (_) => const AndroidScheduleConfigScreen(),
-                          ),
-                        ),
+                    onTap: () => Navigator.push(
+                      context,
+                      TransparentMaterialPageRoute(
+                        builder: (_) => const AndroidScheduleConfigScreen(),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 24),
                   _buildSectionTitle('学期设置'),
-                  _buildSettingCard(
-                    title: '当前周次',
-                    subtitle: '设置当前是第几周',
-                    icon: CupertinoIcons.calendar_today,
-                    color: Colors.blueAccent,
-                    onTap: _showWeekPicker,
-                  ),
-                  _buildSettingCard(
-                    title: '开学日期',
-                    subtitle: '设置本学期第一周的周一',
-                    icon: CupertinoIcons.time_solid,
-                    color: Colors.purpleAccent,
-                    onTap: _pickSemesterStartDate,
+                  Consumer<ScheduleProvider>(
+                    builder: (context, provider, _) {
+                      final now = DateTime.now();
+                      final weeksSinceStart =
+                          now.difference(provider.semesterStartDate).inDays ~/
+                              7 +
+                          1;
+                      final weekDisplay = weeksSinceStart < 1
+                          ? '尚未开学'
+                          : '当前第 $weeksSinceStart 周';
+                      return _buildSettingCard(
+                        title: '开学日期',
+                        subtitle:
+                            '${provider.semesterStartDate.year}-${provider.semesterStartDate.month.toString().padLeft(2, '0')}-${provider.semesterStartDate.day.toString().padLeft(2, '0')}  ·  $weekDisplay',
+                        icon: CupertinoIcons.time_solid,
+                        color: Colors.purpleAccent,
+                        onTap: _pickSemesterStartDate,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -213,37 +217,5 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
     if (selectedDate != null) {
       provider.setSemesterStartDate(selectedDate);
     }
-  }
-
-  void _showWeekPicker() {
-    final provider = context.read<ScheduleProvider>();
-    liquid.showLiquidDialog(
-      context: context,
-      builder: liquid.LiquidGlassDialog(
-        title: '选择周次',
-        content: SizedBox(
-          height: 200,
-          child: CupertinoPicker(
-            itemExtent: 40,
-            scrollController: FixedExtentScrollController(
-              initialItem: provider.currentWeek - 1,
-            ),
-            onSelectedItemChanged: (index) {
-              HapticFeedback.selectionClick(); // 微振动
-              provider.setCurrentWeek(index + 1);
-            },
-            children: List.generate(
-              25,
-              (index) => Center(
-                child: Text(
-                  '第 ${index + 1} 周',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

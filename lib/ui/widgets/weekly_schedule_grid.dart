@@ -276,7 +276,7 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
               left: dayIndex == 0 ? 0 : 4,
               right: dayIndex == (daysCount - 1) ? 0 : 4,
             ),
-            child: _buildDayColumn(context, day, courses),
+            child: _buildDayColumn(context, day, courses, provider),
           ),
         );
       }),
@@ -288,8 +288,14 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
     BuildContext context,
     int day,
     List<CourseEvent> courses,
+    ScheduleProvider provider,
   ) {
     final weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    // [v2.7.0] 计算实际日期
+    final semesterStart = provider.semesterStartDate;
+    final weekOffset = (provider.currentWeek - 1) * 7;
+    final dayDate = semesterStart.add(Duration(days: weekOffset + day - 1));
+    final dateLabel = '${dayDate.month}/${dayDate.day}';
 
     return liquid.LiquidCard(
       borderRadius: 20,
@@ -297,16 +303,28 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
       quality: GlassQuality.standard,
       child: Column(
         children: [
-          // 星期标题
+          // 星期标题 + 日期
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              weekdays[day - 1],
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              children: [
+                Text(
+                  weekdays[day - 1],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  dateLabel,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 10,
+                  ),
+                ),
+              ],
             ),
           ),
           const Divider(color: Colors.white12, height: 1),

@@ -18,9 +18,9 @@ class ScheduleProvider with ChangeNotifier {
   // 当前显示状态
   int _currentWeek = 1;
   int _currentDay = 1; // 1-7, 周一到周日
-  DateTime _semesterStartDate = DateTime(2025, 9, 1); // 学期开始日期
 
-  // 课时配置
+  // [v2.7.0] 唯一配置来源 (Single Source of Truth)
+  // semesterStartDate 只存在于 _currentConfig 中，不再有独立冗余字段
   ScheduleConfigModel _currentConfig = ScheduleConfigModel.defaultConfig();
 
   List<CourseEvent> get courses => _courses;
@@ -30,7 +30,7 @@ class ScheduleProvider with ChangeNotifier {
 
   int get currentWeek => _currentWeek;
   int get currentDay => _currentDay;
-  DateTime get semesterStartDate => _semesterStartDate;
+  DateTime get semesterStartDate => _currentConfig.semesterStartDate;
   ScheduleConfigModel get currentConfig => _currentConfig;
 
   // 缓存有效周次
@@ -42,7 +42,7 @@ class ScheduleProvider with ChangeNotifier {
   /// 刷新有效周次缓存
   Future<void> _refreshAvailableWeeks() async {
     _availableWeeks = await _importService.getAvailableWeeks(
-      _semesterStartDate,
+      _currentConfig.semesterStartDate,
     );
     if (_availableWeeks.isEmpty) {
       _availableWeeks = [1];
@@ -199,43 +199,48 @@ class ScheduleProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // [v2.5.9] 恢复保存的学期开始时间
+      // [v2.7.0] 只从 schedule_config 恢复配置 (Single Source of Truth)
       final storage = StorageService();
-      final savedSemesterDate = storage.getString('semester_start_date');
-      if (savedSemesterDate != null) {
-        try {
-          _semesterStartDate = DateTime.parse(savedSemesterDate);
-        } catch (e) {
-          debugPrint('解析已保存的学期时间失败: $e');
-        }
-      }
-
-      // [v2.6.5] 恢复完整的课时配置（包括自定义课时、时长、双休等）
       final savedConfig = storage.getString('schedule_config');
       if (savedConfig != null) {
         try {
           final configJson = jsonDecode(savedConfig) as Map<String, dynamic>;
           _currentConfig = ScheduleConfigModel.fromJson(configJson);
-          _semesterStartDate = _currentConfig.semesterStartDate;
-          debugPrint('✅ 已恢复完整课时配置');
+          debugPrint('✅ 已恢复完整课时配置, 开学日期=${_currentConfig.semesterStartDate}');
         } catch (e) {
           debugPrint('⚠️ 解析课时配置失败，使用默认配置: $e');
+        }
+      } else {
+        // 兼容旧版：尝试从旧的 semester_start_date 迁移
+        final savedSemesterDate = storage.getString('semester_start_date');
+        if (savedSemesterDate != null) {
+          try {
+            final oldDate = DateTime.parse(savedSemesterDate);
+            _currentConfig = _currentConfig.copyWith(
+              semesterStartDate: oldDate,
+            );
+            // 迁移后保存为新格式并删除旧键
+            await storage.setString(
+              'schedule_config',
+              jsonEncode(_currentConfig.toJson()),
+            );
+            debugPrint('✅ 已从旧版 semester_start_date 迁移到统一配置');
+          } catch (e) {
+            debugPrint('⚠️ 迁移旧学期日期失败: $e');
+          }
         }
       }
 
       final courses = await _importService.getAllCourses();
       if (courses.isNotEmpty) {
         _courses = courses;
-        await _refreshAvailableWeeks(); // 刷新缓存
+        await _refreshAvailableWeeks();
 
-        // [v2.3.0修复] 确保数据加载完成后再跳转
-        // 使用 Future.microtask 确保在下一个事件循环中执行
         await Future.microtask(() async {
           await _jumpToCurrentDate();
           debugPrint('✅ 数据加载完成，已跳转到当前日期：第 $_currentWeek 周，星期 $_currentDay');
         });
       } else {
-        // 没有数据时，确保周次和星期有效
         _availableWeeks = [1];
         if (_currentWeek < 1) _currentWeek = 1;
         if (_currentDay < 1 || _currentDay > 7) _currentDay = 1;
@@ -283,7 +288,7 @@ class ScheduleProvider with ChangeNotifier {
     _availableWeeks = [1]; // 重置周次缓存
     _currentWeek = 1;
     _currentDay = 1;
-    _semesterStartDate = DateTime(2025, 9, 1);
+    // _semesterStartDate consolidated into _currentConfig
     _currentConfig = ScheduleConfigModel.defaultConfig();
 
     notifyListeners();
@@ -312,7 +317,7 @@ class ScheduleProvider with ChangeNotifier {
   /// 获取当前周次的所有课程
   List<CourseEvent> getCurrentWeekCourses() {
     final weekCourses = _courses.where((course) {
-      final week = course.getWeekNumber(_semesterStartDate);
+      final week = course.getWeekNumber(_currentConfig.semesterStartDate);
       return week == _currentWeek;
     }).toList();
     debugPrint('📚 第 $_currentWeek 周共有 ${weekCourses.length} 节课');
@@ -361,7 +366,7 @@ class ScheduleProvider with ChangeNotifier {
     }
     // Fallback if needed, but normally use cache
     _availableWeeks = await _importService.getAvailableWeeks(
-      _semesterStartDate,
+      _currentConfig.semesterStartDate,
     );
     return _availableWeeks;
   }
@@ -392,12 +397,13 @@ class ScheduleProvider with ChangeNotifier {
     return minutes >= 0 && minutes <= 5;
   }
 
-  /// 设置学期开始日期
-  void setSemesterStartDate(DateTime date) {
-    _semesterStartDate = date;
-    final storage = StorageService();
-    storage.setString('semester_start_date', date.toIso8601String());
-    notifyListeners();
+  /// 设置学期开始日期 — 统一通过 updateConfig 保存并触发重算
+  Future<void> setSemesterStartDate(DateTime date) async {
+    final newConfig = _currentConfig.copyWith(semesterStartDate: date);
+    await updateConfig(newConfig);
+    // 重算后需要跳转到当前日期
+    await _jumpToCurrentDate();
+    debugPrint('✅ 开学日期已更新为 $date，已重算所有课程时间戳');
   }
 
   /// [v2.5.9] 自动从导入的课程中计算学期开始日期（根据最早的课程推算 Week 1 的周一）
@@ -431,33 +437,119 @@ class ScheduleProvider with ChangeNotifier {
   }
 
   /// 更新课时配置
+  /// [v2.7.0] 配置变更后自动重算所有课程时间戳
   Future<void> updateConfig(ScheduleConfigModel newConfig) async {
+    final oldConfig = _currentConfig;
     _currentConfig = newConfig;
-    _semesterStartDate = newConfig.semesterStartDate;
 
-    // [v2.6.0] 保存新的全局配置
+    // 保存到 MMKV (唯一存储点)
     final storage = StorageService();
     await storage.setString('schedule_config', jsonEncode(newConfig.toJson()));
 
-    // [v2.6.5] 同步保存学期开始时间
-    await storage.setString(
-      'semester_start_date',
-      _semesterStartDate.toIso8601String(),
-    );
+    // [v2.7.0] 如果开学日期或课时时间发生变化，重新计算所有课程时间戳
+    final configChanged =
+        oldConfig.semesterStartDate != newConfig.semesterStartDate ||
+        _sectionTimesChanged(oldConfig, newConfig);
+    if (configChanged && _courses.isNotEmpty) {
+      await _recalculateAllTimestamps(oldConfig, newConfig);
+    }
 
-    // [v2.6.5修复] 不再调用 _autoCalculateSemesterStart — 用户手动设置不应被覆盖
     await _refreshAvailableWeeks();
 
     notifyListeners();
     debugPrint(
-      '✅ 配置已保存: showWeekends=${newConfig.showWeekends}, start=$_semesterStartDate',
+      '✅ 配置已保存: showWeekends=${newConfig.showWeekends}, start=${newConfig.semesterStartDate}',
     );
+  }
+
+  /// 检测课时时间是否发生变化
+  bool _sectionTimesChanged(
+    ScheduleConfigModel oldConfig,
+    ScheduleConfigModel newConfig,
+  ) {
+    for (int i = 1; i <= 11; i++) {
+      if ((oldConfig.sectionStartTimes[i] ?? 0) !=
+          (newConfig.sectionStartTimes[i] ?? 0))
+        return true;
+      if ((oldConfig.sectionDurations[i] ?? 0) !=
+          (newConfig.sectionDurations[i] ?? 0))
+        return true;
+    }
+    return false;
+  }
+
+  /// [v2.7.0] 重新计算所有课程的绝对时间戳
+  /// 从 CourseEvent 反推出 (week, dayOfWeek, section)，再用新配置计算新时间
+  Future<void> _recalculateAllTimestamps(
+    ScheduleConfigModel oldConfig,
+    ScheduleConfigModel newConfig,
+  ) async {
+    final oldStartDate = oldConfig.semesterStartDate;
+    final newCourses = <CourseEvent>[];
+
+    for (final course in _courses) {
+      final startDt = DateTime.fromMillisecondsSinceEpoch(course.startTime);
+
+      // 反推 week 和 dayOfWeek
+      final daysSinceStart = startDt.difference(oldStartDate).inDays;
+      final week = (daysSinceStart ~/ 7) + 1;
+      final dayOfWeek = startDt.weekday; // 1=Monday..7=Sunday
+
+      // 反推 section：找到最接近的课节
+      final timeMinutes = startDt.hour * 60 + startDt.minute;
+      int section = 1;
+      int minDiff = 9999;
+      for (int s = 1; s <= 11; s++) {
+        final sTime = oldConfig.sectionStartTimes[s] ?? (480 + (s - 1) * 60);
+        final diff = (timeMinutes - sTime).abs();
+        if (diff < minDiff) {
+          minDiff = diff;
+          section = s;
+        }
+      }
+
+      // 反推 endSection
+      final endDt = DateTime.fromMillisecondsSinceEpoch(course.endTime);
+      final endMinutes = endDt.hour * 60 + endDt.minute;
+      int endSection = section;
+      for (int s = section; s <= 11; s++) {
+        final sEnd =
+            (newConfig.sectionStartTimes[s] ?? (480 + (s - 1) * 60)) +
+            (newConfig.sectionDurations[s] ?? 50);
+        endSection = s;
+        if (sEnd >= endMinutes - 5) break; // 5分钟容差
+      }
+
+      // 用新配置计算新时间
+      final newStartTime = newConfig.getStartTime(week, dayOfWeek, section);
+      final newEndTime = newConfig.getEndTimeWithDuration(
+        week,
+        dayOfWeek,
+        section,
+        endSection,
+      );
+
+      newCourses.add(
+        CourseEvent(
+          id: course.id,
+          name: course.name,
+          location: course.location,
+          teacher: course.teacher,
+          startTime: newStartTime.millisecondsSinceEpoch,
+          endTime: newEndTime.millisecondsSinceEpoch,
+        ),
+      );
+    }
+
+    // 写回数据库
+    _courses = newCourses;
+    await DatabaseHelper.instance.insertCourses(newCourses);
+    debugPrint('✅ 已重新计算 ${newCourses.length} 个课程的时间戳');
   }
 
   /// 使用默认配置
   void useDefaultConfig() {
     _currentConfig = ScheduleConfigModel.defaultConfig();
-    _semesterStartDate = _currentConfig.semesterStartDate;
     notifyListeners();
   }
 
@@ -507,7 +599,8 @@ class ScheduleProvider with ChangeNotifier {
     if (availableWeeks.isEmpty) return;
 
     // 计算当前日期相对于学期开始日期的周次
-    final weeksSinceStart = now.difference(_semesterStartDate).inDays ~/ 7 + 1;
+    final weeksSinceStart =
+        now.difference(_currentConfig.semesterStartDate).inDays ~/ 7 + 1;
 
     // 检查课程是否已经结束
     final maxWeek = availableWeeks.last;
@@ -537,7 +630,7 @@ class ScheduleProvider with ChangeNotifier {
     // 如果当前天是周末，且没有课程，自动切换到周一
     if (_currentDay > 5) {
       final dayCourses = _courses.where((course) {
-        final week = course.getWeekNumber(_semesterStartDate);
+        final week = course.getWeekNumber(_currentConfig.semesterStartDate);
         return week == _currentWeek && course.weekday == _currentDay;
       }).toList();
 
@@ -681,7 +774,8 @@ class ScheduleProvider with ChangeNotifier {
     if (_courses.isEmpty) return '无课程数据';
 
     final now = DateTime.now();
-    final weeksSinceStart = now.difference(_semesterStartDate).inDays ~/ 7 + 1;
+    final weeksSinceStart =
+        now.difference(_currentConfig.semesterStartDate).inDays ~/ 7 + 1;
 
     // 这里需要同步获取可用周次，暂时简化处理
     // 实际使用时应该缓存可用周次

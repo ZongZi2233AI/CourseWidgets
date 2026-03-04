@@ -945,21 +945,30 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
     );
   }
 
-  /// 星期选择器
+  /// 星期选择器（带日期标识）
   Widget _buildDaySelector(ScheduleProvider provider) {
     final days = provider.getAvailableDays();
     if (days.isEmpty) {
       return const SizedBox.shrink();
     }
 
+    // [v2.7.0] 计算每天的实际日期
+    final semesterStart = provider.semesterStartDate;
+    final weekOffset = (provider.currentWeek - 1) * 7;
+
     return SizedBox(
-      height: 36,
+      height: 46,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: days.length,
         itemBuilder: (context, index) {
           final day = days[index];
           final isSelected = day == provider.currentDay;
+          // 计算该天的实际日期
+          final dayDate = semesterStart.add(
+            Duration(days: weekOffset + day - 1),
+          );
+          final dateLabel = '${dayDate.month}/${dayDate.day}';
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 3),
             child: CupertinoButton(
@@ -971,15 +980,31 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
               onPressed: () {
                 provider.setCurrentDay(day);
               },
-              child: Text(
-                provider.getDayName(day),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected
-                      ? CupertinoColors.white
-                      : CupertinoColors.label,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    provider.getDayName(day),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: isSelected
+                          ? CupertinoColors.white
+                          : CupertinoColors.label,
+                    ),
+                  ),
+                  Text(
+                    dateLabel,
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: isSelected
+                          ? CupertinoColors.white.withOpacity(0.8)
+                          : CupertinoColors.secondaryLabel,
+                    ),
+                  ),
+                ],
               ),
             ),
           );

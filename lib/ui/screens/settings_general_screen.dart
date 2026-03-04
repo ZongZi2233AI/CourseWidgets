@@ -433,6 +433,17 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
                 },
               ),
 
+              const SizedBox(height: 20),
+              _buildSection('性能'),
+              _buildActionCard(
+                '着色器质量',
+                CupertinoIcons.speedometer,
+                _toggleShaderQuality,
+                subtitle: GlassEffect.useHighPerformanceShader
+                    ? '当前：高性能模式（切换后需重启）'
+                    : '当前：高质量模式（切换后需重启）',
+              ),
+
               const SizedBox(height: 50),
             ],
           ),
@@ -653,5 +664,44 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
         ),
       ),
     );
+  }
+
+  /// [v2.7.0] 着色器质量切换
+  void _toggleShaderQuality() {
+    final newValue = !GlassEffect.useHighPerformanceShader;
+    _storage.setBool('high_performance_shader', newValue);
+    GlassEffect.useHighPerformanceShader = newValue;
+    GlassEffect.invalidateShader();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2C2C2C),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('着色器已切换', style: TextStyle(color: Colors.white)),
+        content: Text(
+          '已切换到${newValue ? "高性能" : "高质量"}模式。\n请重启应用以生效。',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('稍后重启', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppThemeColors.babyPink,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              SystemNavigator.pop();
+            },
+            child: const Text('立即退出', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    setState(() {});
   }
 }
