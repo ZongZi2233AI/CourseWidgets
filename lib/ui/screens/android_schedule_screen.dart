@@ -1072,12 +1072,28 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
 
   /// 课程卡片
   Widget _buildCourseCard(CourseEvent course) {
+    // [v2.7.0] 去重：如果课程名已包含教室或教师信息，不再重复显示
+    final showLocation =
+        course.location.isNotEmpty &&
+        !course.name.contains(
+          course.location.split('（')[0].split('(')[0].trim(),
+        );
+    final showTeacher =
+        course.teacher.isNotEmpty &&
+        !course.name.contains(course.teacher.split(' ')[0].trim());
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: CupertinoColors.systemBackground,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: CupertinoColors.systemGrey5),
+        boxShadow: [
+          BoxShadow(
+            color: CupertinoColors.systemGrey4.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: CupertinoButton(
         padding: const EdgeInsets.all(16),
@@ -1127,7 +1143,7 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (course.location.isNotEmpty) ...[
+                  if (showLocation) ...[
                     const SizedBox(height: 4),
                     Text(
                       '📍 ${course.location}',
@@ -1137,7 +1153,7 @@ class _AndroidScheduleScreenState extends State<AndroidScheduleScreen> {
                       ),
                     ),
                   ],
-                  if (course.teacher.isNotEmpty) ...[
+                  if (showTeacher) ...[
                     const SizedBox(height: 2),
                     Text(
                       '👨‍🏫 ${course.teacher}',

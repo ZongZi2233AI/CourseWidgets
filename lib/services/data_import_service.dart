@@ -351,9 +351,11 @@ class DataImportService {
         List<CourseEvent> courses = [];
         if (sourceType == 'html') {
           // [v2.6.5修复] HTML导入通过 ICS 转换器生成完整的 CourseEvent（带时间戳）
-          final htmlCourses = HtmlImportService.restoreCourseData(courseDataList);
+          final htmlCourses = HtmlImportService.restoreCourseData(
+            courseDataList,
+          );
           // 使用应用当前的排课配置对象而不是固定时间
-          final fakeConfig = ScheduleConfig(); 
+          final fakeConfig = ScheduleConfig();
           final icsStr = IcsGenerator.generate(htmlCourses, fakeConfig);
           courses = IcsParser.parse(icsStr);
         } else {
@@ -361,6 +363,8 @@ class DataImportService {
           courses = courseDataList.map((e) => CourseEvent.fromMap(e)).toList();
         }
 
+        // [v2.7.0] 先清空主表再写入历史数据，防止累加
+        await DatabaseHelper.instance.clearAll();
         await DatabaseHelper.instance.insertCourses(courses);
       }
     }

@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.schedule_app"
+    namespace = "com.zongzi.schedule"
     compileSdk = 36
     ndkVersion = "29.0.14206865"
 

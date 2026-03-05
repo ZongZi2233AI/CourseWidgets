@@ -213,118 +213,132 @@ class SettingsDataScreen extends StatelessWidget {
   ) {
     liquid.showLiquidDialog(
       context: context,
-      builder: liquid.LiquidGlassDialog(
-        title: '历史记录',
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 300,
-          child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: dataImportService.getAllHistory(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(
-                  child: CupertinoActivityIndicator(color: Colors.white),
-                );
-              }
-              final history = snapshot.data!;
-              if (history.isEmpty) {
-                return const Center(
-                  child: Text('暂无历史记录', style: TextStyle(color: Colors.white)),
-                );
-              }
+      builder: Builder(
+        builder: (dialogContext) => liquid.LiquidGlassDialog(
+          title: '历史记录',
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 300,
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: dataImportService.getAllHistory(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CupertinoActivityIndicator(color: Colors.white),
+                  );
+                }
+                final history = snapshot.data!;
+                if (history.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      '暂无历史记录',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
 
-              return ListView.builder(
-                itemCount: history.length,
-                itemBuilder: (context, index) {
-                  final item = history[index];
-                  final isActive = item['is_active'] == 1;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? AppThemeColors.babyPink.withValues(alpha: 0.2)
-                            : (isDark
-                                  ? Colors.white.withValues(alpha: 0.05)
-                                  : Colors.black.withValues(alpha: 0.05)),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isActive
-                              ? AppThemeColors.babyPink.withValues(alpha: 0.3)
-                              : Colors.white.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['name'],
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${item['semester']} | ${item['source_type']}',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(
-                                      0.6,
-                                    ), // Fixed withValues to withOpacity
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (isActive)
-                            Icon(
-                              CupertinoIcons.checkmark_alt,
-                              color: AppThemeColors.babyPink,
-                              size: 24,
-                            )
-                          else
-                            IconButton(
-                              icon: const Icon(
-                                CupertinoIcons.time,
-                                color: Colors.white70,
-                              ),
-                              onPressed: () async {
+                return ListView.builder(
+                  itemCount: history.length,
+                  itemBuilder: (context, index) {
+                    final item = history[index];
+                    final isActive = item['is_active'] == 1;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: GestureDetector(
+                        // [v2.7.0] 整行可点击切换课表
+                        onTap: isActive
+                            ? null
+                            : () async {
                                 await dataImportService.switchToHistory(
                                   item['id'],
                                 );
-                                if (context.mounted) {
-                                  Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).pop();
+                                if (dialogContext.mounted) {
+                                  Navigator.of(dialogContext).pop();
                                   await provider.loadSavedData();
-                                  _showToast(context, '已切换到该课表');
+                                  _showToast(dialogContext, '已切换到该课表');
                                 }
                               },
+                        child: MouseRegion(
+                          cursor: isActive
+                              ? SystemMouseCursors.basic
+                              : SystemMouseCursors.click,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? AppThemeColors.babyPink.withValues(
+                                      alpha: 0.2,
+                                    )
+                                  : (isDark
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : Colors.black.withValues(alpha: 0.05)),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isActive
+                                    ? AppThemeColors.babyPink.withValues(
+                                        alpha: 0.3,
+                                      )
+                                    : Colors.white.withValues(alpha: 0.1),
+                              ),
                             ),
-                        ],
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['name'],
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black87,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${item['semester']} | ${item['source_type']}',
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.6),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isActive)
+                                  Icon(
+                                    CupertinoIcons.checkmark_alt,
+                                    color: AppThemeColors.babyPink,
+                                    size: 24,
+                                  )
+                                else
+                                  const Icon(
+                                    CupertinoIcons.arrow_right_circle,
+                                    color: Colors.white70,
+                                    size: 22,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
+                    );
+                  },
+                );
+              },
+            ),
           ),
+          actions: [
+            GlassDialogAction(
+              label: '关闭',
+              isPrimary: true,
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+          ],
         ),
-        actions: [
-          GlassDialogAction(
-            label: '关闭',
-            isPrimary: true,
-            onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
-          ),
-        ],
       ),
     );
   }

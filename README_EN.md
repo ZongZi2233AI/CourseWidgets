@@ -1,4 +1,4 @@
-# CourseWidgets
+# CourseWidgets (Made with Vibe Coding)
 
 <div align="center">
 
@@ -8,68 +8,65 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.10.7+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-2.5.8-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases)
+[![Dart](https://img.shields.io/badge/Dart-3.11.0+-0175C2?logo=dart)](https://dart.dev)
+[![Version](https://img.shields.io/badge/Version-2.6.0.9-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases/)
 
 English | [简体中文](README.md)
 
 </div>
 
-> **Note**: This application is built entirely with AI-assisted development — [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash), Claude Sonnet 4.5, Gemini 3.0 Pro, and Gemini 3.1 Pro.
+> **Note**: This application is built entirely with AI-assisted development. Core by [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash), Windows portion by Claude Opus 4.6, complex implementations by Gemini 3.0 Pro, v2.4+ by Gemini 3.1 Pro.
 
-### 📦 Latest Release: [v2.5.7](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.5.7)
+### **Reminder**: The v2.6.0 release removed some real Liquid Glass code due to unresolved issues. To prioritize build completion, it will be restored around v2.6.0-beta8 (shader refactoring, rendering pipeline optimization, and rendering bug fixes are now complete).
 
-#### v2.5.7 Release Notes (2026-02-28)
-- 🎨 **UI Quality Leap**: Removed the global grey hard stroke border from standard glass, universally adopting natural specular shadows to define boundaries while preserving side metallic reflections.
-- ⚡ **Animation & Experience Optimization**:
-  - **Predictive Back Optimization**: Fixed the issue where the background flashes to the previous page during 2nd/3rd level page swiping, adding a smooth 0.95 to 1.0 scaling and fade-in transition.
-  - **Windows Core Experience**: Fixed DPI anomalies during full screen (half black/squished) and the black background flashing issue during minimize/restore.
-  - **Loading Experience Improvement**: Adapted to system dark/light modes, fixing the brief black screen flash on app launch.
-- 🐛 **Bug Fixes**:
-  - Fixed the issue with multiple grey DragHandles appearing when the theme color settings menu pops up.
-  - Perfectly adapted to and resolved compilation compatibility warnings related to AGP 9.0.
+### 📦 Latest Release: [v2.6.0](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0.beta9)
 
----
+The latest version is still unstable and debugging is being accelerated.
 
-## ✨ Features
+## ✨ Core Features
 
 ### 🎨 Liquid Glass Design
-- Full implementation of Apple iOS 26 Liquid Glass design system
-- Real-time shader rendering with Impeller engine
+
+- Full implementation of Apple iOS 26 Liquid Glass design language
+- Real-time shader rendering + Impeller engine
 - Unified superellipse (squircle) corners throughout
 - Adaptive dark/light mode
-- Premium interactive effects: stretch, press feedback, chromatic aberration
+- Premium interactive effects: stretch, press feedback, chromatic edge dispersion
+- Highly optimized power-saving animations
 
 ### 📅 Smart Schedule Management
 
 | Feature | Description |
 |---------|-------------|
-| ICS Import | Import `.ics` calendar files from other apps |
+| ICS Import | Import `.ics` calendar files from other schedule apps |
 | HTML Import | Parse HTML schedules exported from school systems |
 | Multi-Semester | Unlimited schedule imports with history switching |
 | Auto Recognition | Automatic course time, location, and teacher detection |
+| Custom Schedule | Flexibly adjust based on school bell schedules |
 
 ### 🔔 Smart Notifications
-- **Android 16 Live Updates**: Real-time notifications with chronometer (not progress bars)
+
+- **Android 16 Live Updates**: Real-time notifications with chronometer countdown (not progress bars)
 - **Dual Reminders**: 15 min + 5 min before class
-- **System Tray**: Windows tray icon with background operation
-- **Click to View**: Tap notification to jump to course details
+- **System Tray**: Windows tray icon with background running on window close
+- **Notification Interaction**: Tap notification to jump to course details
 
-### 🎯 Multi-Platform
+### 🎯 Multi-Platform Support
 
-| Platform | Status |
-|----------|--------|
-| ✅ Android | Released (Phone + Tablet) |
-| ✅ Windows | Released (Custom window + sidebar + tray) |
-| 🔧 macOS | In development |
-| 🔧 iOS / iPadOS | In development |
-| ❌ Linux | Contributions welcome |
+| Platform | Status | Description |
+|----------|--------|-------------|
+| ✅ Android | Released | Phone + Tablet landscape adaptation |
+| ✅ Windows | Released | Custom window + sidebar navigation + system tray |
+| 🔧 macOS | In Development | Contributions welcome |
+| 🔧 iOS / iPadOS | In Development | Contributions welcome |
+| ❌ Linux | Not Started | Contributions welcome |
 
 ### 🌈 Personalization
-- Default baby pink gradient theme
+
+- Default theme color (Baby Pink gradient)
 - Android 12+ **Material You** dynamic colors
-- **Monet color extraction** from background images
-- Custom background images (Android 14+ Photo Picker)
+- **Monet Color Extraction**: Natively uses `ColorScheme.fromImageProvider` for fast async primary color extraction from any background photo or asset wallpaper.
+- Custom background images (supports Android 14+ Photo Picker)
 
 ---
 
@@ -88,17 +85,18 @@ Java           21
 ### Install & Run
 
 ```bash
-# 1. Clone
+# 1. Clone the repository
 git clone https://github.com/ZongZi2233AI/CourseWidgets.git
 cd CourseWidgets
 
-# 2. Dependencies
+# 2. Install dependencies
 flutter pub get
 
-# 3. Run
+# 3. Run (hot reload not recommended for Android, may cause lag)
 flutter run -d android    # Android
 flutter run -d windows    # Windows
 flutter run -d macos      # macOS
+flutter run -d ios        # iOS
 ```
 
 ### Build Release
@@ -120,24 +118,29 @@ flutter build macos --release
 
 ### Import Schedule
 
-| Method | Steps |
-|--------|-------|
-| **ICS File** | Settings → Data → Import ICS Calendar → Select `.ics` file |
-| **HTML File** | Settings → Data → Import HTML Schedule → Select HTML from school system |
+#### Method 1: ICS File
+1. Settings → Data Management → Import ICS Calendar
+2. Select `.ics` file → Auto parse and import
 
-### Course Management
+#### Method 2: HTML Schedule
+1. Settings → Data Management → Import HTML Schedule
+2. Select HTML file exported from school system → Auto parse
 
-| Action | How |
-|--------|-----|
-| View | Main screen shows weekly course grid |
-| Edit | Tap course card → Edit |
+### Course Operations
+
+| Action | Method |
+|--------|--------|
+| View Courses | Main screen shows current week's course grid |
+| Edit Course | Tap course card → Edit |
 | Switch Week | Swipe left/right or tap week button |
-| Switch Semester | Settings → Data → History |
+| Switch Semester | Settings → Data Management → History |
 
 ### Theme & Background
 
 1. Settings → General → Theme Color
-   - **Default** (Baby Pink) · **System** (Material You) · **Monet** (from background)
+   - **Default Theme** (Baby Pink)
+   - **System Theme** (Material You, Android 12+)
+   - **Monet Extraction** (from background image)
 2. Settings → General → Change Background Image
 
 ---
@@ -146,17 +149,22 @@ flutter build macos --release
 
 ```
 lib/
-├── constants/            # Theme & version constants
+├── constants/            # Constants (theme, version)
 ├── models/               # Data models
 ├── providers/            # State management (Provider)
 ├── services/             # Business logic
 │   ├── notification_manager.dart       # Unified notification manager
 │   ├── live_notification_service_v3.dart  # Android Live Update
 │   ├── windows_tray_service.dart       # Windows system tray
+│   ├── data_import_service.dart        # Data import
 │   └── ...
 ├── ui/
-│   ├── screens/          # Pages (Android, Windows, macOS, Settings)
-│   ├── widgets/          # Liquid glass components, grids
+│   ├── screens/          # Pages
+│   │   ├── android_liquid_glass_main.dart   # Android main screen
+│   │   ├── windows_custom_window.dart       # Windows custom window
+│   │   ├── settings_*.dart                  # Settings pages
+│   │   └── ...
+│   ├── widgets/          # Components (liquid glass widgets, grids, etc.)
 │   └── transitions/      # Page transition animations
 └── utils/                # Utilities
 ```
@@ -169,32 +177,45 @@ lib/
 |----------|-----------|
 | **Framework** | Flutter + Dart |
 | **UI** | `liquid_glass_widgets` · `liquid_glass_renderer` · `figma_squircle` |
-| **State** | Provider |
+| **State Management** | Provider |
 | **Storage** | SQLite · MMKV |
 | **Notifications** | `flutter_local_notifications` · `flutter_foreground_task` |
 | **Desktop** | `window_manager` · `tray_manager` |
 | **Data** | `icalendar_parser` · `rrule` · `intl` |
+| **File** | `file_selector` |
+
+---
+
+## 📝 Development Guide
+
+### Code Standards
+
+- Follow [Effective Dart](https://dart.dev/guides/language/effective-dart) guidelines
+- Use `flutter_lints` for code checking
+
+### Commit Format
+
+```
+feat: Add new feature      fix: Fix bug
+docs: Update docs          style: Code formatting
+refactor: Refactoring      chore: Build/tooling
+```
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'feat: Add AmazingFeature'`)
+1. Fork this repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'feat: Add some AmazingFeature'`)
 4. Push and open a Pull Request
 
 ---
 
 ## 🗺️ Roadmap
 
-### v2.5.0 — Planned
-
-- [ ] Nested Navigator for Windows secondary pages
-- [ ] Native Android Live Update via MethodChannel
-- [ ] Course conflict detection
-- [ ] Export to PDF
-- [ ] Apple Watch / WearOS support
+### v2.6.x
+Will focus on educational system integration optimization and UI design improvements.
 
 ---
 
@@ -211,40 +232,5 @@ Licensed under the [Apache 2.0 License](LICENSE). Third-party licenses: [THIRD_P
 If this project helps you, please give it a Star ⭐
 
 ---
-
----
-
-## 📦 Open Source Dependencies
-
-This software utilizes the following exceptional open-source projects. We express our sincere gratitude to the original authors and the community. For detailed license texts, please refer to: [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)
-
-| Project Name | License | Homepage |
-| :--- | :--- | :--- |
-| **Flutter Framework** | BSD 3-Clause | `https://github.com/flutter/flutter` |
-| **Cupertino Icons** | MIT | `https://pub.dev/packages/cupertino_icons` |
-| **File Selector** | BSD 3-Clause | `https://pub.dev/packages/file_selector` |
-| **MMKV** | BSD 3-Clause | `https://pub.dev/packages/mmkv` |
-| **Image** | MIT | `https://pub.dev/packages/image` |
-| **Material Color Utilities** | Apache 2.0 | `https://pub.dev/packages/material_color_utilities` |
-| **SQLite (sqflite)** | MIT | `https://pub.dev/packages/sqflite` |
-| **iCalendar Parser** | MIT | `https://pub.dev/packages/icalendar_parser` |
-| **RRule** | MIT | `https://pub.dev/packages/rrule` |
-| **Intl** | BSD 3-Clause | `https://pub.dev/packages/intl` |
-| **Timezone** | BSD 3-Clause | `https://pub.dev/packages/timezone` |
-| **System Tray** | MIT | `https://pub.dev/packages/system_tray` |
-| **Flutter Local Notifications** | BSD 3-Clause | `https://pub.dev/packages/flutter_local_notifications` |
-| **Permission Handler** | MIT | `https://pub.dev/packages/permission_handler` |
-| **Provider** | MIT | `https://pub.dev/packages/provider` |
-| **Fluent UI** | BSD 3-Clause | `https://pub.dev/packages/fluent_ui` |
-| **Window Manager** | MIT | `https://pub.dev/packages/window_manager` |
-| **Figma Squircle** | MIT | `https://pub.dev/packages/figma_squircle` |
-| **Liquid Glass Renderer** | MIT | `https://pub.dev/packages/liquid_glass_renderer` |
-| **Liquid Glass Widgets** | MIT | `https://pub.dev/packages/liquid_glass_widgets` |
-| **WebView Flutter** | BSD 3-Clause | `https://pub.dev/packages/webview_flutter` |
-| **WebView Windows** | MIT | `https://pub.dev/packages/webview_windows` |
-| **URL Launcher** | BSD 3-Clause | `https://pub.dev/packages/url_launcher` |
-| **Local Notifier** | MIT | `https://pub.dev/packages/local_notifier` |
-| **System Theme** | MIT | `https://pub.dev/packages/system_theme` |
-| **Flutter Phoenix** | MIT | `https://pub.dev/packages/flutter_phoenix` |
 
 **Copyright © 2025-2026 ZongZi** · Made with ❤️ and Flutter

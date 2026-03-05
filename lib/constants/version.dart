@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// 当前版本：[v2.5.9] 跨平台液态玻璃布局升级 (iOS & macOS), Windows 性能修复, 着色器边沿优化
-const String appVersion = '2.6.0'; // [v2.6.0] 恢复为纯数字版本号
-const int buildNumber = 10007010;
+/// 当前版本：[v2.6.0.9] 教务系统桌面模式, 课程配置统一, 预测返回修复, 页面转场优化
+const String appVersion = '2.6.0.9';
+const int buildNumber = 10007020;
 const String copyright = '© 2025-2026 CourseWidgets. All rights reserved.';
 
 // 全局状态

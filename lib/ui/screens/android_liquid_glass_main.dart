@@ -163,6 +163,7 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain>
           // 右侧内容区
           Expanded(
             child: RepaintBoundary(
+              key: TransparentMaterialPageRoute.contentBoundaryKey,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
                 switchInCurve: Curves.easeOut,
@@ -202,6 +203,7 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain>
             // Main content
             // [v2.5.3反馈] 移除极其消耗性能的 AnimatedSwitcher
             RepaintBoundary(
+              key: TransparentMaterialPageRoute.contentBoundaryKey,
               child: IndexedStack(
                 index: _currentIndex,
                 children: [
@@ -388,6 +390,13 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain>
                       (index) {
                         final day = index + 1;
                         final isSelected = day == provider.currentDay;
+                        // [v2.7.0] 计算实际日期
+                        final semesterStart = provider.semesterStartDate;
+                        final weekOffset = (provider.currentWeek - 1) * 7;
+                        final dayDate = semesterStart.add(
+                          Duration(days: weekOffset + day - 1),
+                        );
+                        final dateLabel = '${dayDate.month}/${dayDate.day}';
                         return Flexible(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -411,7 +420,7 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain>
                                   provider.setCurrentDay(day);
                                 },
                                 width: double.infinity,
-                                height: 48,
+                                height: 56,
                                 style: GlassButtonStyle.filled,
                                 settings: LiquidGlassSettings(
                                   glassColor: isSelected
@@ -426,15 +435,40 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain>
                                   borderRadius: 18,
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    ['一', '二', '三', '四', '五', '六', '日'][index],
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.white60,
-                                    ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        [
+                                          '一',
+                                          '二',
+                                          '三',
+                                          '四',
+                                          '五',
+                                          '六',
+                                          '日',
+                                        ][index],
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.white60,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        dateLabel,
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          color: isSelected
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.8,
+                                                )
+                                              : Colors.white38,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

@@ -673,30 +673,30 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
     GlassEffect.useHighPerformanceShader = newValue;
     GlassEffect.invalidateShader();
 
-    showDialog(
+    liquid.showLiquidDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2C2C2C),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('着色器已切换', style: TextStyle(color: Colors.white)),
+      builder: liquid.LiquidGlassDialog(
+        title: '着色器已切换',
         content: Text(
           '已切换到${newValue ? "高性能" : "高质量"}模式。\n请重启应用以生效。',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('稍后重启', style: TextStyle(color: Colors.white54)),
+          GlassDialogAction(
+            label: '稍后重启',
+            onPressed: () => Navigator.pop(context),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppThemeColors.babyPink,
-            ),
+          GlassDialogAction(
+            label: '立即退出',
+            isPrimary: true,
             onPressed: () {
-              Navigator.pop(ctx);
-              SystemNavigator.pop();
+              Navigator.pop(context);
+              if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+                exit(0);
+              } else {
+                SystemNavigator.pop();
+              }
             },
-            child: const Text('立即退出', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

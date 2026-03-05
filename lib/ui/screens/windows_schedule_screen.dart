@@ -139,7 +139,10 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                     PointerDeviceKind.mouse,
                   },
                 ),
-                child: SingleChildScrollView(child: _buildWeekGrid(provider)),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: _buildWeekGrid(provider),
+                ),
               ),
             ),
           ],
@@ -340,11 +343,17 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
     final weekCourses = provider.getCurrentWeekCourses();
     final dayCourses = weekCourses.where((c) => c.weekday == day).toList();
 
+    // [v2.7.0] 计算实际日期
+    final semesterStart = provider.semesterStartDate;
+    final weekOffset = (provider.currentWeek - 1) * 7;
+    final dayDate = semesterStart.add(Duration(days: weekOffset + day - 1));
+    final dateLabel = '${dayDate.month}/${dayDate.day}';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Column(
         children: [
-          // 星期标题 - 独立的 GlassContainer
+          // 星期标题 + 日期 - 独立的 GlassContainer
           GlassContainer(
             useOwnLayer: true,
             settings: LiquidGlassSettings(
@@ -355,15 +364,29 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
               thickness: 10,
             ),
             shape: const LiquidRoundedSuperellipse(borderRadius: 12),
-            height: 40,
+            height: 50,
             child: Center(
-              child: Text(
-                ['周一', '二', '三', '四', '五', '六', '日'][day - 1],
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isToday ? Colors.white : Colors.white70,
-                  fontSize: 13,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    ['周一', '二', '三', '四', '五', '六', '日'][day - 1],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isToday ? Colors.white : Colors.white70,
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    dateLabel,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isToday
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : Colors.white54,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -378,68 +401,91 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
 
   /// 构建课程卡片 - 独立的 GlassContainer
   Widget _buildCourseCard(CourseEvent course) {
+    // [v2.7.0] 去重：课程名已含教室/教师则不重复显示
+    final showLocation =
+        course.location.isNotEmpty &&
+        !course.name.contains(
+          course.location.split('（')[0].split('(')[0].trim(),
+        );
+    final showTeacher =
+        course.teacher.isNotEmpty &&
+        !course.name.contains(course.teacher.split(' ')[0].trim());
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: GlassContainer(
-        useOwnLayer: true,
-        settings: LiquidGlassSettings(
-          glassColor: AppThemeColors.softCoral.withValues(alpha: 0.6),
-          blur: 0,
-          thickness: 10,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _showCourseDetail(course),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    course.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      height: 1.2,
+        child: GlassContainer(
+          useOwnLayer: true,
+          settings: LiquidGlassSettings(
+            glassColor: AppThemeColors.softCoral.withValues(alpha: 0.6),
+            blur: 0,
+            thickness: 10,
+          ),
+          shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _showCourseDetail(course),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    course.location,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                  if (course.teacher.isNotEmpty) ...[
+                    if (showLocation) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        course.location,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                    if (showTeacher) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        course.teacher,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 2),
                     Text(
-                      course.teacher,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      course.timeStr,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.white.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 2),
-                  Text(
-                    course.timeStr,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -452,40 +498,43 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
   void _showCourseDetail(CourseEvent course) {
     liquid.showLiquidDialog(
       context: context,
-      builder: liquid.LiquidGlassDialog(
-        title: '课程详情',
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildDetailRow('课程', course.name),
-            const SizedBox(height: 8),
-            _buildDetailRow('地点', course.location),
-            const SizedBox(height: 8),
-            _buildDetailRow('教师', course.teacher),
-            const SizedBox(height: 8),
-            _buildDetailRow('时间', course.timeStr),
+      builder: Builder(
+        builder: (dialogContext) => liquid.LiquidGlassDialog(
+          title: '课程详情',
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDetailRow('课程', course.name),
+              const SizedBox(height: 8),
+              _buildDetailRow('地点', course.location),
+              const SizedBox(height: 8),
+              _buildDetailRow('教师', course.teacher),
+              const SizedBox(height: 8),
+              _buildDetailRow('时间', course.timeStr),
+            ],
+          ),
+          actions: [
+            GlassDialogAction(
+              label: '编辑',
+              onPressed: () {
+                Navigator.of(dialogContext, rootNavigator: true).pop();
+                Navigator.push(
+                  context,
+                  TransparentMaterialPageRoute(
+                    builder: (_) => CourseEditScreen(course: course),
+                  ),
+                );
+              },
+            ),
+            GlassDialogAction(
+              label: '关闭',
+              isPrimary: true,
+              onPressed: () =>
+                  Navigator.of(dialogContext, rootNavigator: true).pop(),
+            ),
           ],
         ),
-        actions: [
-          GlassDialogAction(
-            label: '编辑',
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                TransparentMaterialPageRoute(
-                  builder: (_) => CourseEditScreen(course: course),
-                ),
-              );
-            },
-          ),
-          GlassDialogAction(
-            label: '关闭',
-            isPrimary: true,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
       ),
     );
   }
