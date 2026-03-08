@@ -8,6 +8,7 @@ import 'database_helper.dart';
 import 'html_to_ics_converter.dart';
 import '../models/course_event.dart';
 import '../models/schedule_config.dart';
+import 'storage_service.dart';
 
 /// 数据导入服务 - 支持ICS和HTML格式
 class DataImportService {
@@ -34,6 +35,14 @@ class DataImportService {
 
       // 解析ICS内容
       final courses = IcsParser.parse(icsContent);
+
+      // [v2.7.0] 自动推断并全局保存最新配置
+      final config = IcsParser.deduceConfigFromCourses(courses, icsContent);
+      if (config != null) {
+        final storage = StorageService();
+        await storage.setString('schedule_config', jsonEncode(config.toJson()));
+        debugPrint('✅ 自动应用了推断的课时配置与开学日期');
+      }
 
       // 保存到数据库
       await DatabaseHelper.instance.insertCourses(courses);
@@ -87,6 +96,13 @@ class DataImportService {
 
       // 解析ICS内容
       final courses = IcsParser.parse(icsContent);
+
+      // [v2.7.0] 自动推断并全局保存最新配置
+      final config = IcsParser.deduceConfigFromCourses(courses, icsContent);
+      if (config != null) {
+        final storage = StorageService();
+        await storage.setString('schedule_config', jsonEncode(config.toJson()));
+      }
 
       // 保存到数据库
       await DatabaseHelper.instance.insertCourses(courses);
@@ -303,12 +319,16 @@ class DataImportService {
       final courseData = courses.map((e) => e.toMap()).toList();
       final courseDataJson = jsonEncode(courseData);
 
+      final storage = StorageService();
+      final currentConfigStr = storage.getString('schedule_config');
+
       await DatabaseHelper.instance.saveScheduleHistory(
         name: name,
         sourceType: sourceType,
         sourceData: sourceData,
         courseData: courseDataJson,
         semester: semester,
+        configData: currentConfigStr, // 保存当时的配置
       );
 
       // 清理旧的历史记录
@@ -363,8 +383,16 @@ class DataImportService {
           courses = courseDataList.map((e) => CourseEvent.fromMap(e)).toList();
         }
 
-        // [v2.7.0] 先清空主表再写入历史数据，防止累加
-        await DatabaseHelper.instance.clearAll();
+        // 恢复配置数据（如果存在并且有效）
+        final configDataStr = historyResult.first['config_data'] as String?;
+        if (configDataStr != null && configDataStr.isNotEmpty) {
+          final storage = StorageService();
+          await storage.setString('schedule_config', configDataStr);
+          debugPrint('✅ 已恢复历史记录的课时配置');
+        }
+
+        // [v2.7.0修复] 只清空课程主表，绝对不能调用 clearAll()，否则会删掉所有历史记录和 Config 表
+        await db.delete('courses');
         await DatabaseHelper.instance.insertCourses(courses);
       }
     }

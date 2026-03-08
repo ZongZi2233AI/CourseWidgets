@@ -419,48 +419,32 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
               ),
               const SizedBox(height: 4),
 
-              // 地点
-              Row(
-                children: [
-                  Icon(
-                    CupertinoIcons.location_solid,
-                    color: Colors.white.withValues(alpha: 0.6),
-                    size: 10,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      course.location,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-
-              // 教师
-              if (course.teacher.isNotEmpty) ...[
-                const SizedBox(height: 2),
+              // 地点与教师并排显示 (解决两行显示奇怪的问题)
+              if (course.location.isNotEmpty || course.teacher.isNotEmpty) ...[
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      CupertinoIcons.person_solid,
-                      color: Colors.white.withValues(alpha: 0.6),
-                      size: 10,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Icon(
+                        CupertinoIcons.placemark_fill,
+                        color: Colors.white.withValues(alpha: 0.6),
+                        size: 10,
+                      ),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        course.teacher,
+                        [
+                          if (course.location.isNotEmpty) course.location,
+                          if (course.teacher.isNotEmpty) course.teacher,
+                        ].join('  ·  '),
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 11,
+                          height: 1.2,
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

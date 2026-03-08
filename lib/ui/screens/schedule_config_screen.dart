@@ -265,7 +265,6 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
 
             const SizedBox(height: 12),
 
-            // 课间休息时间 - 修复字体大小
             _buildTextField(
               controller: _breakTimeController,
               label: '课间休息时间',
@@ -273,6 +272,31 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
               suffixText: '分钟',
               keyboardType: TextInputType.number,
               fontSize: LiquidGlassTheme.bodyFontSize, // 使用body字体大小
+            ),
+
+            const SizedBox(height: 12),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '课程长度相等 (统一定义)',
+                  style: TextStyle(
+                    fontSize: LiquidGlassTheme.bodyFontSize,
+                    fontWeight: FontWeight.w600,
+                    color: _textSecondaryColor,
+                  ),
+                ),
+                CupertinoSwitch(
+                  value: _config.isEqualDuration,
+                  activeColor: AppThemeColors.babyPink,
+                  onChanged: (val) {
+                    setState(() {
+                      _config = _config.copyWith(isEqualDuration: val);
+                    });
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -421,15 +445,16 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
           const SizedBox(width: 8),
 
           // 时长
-          Expanded(
-            flex: 1,
-            child: _buildSmallTextField(
-              controller: _durationControllers[section - 1],
-              hint: '50',
-              label: '时长',
-              suffixText: '分',
+          if (!_config.isEqualDuration || section == 1)
+            Expanded(
+              flex: 1,
+              child: _buildSmallTextField(
+                controller: _durationControllers[section - 1],
+                hint: '50',
+                label: _config.isEqualDuration && section == 1 ? '统一时长' : '时长',
+                suffixText: '分',
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -716,6 +741,10 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
         sectionDurations[i] = duration;
       }
 
+      final defaultDuration =
+          int.tryParse(_durationControllers[0].text) ??
+          (_config.defaultDuration);
+
       // 创建新配置
       final newConfig = ScheduleConfigModel(
         semesterStartDate: semesterStartDate,
@@ -724,6 +753,8 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
         breakTime: breakTime,
         useCustomConfig: true,
         showWeekends: _config.showWeekends,
+        isEqualDuration: _config.isEqualDuration,
+        defaultDuration: defaultDuration,
       );
 
       // 验证配置

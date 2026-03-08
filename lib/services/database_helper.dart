@@ -317,6 +317,7 @@ class DatabaseHelper {
     required String sourceData,
     required String courseData,
     required String semester,
+    String? configData, // [v2.7.0] 附加配置数据
   }) async {
     final db = await database;
 
@@ -333,6 +334,7 @@ class DatabaseHelper {
       'created_at': DateTime.now().millisecondsSinceEpoch,
       'is_active': 1,
       'semester': semester,
+      'config_data': configData,
     });
   }
 

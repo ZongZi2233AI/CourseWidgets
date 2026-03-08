@@ -13,6 +13,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     CreateAndAttachConsole();
   }
 
+  // [v2.7.0] 确保单实例运行 - 如果已有程序在运行，唤回窗口并退出当前实例
+  HANDLE hMutex = CreateMutex(NULL, TRUE, L"CourseWidgets_SingleInstance_Mutex");
+  if (GetLastError() == ERROR_ALREADY_EXISTS) {
+    // 寻找已经存在的窗口并将其置于前台
+    HWND existingHwnd = FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", L"课程表");
+    if (existingHwnd) {
+      if (IsIconic(existingHwnd)) {
+        ShowWindow(existingHwnd, SW_RESTORE);
+      }
+      SetForegroundWindow(existingHwnd);
+    }
+    CloseHandle(hMutex);
+    return EXIT_SUCCESS;
+  }
+
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -63,5 +78,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   }
 
   ::CoUninitialize();
+  
+  if (hMutex) {
+    ReleaseMutex(hMutex);
+    CloseHandle(hMutex);
+  }
+  
   return EXIT_SUCCESS;
 }

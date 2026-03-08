@@ -9,6 +9,7 @@ import '../../constants/theme_constants.dart';
 import '../widgets/liquid_components.dart' as liquid;
 import 'course_edit_screen.dart';
 import '../transitions/smooth_slide_transitions.dart';
+import '../transitions/page_blur_controller.dart';
 
 /// [v2.2.1] 完全复刻 Android 平板端的 Windows 课表界面
 class WindowsScheduleScreen extends StatefulWidget {
@@ -125,27 +126,30 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
   Widget build(BuildContext context) {
     return Consumer<ScheduleProvider>(
       builder: (context, provider, _) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildWeekSelector(provider),
-            const SizedBox(height: 16),
+        return RepaintBoundary(
+          key: TransparentMaterialPageRoute.contentBoundaryKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildWeekSelector(provider),
+              const SizedBox(height: 16),
 
-            Expanded(
-              child: ScrollConfiguration(
-                behavior: ScrollConfiguration.of(context).copyWith(
-                  dragDevices: {
-                    PointerDeviceKind.touch,
-                    PointerDeviceKind.mouse,
-                  },
-                ),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: _buildWeekGrid(provider),
+              Expanded(
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                    },
+                  ),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: _buildWeekGrid(provider),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -517,8 +521,15 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
           actions: [
             GlassDialogAction(
               label: '编辑',
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(dialogContext, rootNavigator: true).pop();
+
+                // [v2.7.0] 提前执行截图，保证截出原生底层而非弹出层的白底
+                await PageBlurController.instance.capture(
+                  TransparentMaterialPageRoute.contentBoundaryKey,
+                );
+
+                if (!context.mounted) return;
                 Navigator.push(
                   context,
                   TransparentMaterialPageRoute(

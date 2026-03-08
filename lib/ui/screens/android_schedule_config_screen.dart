@@ -140,7 +140,14 @@ class _AndroidScheduleConfigScreenState
         }
       }
 
-      context.read<ScheduleProvider>().updateConfig(newConfig);
+      final defaultDur =
+          int.tryParse(_durationControllers[0].text) ?? _config.defaultDuration;
+      final savedConfig = newConfig.copyWith(
+        isEqualDuration: _config.isEqualDuration,
+        defaultDuration: defaultDur,
+      );
+
+      context.read<ScheduleProvider>().updateConfig(savedConfig);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -192,8 +199,15 @@ class _AndroidScheduleConfigScreenState
         }
       }
 
+      final defaultDur =
+          int.tryParse(_durationControllers[0].text) ?? _config.defaultDuration;
+      final savedConfig = newConfig.copyWith(
+        isEqualDuration: _config.isEqualDuration,
+        defaultDuration: defaultDur,
+      );
+
       if (mounted) {
-        context.read<ScheduleProvider>().updateConfig(newConfig);
+        context.read<ScheduleProvider>().updateConfig(savedConfig);
       }
     } catch (e) {
       debugPrint('静默保存配置失败: $e');
@@ -329,6 +343,42 @@ class _AndroidScheduleConfigScreenState
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+                        // [v2.7.0] 增加等长课时开关
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time_filled_rounded,
+                                  color: AppThemeColors.babyPink,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '等长课时统一定义',
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            CupertinoSwitch(
+                              value: _config.isEqualDuration,
+                              activeColor: AppThemeColors.babyPink,
+                              onChanged: (val) {
+                                setState(() {
+                                  _config = _config.copyWith(
+                                    isEqualDuration: val,
+                                  );
+                                });
+                                _saveConfigQuietly();
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -456,33 +506,38 @@ class _AndroidScheduleConfigScreenState
           ),
 
           // 时长
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.03),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
+          if (!_config.isEqualDuration || index == 0)
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.1),
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.1),
+                  ),
                 ),
-              ),
-              child: TextField(
-                controller: _durationControllers[index],
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                child: TextField(
+                  controller: _durationControllers[index],
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  decoration: InputDecoration.collapsed(
+                    hintText: _config.isEqualDuration && index == 0
+                        ? '统一时长(分)'
+                        : '',
+                  ),
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
                 ),
-                decoration: const InputDecoration.collapsed(hintText: ''),
-                textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
               ),
             ),
-          ),
         ],
       ),
     );

@@ -59,12 +59,9 @@ class ScheduleProvider with ChangeNotifier {
     try {
       final result = await _importService.importFromIcsFile();
       if (result != null) {
-        _courses = result;
-        _autoCalculateSemesterStart(_courses); // [v2.5.9] 自动计算学期开始日期并保存
-        await _refreshAvailableWeeks(); // 刷新缓存
-
-        // 自动跳转到当前日期对应的周次和星期
-        await _jumpToCurrentDate();
+        // [v2.7.0] 彻底废除 _autoCalculateSemesterStart 的强制平移
+        // 由于 Config 已经在 import 服务中落盘 MMKV，因此直接 Load 即可保证全家桶同步
+        await loadSavedData();
 
         _isLoading = false;
         notifyListeners();
@@ -88,12 +85,7 @@ class ScheduleProvider with ChangeNotifier {
     try {
       final result = await _importService.importFromHtmlFile();
       if (result != null) {
-        _courses = result;
-        _autoCalculateSemesterStart(_courses); // [v2.5.9] 自动计算学期开始日期并保存
-        await _refreshAvailableWeeks(); // 刷新缓存
-
-        // 自动跳转到当前日期对应的周次和星期
-        await _jumpToCurrentDate();
+        await loadSavedData();
 
         _isLoading = false;
         notifyListeners();
@@ -117,10 +109,7 @@ class ScheduleProvider with ChangeNotifier {
     try {
       final result = await _importService.importFromHtmlString(htmlContent);
       if (result != null) {
-        _courses = result;
-        _autoCalculateSemesterStart(_courses); // [v2.5.9] 自动计算学期开始日期并保存
-        await _refreshAvailableWeeks();
-        await _jumpToCurrentDate();
+        await loadSavedData();
 
         _isLoading = false;
         notifyListeners();
@@ -146,10 +135,7 @@ class ScheduleProvider with ChangeNotifier {
         config: _currentConfig,
       );
       if (result != null) {
-        _courses = result;
-        _autoCalculateSemesterStart(_courses);
-        await _refreshAvailableWeeks();
-        await _jumpToCurrentDate();
+        await loadSavedData();
 
         _isLoading = false;
         notifyListeners();
@@ -404,36 +390,6 @@ class ScheduleProvider with ChangeNotifier {
     // 重算后需要跳转到当前日期
     await _jumpToCurrentDate();
     debugPrint('✅ 开学日期已更新为 $date，已重算所有课程时间戳');
-  }
-
-  /// [v2.5.9] 自动从导入的课程中计算学期开始日期（根据最早的课程推算 Week 1 的周一）
-  void _autoCalculateSemesterStart(List<CourseEvent> importedCourses) {
-    if (importedCourses.isEmpty) return;
-
-    // 找到最早的一节课
-    CourseEvent earliestCourse = importedCourses.first;
-    for (var course in importedCourses) {
-      if (course.startTime < earliestCourse.startTime) {
-        earliestCourse = course;
-      }
-    }
-
-    // 获取这节课的具体本地日期
-    final earliestDate = DateTime.fromMillisecondsSinceEpoch(
-      earliestCourse.startTime,
-    );
-
-    // 计算这节课所在星期的周一 (weekday: 1-7 = 周一到周日)
-    final monday = earliestDate.subtract(
-      Duration(days: earliestDate.weekday - 1),
-    );
-
-    // 取消时分秒，保留只有年月日部分
-    final newStartDate = DateTime(monday.year, monday.month, monday.day);
-
-    // 更新状态并持久化
-    setSemesterStartDate(newStartDate);
-    debugPrint('🎓 自动推算学期开始日期(Week 1周一)为: $newStartDate');
   }
 
   /// 更新课时配置
@@ -739,12 +695,16 @@ class ScheduleProvider with ChangeNotifier {
       final courseData = testCourses.map((e) => e.toMap()).toList();
       final courseDataJson = jsonEncode(courseData);
 
+      final storage = StorageService();
+      final currentConfigStr = storage.getString('schedule_config');
+
       await db.saveScheduleHistory(
         name: '测试课表_${DateTime.now().toString().substring(0, 16)}',
         sourceType: 'test',
         sourceData: 'auto_generated',
         courseData: courseDataJson,
         semester: '2025-2026学年',
+        configData: currentConfigStr,
       );
 
       _courses = testCourses;

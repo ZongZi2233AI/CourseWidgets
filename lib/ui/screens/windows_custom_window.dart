@@ -64,6 +64,13 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
+      // [v2.7.0修复] 确保桌面端在启动时强制加载SQLite与配置内容
+      try {
+        await context.read<ScheduleProvider>().loadSavedData();
+      } catch (e) {
+        debugPrint('桌面端启动加载数据失败: $e');
+      }
+
       try {
         final tray = WindowsTrayService();
         await tray.initialize();
@@ -107,9 +114,9 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
     await windowManager.setHasShadow(true);
 
-    // [v2.4.8] 使用不透明黑色背景，让 DWM 有足够内容来渲染动画
-    // alpha: 0.01 太透明会导致 DWM 动画看不到效果
-    await windowManager.setBackgroundColor(Colors.black);
+    // [v2.7.0] 彻底解耦背景层。不强制塞入 Colors.black。
+    // 这可以让 Windows 透出底层实现真彩色透明窗口与自定义壁纸容器交互。
+    await windowManager.setBackgroundColor(Colors.transparent);
 
     // 强制设置窗口大小和位置
     await windowManager.setSize(const Size(1024, 768));

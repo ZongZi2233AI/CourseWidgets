@@ -19,6 +19,12 @@ class ScheduleConfigModel {
   // [v2.6.0] 是否在课表界面显示周末双休
   final bool showWeekends;
 
+  // [v2.7.0] 是否所有课时等长（开关）
+  final bool isEqualDuration;
+
+  // [v2.7.0] 等长模式下的单节课时长（分钟）
+  final int defaultDuration;
+
   ScheduleConfigModel({
     required this.semesterStartDate,
     required this.sectionStartTimes,
@@ -26,6 +32,8 @@ class ScheduleConfigModel {
     this.breakTime = 10,
     this.useCustomConfig = true,
     this.showWeekends = true,
+    this.isEqualDuration = false,
+    this.defaultDuration = 45,
   });
 
   // 默认配置：8:00开始，每节课50分钟，课间休息10分钟
@@ -61,6 +69,8 @@ class ScheduleConfigModel {
       breakTime: 10,
       useCustomConfig: false,
       showWeekends: true,
+      isEqualDuration: true,
+      defaultDuration: 50,
     );
   }
 
@@ -77,6 +87,8 @@ class ScheduleConfigModel {
       breakTime: json['breakTime'] ?? 10,
       useCustomConfig: json['useCustomConfig'] ?? true,
       showWeekends: json['showWeekends'] ?? true,
+      isEqualDuration: json['isEqualDuration'] ?? false,
+      defaultDuration: json['defaultDuration'] ?? 45,
     );
   }
 
@@ -93,6 +105,8 @@ class ScheduleConfigModel {
       'breakTime': breakTime,
       'useCustomConfig': useCustomConfig,
       'showWeekends': showWeekends,
+      'isEqualDuration': isEqualDuration,
+      'defaultDuration': defaultDuration,
     };
   }
 
@@ -119,7 +133,9 @@ class ScheduleConfigModel {
   // 获取某节课的结束时间
   DateTime getEndTime(int week, int dayOfWeek, int section) {
     final startTime = getStartTime(week, dayOfWeek, section);
-    final duration = sectionDurations[section] ?? 50; // 默认50分钟
+    final duration = isEqualDuration
+        ? defaultDuration
+        : (sectionDurations[section] ?? defaultDuration);
     return startTime.add(Duration(minutes: duration));
   }
 
@@ -127,7 +143,9 @@ class ScheduleConfigModel {
   int getTotalDuration(int startSection, int endSection) {
     int totalMinutes = 0;
     for (int i = startSection; i <= endSection; i++) {
-      totalMinutes += sectionDurations[i] ?? 50;
+      totalMinutes += isEqualDuration
+          ? defaultDuration
+          : (sectionDurations[i] ?? defaultDuration);
       if (i < endSection) {
         totalMinutes += breakTime;
       }
@@ -162,6 +180,8 @@ class ScheduleConfigModel {
     int? breakTime,
     bool? useCustomConfig,
     bool? showWeekends,
+    bool? isEqualDuration,
+    int? defaultDuration,
   }) {
     return ScheduleConfigModel(
       semesterStartDate: semesterStartDate ?? this.semesterStartDate,
@@ -170,6 +190,8 @@ class ScheduleConfigModel {
       breakTime: breakTime ?? this.breakTime,
       useCustomConfig: useCustomConfig ?? this.useCustomConfig,
       showWeekends: showWeekends ?? this.showWeekends,
+      isEqualDuration: isEqualDuration ?? this.isEqualDuration,
+      defaultDuration: defaultDuration ?? this.defaultDuration,
     );
   }
 
