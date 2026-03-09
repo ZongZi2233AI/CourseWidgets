@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.11.0+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-2.6.0.9-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases/)
+[![Version](https://img.shields.io/badge/Version-2.6.0.21-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases/)
 
 English | [简体中文](README.md)
 
@@ -19,7 +19,7 @@ English | [简体中文](README.md)
 
 ### **Reminder**: The v2.6.0 release removed some real Liquid Glass code due to unresolved issues. To prioritize build completion, it will be restored around v2.6.0-beta8 (shader refactoring, rendering pipeline optimization, and rendering bug fixes are now complete).
 
-### 📦 Latest Release: [v2.6.0](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0.beta9)
+### 📦 Latest Release: [v2.6.0](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0.21)
 
 The latest version is still unstable and debugging is being accelerated.
 

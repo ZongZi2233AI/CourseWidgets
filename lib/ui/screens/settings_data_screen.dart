@@ -12,6 +12,7 @@ import '../widgets/liquid_components.dart' as liquid;
 import '../widgets/liquid_toast.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'webview_import_screen.dart';
+import 'package:smooth_scroll_multiplatform/smooth_scroll_multiplatform.dart';
 
 class SettingsDataScreen extends StatelessWidget {
   const SettingsDataScreen({super.key});
@@ -57,145 +58,150 @@ class SettingsDataScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  liquid.LiquidCard(
-                    padding: 20,
-                    // [v2.5.3] 统一玻璃样式，去除发白遮罩
-                    glassColor:
-                        GlassSettingsHelper.getCardSettings().glassColor,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '数据操作',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
+              child: DynMouseScroll(
+                durationMS: 250,
+                scrollSpeed: 1.2,
+                builder: (context, controller, physics) => ListView(
+                  controller: controller,
+                  padding: const EdgeInsets.all(16),
+                  physics: physics,
+                  children: [
+                    liquid.LiquidCard(
+                      padding: 20,
+                      // [v2.5.3] 统一玻璃样式，去除发白遮罩
+                      glassColor:
+                          GlassSettingsHelper.getCardSettings().glassColor,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '数据操作',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        // [v2.5.9] 教务系统导入（WebView）
-                        _buildActionCard(
-                          '教务系统导入',
-                          '',
-                          CupertinoIcons.globe,
-                          AppThemeColors.babyPink,
-                          () {
-                            if (Platform.isAndroid ||
-                                Platform.isIOS ||
-                                Platform.isWindows ||
-                                Platform.isMacOS) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const WebviewImportScreen(),
-                                ),
-                              );
-                            } else {
-                              LiquidToast.success(
-                                context,
-                                '桌面端请在浏览器中登录教务系统，下载课表 ICS/HTML 文件后使用下方导入功能',
-                              );
-                            }
-                          },
-                        ),
-                        _buildActionCard(
-                          '导入 ICS 日历',
-                          '',
-                          Icons.calendar_month_rounded,
-                          Colors.orangeAccent,
-                          () async {
-                            final success = await provider.importData();
-                            if (success && context.mounted)
-                              _showToast(context, 'ICS 导入成功');
-                          },
-                        ),
-                        _buildActionCard(
-                          '导入 HTML 课表',
-                          '',
-                          Icons.code_rounded,
-                          Colors.deepPurpleAccent,
-                          () async {
-                            final success = await provider.importHtmlData();
-                            if (success && context.mounted)
-                              _showToast(context, 'HTML 导入成功');
-                          },
-                        ),
-                        _buildActionCard(
-                          '导入测试数据',
-                          '',
-                          Icons.data_exploration_rounded,
-                          Colors.teal,
-                          () async {
-                            final success = await provider.importFromAssets();
-                            if (success && context.mounted)
-                              _showToast(context, '测试数据已导入');
-                          },
-                        ),
+                          const SizedBox(height: 16),
+                          // [v2.5.9] 教务系统导入（WebView）
+                          _buildActionCard(
+                            '教务系统导入',
+                            '',
+                            CupertinoIcons.globe,
+                            AppThemeColors.babyPink,
+                            () {
+                              if (Platform.isAndroid ||
+                                  Platform.isIOS ||
+                                  Platform.isWindows ||
+                                  Platform.isMacOS) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const WebviewImportScreen(),
+                                  ),
+                                );
+                              } else {
+                                LiquidToast.success(
+                                  context,
+                                  '桌面端请在浏览器中登录教务系统，下载课表 ICS/HTML 文件后使用下方导入功能',
+                                );
+                              }
+                            },
+                          ),
+                          _buildActionCard(
+                            '导入 ICS 日历',
+                            '',
+                            Icons.calendar_month_rounded,
+                            Colors.orangeAccent,
+                            () async {
+                              final success = await provider.importData();
+                              if (success && context.mounted)
+                                _showToast(context, 'ICS 导入成功');
+                            },
+                          ),
+                          _buildActionCard(
+                            '导入 HTML 课表',
+                            '',
+                            Icons.code_rounded,
+                            Colors.deepPurpleAccent,
+                            () async {
+                              final success = await provider.importHtmlData();
+                              if (success && context.mounted)
+                                _showToast(context, 'HTML 导入成功');
+                            },
+                          ),
+                          _buildActionCard(
+                            '导入测试数据',
+                            '',
+                            Icons.data_exploration_rounded,
+                            Colors.teal,
+                            () async {
+                              final success = await provider.importFromAssets();
+                              if (success && context.mounted)
+                                _showToast(context, '测试数据已导入');
+                            },
+                          ),
 
-                        const SizedBox(height: 16),
-                        _buildActionCard(
-                          '导出为 ICS',
-                          '',
-                          Icons.ios_share_rounded,
-                          Colors.green,
-                          () async {
-                            final activeSchedule = await dataImportService
-                                .getActiveSchedule();
-                            if (activeSchedule != null) {
-                              final path = await dataImportService
-                                  .exportHistoryToIcs(activeSchedule['id']);
-                              if (path != null && context.mounted)
-                                _showToast(context, 'ICS 已导出到:\n$path');
-                            } else {
-                              if (context.mounted)
-                                _showToast(context, '未找到当前课表');
-                            }
-                          },
-                        ),
-                        _buildActionCard(
-                          '导出为 JSON',
-                          '',
-                          Icons.data_object_rounded,
-                          Colors.blueAccent,
-                          () async {
-                            final success = await provider.exportData();
-                            if (success && context.mounted)
-                              _showToast(context, 'JSON 导出成功');
-                          },
-                        ),
+                          const SizedBox(height: 16),
+                          _buildActionCard(
+                            '导出为 ICS',
+                            '',
+                            Icons.ios_share_rounded,
+                            Colors.green,
+                            () async {
+                              final activeSchedule = await dataImportService
+                                  .getActiveSchedule();
+                              if (activeSchedule != null) {
+                                final path = await dataImportService
+                                    .exportHistoryToIcs(activeSchedule['id']);
+                                if (path != null && context.mounted)
+                                  _showToast(context, 'ICS 已导出到:\n$path');
+                              } else {
+                                if (context.mounted)
+                                  _showToast(context, '未找到当前课表');
+                              }
+                            },
+                          ),
+                          _buildActionCard(
+                            '导出为 JSON',
+                            '',
+                            Icons.data_object_rounded,
+                            Colors.blueAccent,
+                            () async {
+                              final success = await provider.exportData();
+                              if (success && context.mounted)
+                                _showToast(context, 'JSON 导出成功');
+                            },
+                          ),
 
-                        const SizedBox(height: 16),
-                        _buildActionCard(
-                          '清除所有数据',
-                          '',
-                          Icons.delete_forever_rounded,
-                          Colors.redAccent,
-                          () => _confirmClear(context, provider),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          _buildActionCard(
+                            '清除所有数据',
+                            '',
+                            Icons.delete_forever_rounded,
+                            Colors.redAccent,
+                            () => _confirmClear(context, provider),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 16),
-                  // [v2.2.2] 历史记录管理移到数据管理
-                  _buildActionCard(
-                    '历史记录管理',
-                    '',
-                    CupertinoIcons.time,
-                    Colors.purpleAccent,
-                    () => _showHistoryDialog(
-                      context,
-                      dataImportService,
-                      provider,
-                      isDark, // Pass isDark
+                    const SizedBox(height: 16),
+                    // [v2.2.2] 历史记录管理移到数据管理
+                    _buildActionCard(
+                      '历史记录管理',
+                      '',
+                      CupertinoIcons.time,
+                      Colors.purpleAccent,
+                      () => _showHistoryDialog(
+                        context,
+                        dataImportService,
+                        provider,
+                        isDark, // Pass isDark
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

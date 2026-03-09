@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.11.0+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-2.6.0.9-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases/)
+[![Version](https://img.shields.io/badge/Version-2.6.0.21-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases/)
 
 [English](README_EN.md) | 简体中文
 
@@ -19,7 +19,7 @@
 
 ### **提醒** 2.6.0版本移除了部分真实液态玻璃代码，因为存在部分未解决问题，为了优先完成构建，将在大约v2.6.0-beta8等版本恢复（目前已完成着色器重构和渲染管线优化以及渲染错误的修复）
 
-### 📦 最新版本：[v2.6.0](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0.beta9)
+### 📦 最新版本：[v2.6.0](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0.21)
 
 最新版本尚不稳定，正在加快调试
 

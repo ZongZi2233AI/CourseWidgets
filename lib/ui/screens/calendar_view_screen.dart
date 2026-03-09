@@ -11,6 +11,7 @@ import '../widgets/glass_context_menu.dart';
 import '../transitions/smooth_slide_transitions.dart';
 import 'course_edit_screen.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:smooth_scroll_multiplatform/smooth_scroll_multiplatform.dart';
 
 class CalendarViewScreen extends StatefulWidget {
   const CalendarViewScreen({super.key});
@@ -355,161 +356,166 @@ class _CalendarViewScreenState extends State<CalendarViewScreen> {
             ? Center(
                 child: Text('该日无课', style: TextStyle(color: Colors.white38)),
               )
-            : ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 180), // 留出导航栏空间
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                itemCount: courses.length,
-                itemBuilder: (context, index) {
-                  final course = courses[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: liquid.LiquidCard(
-                      borderRadius: 20,
-                      padding: 14,
-                      // [v2.5.2] 恢复真玻璃带光柱质感
-                      quality: GlassQuality.standard,
-                      styleType: liquid.LiquidStyleType.standard,
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppThemeColors.babyPink.withValues(
-                                    alpha: 0.8,
-                                  ),
-                                  AppThemeColors.softCoral.withValues(
-                                    alpha: 0.8,
+            : DynMouseScroll(
+                durationMS: 250,
+                scrollSpeed: 1.2,
+                builder: (context, controller, physics) => ListView.builder(
+                  controller: controller,
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 180),
+                  physics: physics,
+                  itemCount: courses.length,
+                  itemBuilder: (context, index) {
+                    final course = courses[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: liquid.LiquidCard(
+                        borderRadius: 20,
+                        padding: 14,
+                        // [v2.5.2] 恢复真玻璃带光柱质感
+                        quality: GlassQuality.standard,
+                        styleType: liquid.LiquidStyleType.standard,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    AppThemeColors.babyPink.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                    AppThemeColors.softCoral.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              alignment: Alignment.center,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    course.timeStr.split('-')[0],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(14),
                             ),
-                            alignment: Alignment.center,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  course.timeStr.split('-')[0],
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  course.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                Text(
-                                  course.location,
-                                  style: const TextStyle(
-                                    color: Colors.white60,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                if (course.teacher.isNotEmpty)
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    course.teacher,
+                                    course.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  Text(
+                                    course.location,
                                     style: const TextStyle(
                                       color: Colors.white60,
-                                      fontSize: 11,
+                                      fontSize: 12,
                                     ),
                                   ),
-                              ],
-                            ),
-                          ),
-                          // [v2.2.9] 使用自定义 GlassContextMenu
-                          GlassContextMenu(
-                            items: [
-                              GlassContextMenuItem(
-                                title: '编辑课程',
-                                icon: CupertinoIcons.pencil,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    TransparentMaterialPageRoute(
-                                      builder: (_) =>
-                                          CourseEditScreen(course: course),
+                                  if (course.teacher.isNotEmpty)
+                                    Text(
+                                      course.teacher,
+                                      style: const TextStyle(
+                                        color: Colors.white60,
+                                        fontSize: 11,
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
-                              GlassContextMenuItem(
-                                title: '删除本节课程',
-                                icon: CupertinoIcons.delete,
-                                isDestructive: true,
-                                onTap: () async {
-                                  final provider =
-                                      Provider.of<ScheduleProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-                                  await _importService.deleteCourse(course);
-                                  await provider.loadSavedData();
-                                  if (mounted)
-                                    liquid.showLiquidToast(context, '已删除本节课程');
-                                },
-                              ),
-                              GlassContextMenuItem(
-                                title: '删除所有本课程',
-                                icon: CupertinoIcons.trash,
-                                isDestructive: true,
-                                onTap: () async {
-                                  final provider =
-                                      Provider.of<ScheduleProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-                                  await _importService.deleteAllCoursesWithName(
-                                    course.name,
-                                  );
-                                  await provider.loadSavedData();
-                                  if (mounted)
-                                    liquid.showLiquidToast(
-                                      context,
-                                      '已删除所有${course.name}课程',
-                                    );
-                                },
-                              ),
-                            ],
-                            trigger: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                CupertinoIcons.ellipsis_vertical,
-                                color: Colors.white70,
-                                size: 16,
+                                ],
                               ),
                             ),
-                          ),
-                        ],
+                            // [v2.2.9] 使用自定义 GlassContextMenu
+                            GlassContextMenu(
+                              items: [
+                                GlassContextMenuItem(
+                                  title: '编辑课程',
+                                  icon: CupertinoIcons.pencil,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      TransparentMaterialPageRoute(
+                                        builder: (_) =>
+                                            CourseEditScreen(course: course),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                GlassContextMenuItem(
+                                  title: '删除本节课程',
+                                  icon: CupertinoIcons.delete,
+                                  isDestructive: true,
+                                  onTap: () async {
+                                    final provider =
+                                        Provider.of<ScheduleProvider>(
+                                          context,
+                                          listen: false,
+                                        );
+                                    await _importService.deleteCourse(course);
+                                    await provider.loadSavedData();
+                                    if (mounted)
+                                      liquid.showLiquidToast(
+                                        context,
+                                        '已删除本节课程',
+                                      );
+                                  },
+                                ),
+                                GlassContextMenuItem(
+                                  title: '删除所有本课程',
+                                  icon: CupertinoIcons.trash,
+                                  isDestructive: true,
+                                  onTap: () async {
+                                    final provider =
+                                        Provider.of<ScheduleProvider>(
+                                          context,
+                                          listen: false,
+                                        );
+                                    await _importService
+                                        .deleteAllCoursesWithName(course.name);
+                                    await provider.loadSavedData();
+                                    if (mounted)
+                                      liquid.showLiquidToast(
+                                        context,
+                                        '已删除所有${course.name}课程',
+                                      );
+                                  },
+                                ),
+                              ],
+                              trigger: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.ellipsis_vertical,
+                                  color: Colors.white70,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import '../../constants/theme_constants.dart';
+import 'dart:io';
 import '../../models/course_event.dart';
 import '../../models/schedule_config.dart';
 import '../../providers/schedule_provider.dart';
@@ -31,19 +32,22 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
             _buildWeekControl(context, provider),
             const SizedBox(height: 16),
 
-            // 7 天课程网格 - 添加左右滑动手势
+            // 7 天课程网格 - 添加左右滑动手势（仅在移动端或触摸屏开启，阻止桌面误触）
             Expanded(
               child: GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  // [v2.2.1] 左右滑动切换周次
-                  if (details.primaryVelocity! > 0) {
-                    // 向右滑动 - 上一周
-                    _changeWeek(provider, provider.currentWeek - 1);
-                  } else if (details.primaryVelocity! < 0) {
-                    // 向左滑动 - 下一周
-                    _changeWeek(provider, provider.currentWeek + 1);
-                  }
-                },
+                onHorizontalDragEnd:
+                    (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
+                    ? null
+                    : (details) {
+                        // [v2.2.1] 左右滑动切换周次
+                        if (details.primaryVelocity! > 0) {
+                          // 向右滑动 - 上一周
+                          _changeWeek(provider, provider.currentWeek - 1);
+                        } else if (details.primaryVelocity! < 0) {
+                          // 向左滑动 - 下一周
+                          _changeWeek(provider, provider.currentWeek + 1);
+                        }
+                      },
                 child: _buildWeekGrid(context, provider),
               ),
             ),
@@ -297,6 +301,8 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
     final int daysCount = showWeekends ? 7 : 5;
 
     return DynMouseScroll(
+      durationMS: 250, // [v2.7.1] 增加延迟让滚动更平滑
+      scrollSpeed: 1.2, // [v2.7.1] 降低滚动幅度
       builder: (context, controller, physics) => SingleChildScrollView(
         controller: controller,
         physics: physics,
@@ -395,7 +401,7 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
 
           // 课程列表 - 使用绝对定位 Stack 来对齐时间轴
           SizedBox(
-            height: 720, // 12节课 * 60.0高度
+            height: 624, // 12节课 * 52.0高度
             child: Stack(
               clipBehavior: Clip.none,
               children: courses.map((course) {
@@ -410,8 +416,8 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
                 final finalStart = start > 0 ? start : 1;
                 final finalEnd = end >= finalStart ? end : finalStart;
 
-                final topOffset = (finalStart - 1) * 60.0;
-                final courseHeight = (finalEnd - finalStart + 1) * 60.0;
+                final topOffset = (finalStart - 1) * 52.0;
+                final courseHeight = (finalEnd - finalStart + 1) * 52.0;
 
                 return Positioned(
                   top: topOffset,
@@ -480,8 +486,8 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                maxLines: 4,
+                overflow: TextOverflow.visible, // [v2.7.0修复] 允许自动提行包裹
               ),
               const SizedBox(height: 4),
 
@@ -510,8 +516,8 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
                           fontSize: 11,
                           height: 1.2,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 4,
+                        overflow: TextOverflow.clip,
                       ),
                     ),
                   ],

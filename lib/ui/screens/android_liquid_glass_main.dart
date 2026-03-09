@@ -193,10 +193,10 @@ class _AndroidLiquidGlassMainState extends State<AndroidLiquidGlassMain>
       body: AdaptiveLiquidGlassLayer(
         // [v2.6.5] 为所有 glass widget 提供共享渲染上下文
         // 文档推荐：多个 glass widget 用 AdaptiveLiquidGlassLayer 包裹
-        settings: LiquidGlassSettings(
-          blur: 12.0,
-          thickness: 0.8,
-          glassColor: Colors.white.withValues(alpha: 0.1),
+        settings: const LiquidGlassSettings(
+          blur: 0.0, // [v2.7.0修复] 置0防止壁纸被全局糊住
+          thickness: 0.0,
+          glassColor: Colors.transparent,
         ),
         child: Stack(
           children: [

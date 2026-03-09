@@ -1,8 +1,8 @@
 /// 主题颜色配置
 
-// 优先使用 Cupertino，但 ThemeData 类依赖 Material
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show ThemeData, ColorScheme;
+import 'dart:io';
 import '../services/theme_service.dart';
 
 /// 新主题色系统 - 支持动态主题
@@ -47,7 +47,7 @@ class AppTheme {
       surface: AppThemeColors.paleApricot,
     ),
     useMaterial3: true,
-    fontFamily: 'PingFangSC',
+    fontFamily: (Platform.isWindows || Platform.isMacOS) ? 'PingFangSC' : null,
   );
 
   static ThemeData get darkTheme => ThemeData(
@@ -59,7 +59,7 @@ class AppTheme {
       surface: AppThemeColors.darkSurface,
     ),
     useMaterial3: true,
-    fontFamily: 'PingFangSC',
+    fontFamily: (Platform.isWindows || Platform.isMacOS) ? 'PingFangSC' : null,
   );
 }
 
@@ -69,8 +69,13 @@ class IOSTheme {
     primaryColor: AppThemeColors.babyPink,
     barBackgroundColor: AppThemeColors.milkWhite.withValues(alpha: 0.5),
     scaffoldBackgroundColor: const Color(0x00000000),
-    textTheme: const CupertinoTextThemeData(
-      textStyle: TextStyle(fontFamily: 'PingFangSC', color: Color(0xFF1A1A2E)),
+    textTheme: CupertinoTextThemeData(
+      textStyle: TextStyle(
+        fontFamily: (Platform.isWindows || Platform.isMacOS)
+            ? 'PingFangSC'
+            : null,
+        color: const Color(0xFF1A1A2E),
+      ),
     ),
   );
 
@@ -78,9 +83,11 @@ class IOSTheme {
     primaryColor: AppThemeColors.babyPink,
     barBackgroundColor: AppThemeColors.darkBackground.withValues(alpha: 0.5),
     scaffoldBackgroundColor: const Color(0x00000000),
-    textTheme: const CupertinoTextThemeData(
+    textTheme: CupertinoTextThemeData(
       textStyle: TextStyle(
-        fontFamily: 'PingFangSC',
+        fontFamily: (Platform.isWindows || Platform.isMacOS)
+            ? 'PingFangSC'
+            : null,
         color: CupertinoColors.white,
       ),
     ),

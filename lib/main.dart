@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/cupertino.dart';
@@ -11,6 +12,7 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'providers/schedule_provider.dart';
 import 'package:local_notifier/local_notifier.dart';
 import 'services/theme_service.dart';
+import 'services/notification_manager.dart'; // [v2.7.0] 通知管理器
 import 'services/onboarding_service.dart';
 import 'services/windows_tray_service.dart';
 import 'services/storage_service.dart';
@@ -92,6 +94,24 @@ void main() async {
   // [v2.1.10] 初始化主题服务
   await ThemeService().initialize();
 
+  // [v2.6.5反馈修复] 动态按需加载字体（仅在桌面端）以节省移动端打包空间
+  if (Platform.isWindows || Platform.isMacOS) {
+    try {
+      final sfProLoader = FontLoader('SFPro');
+      sfProLoader.addFont(rootBundle.load('assets/fonts/SF-Pro.ttf'));
+      await sfProLoader.load();
+
+      final pingFangLoader = FontLoader('PingFangSC');
+      pingFangLoader.addFont(
+        rootBundle.load('assets/fonts/PingFangSC-Semibold.otf'),
+      );
+      await pingFangLoader.load();
+      debugPrint('✅ Desktop Custom Fonts Loaded.');
+    } catch (e) {
+      debugPrint('❌ Failed to load custom fonts: $e');
+    }
+  }
+
   // [v2.7.0] 初始化着色器质量偏好（必须在 LiquidGlass 初始化之前）
   final shaderStorage = StorageService();
   GlassEffect.useHighPerformanceShader =
@@ -112,6 +132,14 @@ void main() async {
     } catch (e) {
       debugPrint('❌ 后台任务服务启动失败: $e');
     }
+  }
+
+  // [v2.7.0] 提前初始化全平台的聚合通知管理器
+  try {
+    await NotificationManager().initialize();
+    debugPrint('✅ 系统通知管理器(NotificationManager)全局初始化完毕');
+  } catch (e) {
+    debugPrint('❌ 系统通知管理器初始化失败: $e');
   }
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -263,19 +291,25 @@ class _MyAppState extends State<MyApp> {
                   seedColor: themeService.primaryColor,
                   brightness: material.Theme.of(context).brightness,
                 ),
-                // [v2.4.4] 全局字体统一使用萍方和SF Pro
-                fontFamily: 'PingFangSC',
-                fontFamilyFallback: const ['SFPro'],
+                // [v2.4.4] 全局字体：仅在桌面端强制使用 PingFangSC/SFPro 以避免移动端字体文件被打包带来的体积膨胀
+                // [v2.7.0] 移动端恢复系统默认字体 (Roboto/San Francisco)
+                fontFamily: (Platform.isWindows || Platform.isMacOS)
+                    ? 'PingFangSC'
+                    : null,
+                fontFamilyFallback: (Platform.isWindows || Platform.isMacOS)
+                    ? const ['SFPro']
+                    : null,
                 // [v2.4.4] 全局加粗标题
                 textTheme: const material.TextTheme(
                   titleLarge: TextStyle(fontWeight: FontWeight.bold),
                   titleMedium: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                // [v2.6.0.19] 清除安卓自定义预测手势导致双闪返回 Bug，强制回归原生的 ZoomPageTransitionsBuilder！
+                // [v2.7.0] 恢复 Android 横向边缘预测式返回 (CustomPredictiveBackPageTransitionsBuilder)
+                // 此时 _PredictiveBackGestureDetector 上的双弹 Bug 已进行严密修复
                 pageTransitionsTheme: const material.PageTransitionsTheme(
                   builders: {
                     material.TargetPlatform.android:
-                        material.ZoomPageTransitionsBuilder(),
+                        CustomPredictiveBackPageTransitionsBuilder(),
                     material.TargetPlatform.iOS:
                         SmoothSlideTransitionsBuilder(),
                     material.TargetPlatform.windows:
@@ -397,6 +431,50 @@ class _MyAppState extends State<MyApp> {
                   background: backgroundWidget,
                   content: contentWidget,
                 );
+
+                if (Platform.isWindows || Platform.isMacOS) {
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: windowsGlobalIsMaximized,
+                    builder: (context, isMaximized, _) {
+                      final shadowPadding = isMaximized ? 0.0 : 12.0;
+                      final borderRadius = isMaximized ? 0.0 : 16.0;
+                      final smoothing = isMaximized ? 0.0 : 1.0;
+
+                      final windowContent = Padding(
+                        padding: EdgeInsets.all(shadowPadding),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(borderRadius),
+                            boxShadow: isMaximized
+                                ? null
+                                : [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.25,
+                                      ),
+                                      blurRadius: 20,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                          ),
+                          child: ClipSmoothRect(
+                            radius: SmoothBorderRadius(
+                              cornerRadius: borderRadius,
+                              cornerSmoothing: smoothing,
+                            ),
+                            child: coreStack,
+                          ),
+                        ),
+                      );
+
+                      // [v2.7.1] 注入自定义边缘以接管无边框化后的窗口缩放
+                      if (Platform.isWindows) {
+                        return WindowResizer(child: windowContent);
+                      }
+                      return windowContent;
+                    },
+                  );
+                }
 
                 return coreStack;
               },

@@ -11,6 +11,7 @@ import '../../utils/glass_settings_helper.dart';
 import '../../utils/glass_opacity_manager.dart'; // [v2.3.0] 玻璃透明度管理器
 import '../../main.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import 'package:smooth_scroll_multiplatform/smooth_scroll_multiplatform.dart';
 
 class SettingsGeneralScreen extends StatefulWidget {
   const SettingsGeneralScreen({super.key});
@@ -381,71 +382,77 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
           blur: 15.0, // Let the background glass be stronger
           glassColor: GlassSettingsHelper.getStandardSettings().glassColor,
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSection('外观'),
-              _buildSwitchCard(
-                '自适应深色模式',
-                '跟随系统设置',
-                _adaptiveDarkMode,
-                _toggleAdaptiveMode,
-              ),
-              const SizedBox(height: 12),
-
-              IgnorePointer(
-                ignoring: _adaptiveDarkMode,
-                child: _buildSwitchCard(
-                  '强制深色模式',
-                  '手动覆盖系统设置',
-                  globalUseDarkMode,
-                  _toggleDarkMode,
-                  disabled: _adaptiveDarkMode,
+        child: DynMouseScroll(
+          durationMS: 250,
+          scrollSpeed: 1.2,
+          builder: (context, controller, physics) => SingleChildScrollView(
+            controller: controller,
+            physics: physics,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSection('外观'),
+                _buildSwitchCard(
+                  '自适应深色模式',
+                  '跟随系统设置',
+                  _adaptiveDarkMode,
+                  _toggleAdaptiveMode,
                 ),
-              ),
+                const SizedBox(height: 12),
 
-              const SizedBox(height: 20),
-              _buildSection('主题色'),
-              _buildActionCard(
-                '主题色设置',
-                CupertinoIcons.color_filter,
-                _showThemeModeBottomSheet,
-                subtitle: _getThemeModeText(),
-              ),
+                IgnorePointer(
+                  ignoring: _adaptiveDarkMode,
+                  child: _buildSwitchCard(
+                    '强制深色模式',
+                    '手动覆盖系统设置',
+                    globalUseDarkMode,
+                    _toggleDarkMode,
+                    disabled: _adaptiveDarkMode,
+                  ),
+                ),
 
-              const SizedBox(height: 20),
-              _buildSection('个性化'),
-              _buildActionCard(
-                '更换背景图片',
-                CupertinoIcons.photo,
-                _pickBackgroundImage,
-              ),
-              const SizedBox(height: 10),
-              _buildActionCard(
-                '恢复默认背景',
-                CupertinoIcons.arrow_counterclockwise,
-                () async {
-                  globalBackgroundPath.value = null;
-                  await _storage.remove(StorageService.keyBackgroundPath);
-                  _showAlert('已恢复', '背景已恢复默认渐变');
-                },
-              ),
+                const SizedBox(height: 20),
+                _buildSection('主题色'),
+                _buildActionCard(
+                  '主题色设置',
+                  CupertinoIcons.color_filter,
+                  _showThemeModeBottomSheet,
+                  subtitle: _getThemeModeText(),
+                ),
 
-              const SizedBox(height: 20),
-              _buildSection('性能'),
-              _buildActionCard(
-                '着色器质量',
-                CupertinoIcons.speedometer,
-                _toggleShaderQuality,
-                subtitle: GlassEffect.useHighPerformanceShader
-                    ? '当前：高性能模式（切换后需重启）'
-                    : '当前：高质量模式（切换后需重启）',
-              ),
+                const SizedBox(height: 20),
+                _buildSection('个性化'),
+                _buildActionCard(
+                  '更换背景图片',
+                  CupertinoIcons.photo,
+                  _pickBackgroundImage,
+                ),
+                const SizedBox(height: 10),
+                _buildActionCard(
+                  '恢复默认背景',
+                  CupertinoIcons.arrow_counterclockwise,
+                  () async {
+                    globalBackgroundPath.value = null;
+                    await _storage.remove(StorageService.keyBackgroundPath);
+                    _showAlert('已恢复', '背景已恢复默认渐变');
+                  },
+                ),
 
-              const SizedBox(height: 50),
-            ],
+                const SizedBox(height: 20),
+                _buildSection('性能'),
+                _buildActionCard(
+                  '着色器质量',
+                  CupertinoIcons.speedometer,
+                  _toggleShaderQuality,
+                  subtitle: GlassEffect.useHighPerformanceShader
+                      ? '当前：高性能模式（切换后需重启）'
+                      : '当前：高质量模式（切换后需重启）',
+                ),
+
+                const SizedBox(height: 50),
+              ],
+            ),
           ),
         ),
       ),

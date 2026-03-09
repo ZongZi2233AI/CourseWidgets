@@ -5,6 +5,7 @@ import '../../constants/theme_constants.dart';
 import '../../services/notification_manager.dart';
 import '../../utils/glass_settings_helper.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import 'package:smooth_scroll_multiplatform/smooth_scroll_multiplatform.dart';
 
 /// [v2.2.8] 课程通知设置页面
 class SettingsNotificationScreen extends StatefulWidget {
@@ -71,63 +72,70 @@ class _SettingsNotificationScreenState
 
           // Content
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              physics: const BouncingScrollPhysics(),
-              children: [
-                // 启用通知
-                _buildSwitchCard(
-                  title: '启用课程通知',
-                  subtitle: '在课程开始前提醒你',
-                  icon: CupertinoIcons.bell_fill,
-                  value: _notificationEnabled,
-                  onChanged: (value) async {
-                    setState(() => _notificationEnabled = value);
-                    await _notificationManager.setNotificationEnabled(value);
-                  },
-                ),
+            child: DynMouseScroll(
+              durationMS: 250,
+              scrollSpeed: 1.2,
+              builder: (context, controller, physics) => ListView(
+                controller: controller,
+                padding: const EdgeInsets.all(20),
+                physics: physics,
+                children: [
+                  // 启用通知
+                  _buildSwitchCard(
+                    title: '启用课程通知',
+                    subtitle: '在课程开始前提醒你',
+                    icon: CupertinoIcons.bell_fill,
+                    value: _notificationEnabled,
+                    onChanged: (value) async {
+                      setState(() => _notificationEnabled = value);
+                      await _notificationManager.setNotificationEnabled(value);
+                    },
+                  ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // 提前通知时间
-                _buildAdvanceTimeCard(),
+                  // 提前通知时间
+                  _buildAdvanceTimeCard(),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // 双次提醒
-                _buildSwitchCard(
-                  title: '双次提醒',
-                  subtitle: '在上课前 5 分钟再次提醒\n(Android API < 34 和 Windows)',
-                  icon: CupertinoIcons.bell_circle_fill,
-                  value: _doubleReminder,
-                  onChanged: (value) async {
-                    setState(() => _doubleReminder = value);
-                    await _notificationManager.setDoubleReminder(value);
-                  },
-                ),
+                  // 双次提醒
+                  _buildSwitchCard(
+                    title: '双次提醒',
+                    subtitle: '在上课前 5 分钟再次提醒\n(Android API < 34 和 Windows)',
+                    icon: CupertinoIcons.bell_circle_fill,
+                    value: _doubleReminder,
+                    onChanged: (value) async {
+                      setState(() => _doubleReminder = value);
+                      await _notificationManager.setDoubleReminder(value);
+                    },
+                  ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Live Activities 开关
-                _buildSwitchCard(
-                  title: '开启实况通知 (Live Activities)',
-                  subtitle:
-                      'Android 16 实时活动 (Live Update) 与 iOS 灵动岛 (Live Activities) 支持',
-                  icon: CupertinoIcons.sparkles,
-                  value: _liveActivitiesEnabled,
-                  onChanged: (value) async {
-                    setState(() => _liveActivitiesEnabled = value);
-                    await _notificationManager.setLiveActivitiesEnabled(value);
-                  },
-                ),
+                  // Live Activities 开关
+                  _buildSwitchCard(
+                    title: '开启实况通知 (Live Activities)',
+                    subtitle:
+                        'Android 16 实时活动 (Live Update) 与 iOS 灵动岛 (Live Activities) 支持',
+                    icon: CupertinoIcons.sparkles,
+                    value: _liveActivitiesEnabled,
+                    onChanged: (value) async {
+                      setState(() => _liveActivitiesEnabled = value);
+                      await _notificationManager.setLiveActivitiesEnabled(
+                        value,
+                      );
+                    },
+                  ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Live Activities 说明
-                _buildInfoCard(),
+                  // Live Activities 说明
+                  _buildInfoCard(),
 
-                const SizedBox(height: 100),
-              ],
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
           ),
         ],

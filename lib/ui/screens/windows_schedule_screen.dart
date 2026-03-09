@@ -138,6 +138,8 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
 
               Expanded(
                 child: DynMouseScroll(
+                  durationMS: 250, // [v2.7.1] 更平滑更长的迟滞时间
+                  scrollSpeed: 1.2, // [v2.7.1] 降低鼠标滚轮滚动幅度
                   builder: (context, controller, physics) =>
                       SingleChildScrollView(
                         controller: controller,

@@ -8,6 +8,7 @@ import '../../providers/schedule_provider.dart';
 import '../../constants/theme_constants.dart';
 import '../widgets/liquid_glass_pickers.dart';
 import '../widgets/liquid_components.dart' as liquid;
+import 'package:smooth_scroll_multiplatform/smooth_scroll_multiplatform.dart';
 
 /// 课时配置界面 - 液态玻璃版本
 class ScheduleConfigScreen extends StatefulWidget {
@@ -182,26 +183,33 @@ class _ScheduleConfigScreenState extends State<ScheduleConfigScreen> {
 
                   // 内容区域
                   Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSectionTitle('基础设置'),
-                          const SizedBox(height: 8),
-                          _buildGeneralSettings(),
+                    child: DynMouseScroll(
+                      durationMS: 250,
+                      scrollSpeed: 1.2,
+                      builder: (context, controller, physics) =>
+                          SingleChildScrollView(
+                            controller: controller,
+                            padding: const EdgeInsets.all(16),
+                            physics: physics,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle('基础设置'),
+                                const SizedBox(height: 8),
+                                _buildGeneralSettings(),
 
-                          const SizedBox(height: 20),
-                          _buildSectionTitle('课时设置'),
-                          const SizedBox(height: 8),
-                          _buildSectionSettings(),
+                                const SizedBox(height: 20),
+                                _buildSectionTitle('课时设置'),
+                                const SizedBox(height: 8),
+                                _buildSectionSettings(),
 
-                          const SizedBox(height: 20),
-                          _buildSectionTitle('快速配置'),
-                          const SizedBox(height: 8),
-                          _buildPresetButtons(),
-                        ],
-                      ),
+                                const SizedBox(height: 20),
+                                _buildSectionTitle('快速配置'),
+                                const SizedBox(height: 8),
+                                _buildPresetButtons(),
+                              ],
+                            ),
+                          ),
                     ),
                   ),
                 ],

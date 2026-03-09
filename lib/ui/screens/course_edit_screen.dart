@@ -10,6 +10,7 @@ import '../../constants/theme_constants.dart';
 import '../widgets/liquid_components.dart';
 import '../widgets/liquid_glass_pickers.dart';
 import '../widgets/liquid_toast.dart';
+import 'package:smooth_scroll_multiplatform/smooth_scroll_multiplatform.dart';
 
 class CourseEditScreen extends StatefulWidget {
   final CourseEvent? course;
@@ -103,117 +104,124 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
 
             // Content
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                physics: const BouncingScrollPhysics(),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionTitle('基本信息', textColor),
-                      const SizedBox(height: 12),
-                      LiquidCard(
-                        borderRadius: 24,
-                        padding: 20,
-                        useFakeGlass: true,
-                        glassColor: isDark
-                            ? Colors.white.withValues(alpha: 0.02)
-                            : Colors.black.withValues(alpha: 0.02),
+              child: DynMouseScroll(
+                durationMS: 250,
+                scrollSpeed: 1.2,
+                builder: (context, controller, physics) =>
+                    SingleChildScrollView(
+                      controller: controller,
+                      padding: const EdgeInsets.all(20),
+                      physics: physics,
+                      child: Form(
+                        key: _formKey,
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            LiquidInput(
-                              controller: _nameController,
-                              label: '课程名称',
-                              icon: CupertinoIcons.book,
-                              placeholder: '例如：高等数学',
-                            ),
-                            const SizedBox(height: 20),
-                            LiquidInput(
-                              controller: _locationController,
-                              label: '上课地点',
-                              icon: CupertinoIcons.location,
-                              placeholder: '例如：教A-101',
-                            ),
-                            const SizedBox(height: 20),
-                            LiquidInput(
-                              controller: _teacherController,
-                              label: '任课教师',
-                              icon: CupertinoIcons.person,
-                              placeholder: '例如：张教授',
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-                      _buildSectionTitle('时间信息', textColor),
-                      const SizedBox(height: 12),
-                      LiquidCard(
-                        borderRadius: 24,
-                        padding: 20,
-                        useFakeGlass: true,
-                        glassColor: isDark
-                            ? Colors.white.withValues(alpha: 0.02)
-                            : Colors.black.withValues(alpha: 0.02),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(child: _buildDateSelector()),
-                                const SizedBox(width: 16),
-                                Expanded(child: _buildDaySelector()),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildTimeInput(
-                                    _startTimeController,
-                                    '开始',
-                                    textColor,
+                            _buildSectionTitle('基本信息', textColor),
+                            const SizedBox(height: 12),
+                            LiquidCard(
+                              borderRadius: 24,
+                              padding: 20,
+                              useFakeGlass: true,
+                              glassColor: isDark
+                                  ? Colors.white.withValues(alpha: 0.02)
+                                  : Colors.black.withValues(alpha: 0.02),
+                              child: Column(
+                                children: [
+                                  LiquidInput(
+                                    controller: _nameController,
+                                    label: '课程名称',
+                                    icon: CupertinoIcons.book,
+                                    placeholder: '例如：高等数学',
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildTimeInput(
-                                    _endTimeController,
-                                    '结束',
-                                    textColor,
+                                  const SizedBox(height: 20),
+                                  LiquidInput(
+                                    controller: _locationController,
+                                    label: '上课地点',
+                                    icon: CupertinoIcons.location,
+                                    placeholder: '例如：教A-101',
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 40),
-                      Row(
-                        children: [
-                          if (widget.course != null)
-                            Expanded(
-                              child: LiquidButton(
-                                text: '删除',
-                                onTap: _deleteCourse,
-                                color: Colors.redAccent,
+                                  const SizedBox(height: 20),
+                                  LiquidInput(
+                                    controller: _teacherController,
+                                    label: '任课教师',
+                                    icon: CupertinoIcons.person,
+                                    placeholder: '例如：张教授',
+                                  ),
+                                ],
                               ),
                             ),
-                          if (widget.course != null) const SizedBox(width: 16),
-                          Expanded(
-                            child: LiquidButton(
-                              text: '保存',
-                              onTap: _saveCourse,
-                              color: AppThemeColors.babyPink,
+
+                            const SizedBox(height: 24),
+                            _buildSectionTitle('时间信息', textColor),
+                            const SizedBox(height: 12),
+                            LiquidCard(
+                              borderRadius: 24,
+                              padding: 20,
+                              useFakeGlass: true,
+                              glassColor: isDark
+                                  ? Colors.white.withValues(alpha: 0.02)
+                                  : Colors.black.withValues(alpha: 0.02),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(child: _buildDateSelector()),
+                                      const SizedBox(width: 16),
+                                      Expanded(child: _buildDaySelector()),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildTimeInput(
+                                          _startTimeController,
+                                          '开始',
+                                          textColor,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildTimeInput(
+                                          _endTimeController,
+                                          '结束',
+                                          textColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+
+                            const SizedBox(height: 40),
+                            Row(
+                              children: [
+                                if (widget.course != null)
+                                  Expanded(
+                                    child: LiquidButton(
+                                      text: '删除',
+                                      onTap: _deleteCourse,
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                                if (widget.course != null)
+                                  const SizedBox(width: 16),
+                                Expanded(
+                                  child: LiquidButton(
+                                    text: '保存',
+                                    onTap: _saveCourse,
+                                    color: AppThemeColors.babyPink,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
+                    ),
               ),
             ),
           ],

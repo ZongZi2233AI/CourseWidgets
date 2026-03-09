@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:figma_squircle/figma_squircle.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import '../../services/windows_tray_service.dart';
@@ -12,6 +11,114 @@ import 'calendar_view_screen.dart';
 /// 全局注入，使得背景跟随自定义窗口同步缩放
 final ValueNotifier<double> windowsGlobalScale = ValueNotifier(1.0);
 final ValueNotifier<double> windowsGlobalOpacity = ValueNotifier(1.0);
+final ValueNotifier<bool> windowsGlobalIsMaximized = ValueNotifier(false);
+
+/// 用于给由于 setAsFrameless 移除边框的窗体重新加上缩放手柄
+class WindowResizer extends StatelessWidget {
+  final Widget child;
+  const WindowResizer({super.key, required this.child});
+
+  Widget _buildEdge({
+    double? top,
+    double? bottom,
+    double? left,
+    double? right,
+    double? width,
+    double? height,
+    required MouseCursor cursor,
+    required ResizeEdge edge,
+  }) {
+    return Positioned(
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
+      width: width,
+      height: height,
+      child: MouseRegion(
+        cursor: cursor,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onPanStart: (_) => windowManager.startResizing(edge),
+          child: Container(color: Colors.transparent),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+        _buildEdge(
+          top: 0,
+          left: 8,
+          right: 8,
+          height: 6,
+          cursor: SystemMouseCursors.resizeUpDown,
+          edge: ResizeEdge.top,
+        ),
+        _buildEdge(
+          bottom: 0,
+          left: 8,
+          right: 8,
+          height: 6,
+          cursor: SystemMouseCursors.resizeUpDown,
+          edge: ResizeEdge.bottom,
+        ),
+        _buildEdge(
+          left: 0,
+          top: 8,
+          bottom: 8,
+          width: 6,
+          cursor: SystemMouseCursors.resizeLeftRight,
+          edge: ResizeEdge.left,
+        ),
+        _buildEdge(
+          right: 0,
+          top: 8,
+          bottom: 8,
+          width: 6,
+          cursor: SystemMouseCursors.resizeLeftRight,
+          edge: ResizeEdge.right,
+        ),
+        _buildEdge(
+          top: 0,
+          left: 0,
+          width: 8,
+          height: 8,
+          cursor: SystemMouseCursors.resizeUpLeftDownRight,
+          edge: ResizeEdge.topLeft,
+        ),
+        _buildEdge(
+          top: 0,
+          right: 0,
+          width: 8,
+          height: 8,
+          cursor: SystemMouseCursors.resizeUpRightDownLeft,
+          edge: ResizeEdge.topRight,
+        ),
+        _buildEdge(
+          bottom: 0,
+          left: 0,
+          width: 8,
+          height: 8,
+          cursor: SystemMouseCursors.resizeUpRightDownLeft,
+          edge: ResizeEdge.bottomLeft,
+        ),
+        _buildEdge(
+          bottom: 0,
+          right: 0,
+          width: 8,
+          height: 8,
+          cursor: SystemMouseCursors.resizeUpLeftDownRight,
+          edge: ResizeEdge.bottomRight,
+        ),
+      ],
+    );
+  }
+}
 
 /// [v2.2.0] 完全重构的Windows自定义窗口
 /// 修复：DPI缩放、窗口动画、托盘功能、窗口调整大小
@@ -108,11 +215,10 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
     // 设置最小窗口大小
     await windowManager.setMinimumSize(const Size(800, 600));
 
-    // [v2.4.8] 确保使用 TitleBarStyle.hidden 而非 setAsFrameless
-    // hidden 保留系统 DWM 窗口动画（最大化/最小化/还原）
-    // setAsFrameless 完全移除窗口边框，导致 DWM 无法触发动画
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-    await windowManager.setHasShadow(true);
+    // [v2.7.1] 应用户要求，移除 Windows 自带的主题色边框。
+    // 使用 setAsFrameless 可以完全移除系统边框且我们自制的窗体缩放和透明动画依旧可以运作！
+    await windowManager.setAsFrameless();
+    await windowManager.setHasShadow(false); // 关闭系统阴影，我们将使用 Flutter 原生绘制悬浮散发阴影
 
     // [v2.7.0] 彻底解耦背景层。不强制塞入 Colors.black。
     // 这可以让 Windows 透出底层实现真彩色透明窗口与自定义壁纸容器交互。
@@ -124,6 +230,7 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
 
     // 检查最大化状态
     _isMaximized = await windowManager.isMaximized();
+    windowsGlobalIsMaximized.value = _isMaximized;
     if (mounted) {
       setState(() {});
     }
@@ -141,12 +248,14 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
   /// [v2.2.0修复3] 窗口最大化
   @override
   void onWindowMaximize() {
+    windowsGlobalIsMaximized.value = true;
     setState(() => _isMaximized = true);
     debugPrint('窗口已最大化');
   }
 
   @override
   void onWindowUnmaximize() {
+    windowsGlobalIsMaximized.value = false;
     setState(() => _isMaximized = false);
     debugPrint('窗口已还原');
   }
@@ -199,72 +308,51 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
 
   @override
   Widget build(BuildContext context) {
-    // [v2.2.1修复] 根据最大化状态调整圆角
-    // [v2.5.4紧急修复] 如果 radius 为 0，必须将 smoothing 也置为 0，否则底层的 figma_squircle 会在绘制路径时产生 NaN/除零错误，
-    // 导致 Debug 红屏，以及 Release 混淆模式下的 GPU 线程直接死锁（黑屏崩盘无响应）。
-    final borderRadius = _isMaximized ? 0.0 : 16.0;
-    final smoothing = _isMaximized ? 0.0 : 1.0;
-
-    return ClipSmoothRect(
-      radius: SmoothBorderRadius(
-        cornerRadius: borderRadius,
-        cornerSmoothing: smoothing,
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
-          child: Column(
-            children: [
-              _buildTitleBar(),
-              Expanded(
-                child: Navigator(
-                  key: _localNavigatorKey,
-                  initialRoute: '/',
-                  onGenerateRoute: (settings) {
-                    // [v2.5.9修复] 使用 PageRouteBuilder + opaque:false
-                    // MaterialPageRoute 默认包裹一个 MaterialType.canvas (纯白) Material，
-                    // 会遮挡透明的 Scaffold 和玻璃背景层，形成 "白色遮罩"。
-                    return PageRouteBuilder(
-                      opaque: false,
-                      pageBuilder: (context, animation, secondaryAnimation) {
-                        return Scaffold(
-                          backgroundColor: Colors.transparent,
-                          body: Row(
-                            children: [
-                              SingleChildScrollView(
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight:
-                                        MediaQuery.of(context).size.height - 40,
-                                  ),
-                                  child: IntrinsicHeight(
-                                    child: _buildSidebar(),
-                                  ),
-                                ),
+    // 阴影和圆角现已整体被 main.dart 接管以覆盖壁纸，此处直接返回无背景色 Scaffold 即可
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Column(
+        children: [
+          _buildTitleBar(),
+          Expanded(
+            child: Navigator(
+              key: _localNavigatorKey,
+              initialRoute: '/',
+              onGenerateRoute: (settings) {
+                // [v2.5.9修复] 使用 PageRouteBuilder + opaque:false
+                // MaterialPageRoute 默认包裹一个 MaterialType.canvas (纯白) Material，
+                // 会遮挡透明的 Scaffold 和玻璃背景层，形成 "白色遮罩"。
+                return PageRouteBuilder(
+                  opaque: false,
+                  pageBuilder: (context, animation, secondaryAnimation) {
+                    return Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: Row(
+                        children: [
+                          SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight:
+                                    MediaQuery.of(context).size.height - 40,
                               ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: _buildContent(),
-                                ),
-                              ),
-                            ],
+                              child: IntrinsicHeight(child: _buildSidebar()),
+                            ),
                           ),
-                        );
-                      },
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: _buildContent(),
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

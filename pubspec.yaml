@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.6.0+10006019
+version: 2.6.0+10006021
 
 environment:
   sdk: ^3.11.0
@@ -143,6 +143,14 @@ flutter:
       platforms: [windows, macos, linux, web, android]
     - path: assets/mobile wallpaper light.png
       platforms: [android, ios]
+    
+    # [v2.6.0] 将由于 Flutter 不支持平台剥离字体的痛点
+    # 转为 Assets 按需剥离声明，并在 main.dart 中调用 FontLoader 加载
+    - path: assets/fonts/SF-Pro.ttf
+      platforms: [windows]
+    - path: assets/fonts/PingFangSC-Semibold.otf
+      platforms: [windows]
+
     # 导航栏图标
     - assets/ios-settings.png
     - assets/ios-calendar.png
@@ -157,18 +165,9 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
-  # Custom fonts configuration
-  fonts:
-    # 英文字体 - 用于英文、数字和符号
-    - family: SFPro
-      fonts:
-        - asset: assets/fonts/SF-Pro.ttf
-    
-    # 中文字体 - 用于中文、日文、韩文等CJK字符
-    - family: PingFangSC
-      fonts:
-        - asset: assets/fonts/PingFangSC-Semibold.otf
-          weight: 600
+  # [v2.6.5反馈修复] 移除 Flutter 原生强制跨端打包 Font 的声明，
+  # 移至按需动态加载，避免移动端无端激增 15MB 冗余字库。
+  # [在 Android/iOS 上将使用系统默认 Roboto/San Francisco]
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

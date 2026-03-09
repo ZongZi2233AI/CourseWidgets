@@ -41,13 +41,14 @@ class LiveNotificationServiceV3 {
         },
       );
 
-      // 初始化前台服务
+      // [v2.7.0] 增强 Android Foreground Service 保活能力 (防止侧边划掉直接被系统回收)
       FlutterForegroundTask.init(
         androidNotificationOptions: AndroidNotificationOptions(
           channelId: _channelId,
           channelName: _channelName,
           channelDescription: '课程倒计时实时更新',
           onlyAlertOnce: true,
+          // [v2.7.0] 注意：isSticky参数在新版 ForegroundServiceOptions中，此处直接通过 autoRunOnBoot / autoRunOnMyPackageReplaced 保证
         ),
         iosNotificationOptions: const IOSNotificationOptions(
           showNotification: false,
@@ -55,10 +56,10 @@ class LiveNotificationServiceV3 {
         ),
         foregroundTaskOptions: ForegroundTaskOptions(
           eventAction: ForegroundTaskEventAction.repeat(5000), // 每5秒更新一次
-          autoRunOnBoot: false,
-          autoRunOnMyPackageReplaced: false,
+          autoRunOnBoot: true, // [v2.7.0] 增强保活
+          autoRunOnMyPackageReplaced: true, // 生命周期升级后重跑
           allowWakeLock: true,
-          allowWifiLock: false,
+          allowWifiLock: true,
         ),
       );
 
