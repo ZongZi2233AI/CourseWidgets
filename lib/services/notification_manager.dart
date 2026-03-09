@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/course_event.dart';
 import '../services/storage_service.dart';
+import 'package:local_notifier/local_notifier.dart';
 
 /// [v2.2.8] 统一通知管理器
 /// 支持多平台、多种通知方式
@@ -139,7 +140,7 @@ class NotificationManager {
   }
 
   /// 启动课程检查定时器
-  void startCourseCheck(List<CourseEvent> courses) {
+  void startCourseCheck(List<CourseEvent> Function() getCourses) {
     if (!isNotificationEnabled) {
       debugPrint('⚠️ 通知已禁用');
       return;
@@ -148,13 +149,13 @@ class NotificationManager {
     // 停止旧定时器
     _checkTimer?.cancel();
 
-    // 每分钟检查一次
+    // 每分钟动态拉取最新课程数据进行检查
     _checkTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      _checkUpcomingCourses(courses);
+      _checkUpcomingCourses(getCourses());
     });
 
     // 立即检查一次
-    _checkUpcomingCourses(courses);
+    _checkUpcomingCourses(getCourses());
 
     debugPrint('🔔 课程检查定时器已启动');
   }
@@ -288,14 +289,22 @@ class NotificationManager {
     required String title,
     required String body,
   }) async {
-    const windowsDetails = WindowsNotificationDetails();
+    // [v2.6.0.19] 使用专门应对裸 EXE 的 local_notifier 而非 flutter_local_notifications
+    try {
+      final notification = LocalNotification(
+        identifier: id.toString(),
+        title: title,
+        body: body,
+      );
 
-    await _plugin.show(
-      id: id,
-      title: title,
-      body: body,
-      notificationDetails: const NotificationDetails(windows: windowsDetails),
-    );
+      notification.onShow = () {
+        debugPrint('🔔 Windows 通知已展示');
+      };
+
+      await notification.show();
+    } catch (e) {
+      debugPrint('❌ Windows 通知发送失败: $e');
+    }
   }
 
   /// 发送 iOS 通知

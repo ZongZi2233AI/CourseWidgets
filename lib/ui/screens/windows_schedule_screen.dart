@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:smooth_scroll_multiplatform/smooth_scroll_multiplatform.dart';
 import '../../providers/schedule_provider.dart';
 import '../../models/course_event.dart';
+import '../../models/schedule_config.dart';
 import '../../constants/theme_constants.dart';
 import '../widgets/liquid_components.dart' as liquid;
 import 'course_edit_screen.dart';
@@ -135,17 +137,13 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
               const SizedBox(height: 16),
 
               Expanded(
-                child: ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(
-                    dragDevices: {
-                      PointerDeviceKind.touch,
-                      PointerDeviceKind.mouse,
-                    },
-                  ),
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: _buildWeekGrid(provider),
-                  ),
+                child: DynMouseScroll(
+                  builder: (context, controller, physics) =>
+                      SingleChildScrollView(
+                        controller: controller,
+                        physics: physics,
+                        child: _buildWeekGrid(provider),
+                      ),
                 ),
               ),
             ],
@@ -311,7 +309,7 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
               width: 50,
               child: Column(
                 children: [
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 58), // 50 (标题) + 8 (间距) 确保对齐
                   ...List.generate(12, (i) {
                     return Container(
                       height: 60,
@@ -339,6 +337,36 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
         ),
       ),
     );
+  }
+
+  /// 根据时间戳计算对应的节次
+  int _getSectionForTime(
+    int timestamp,
+    ScheduleConfigModel config, {
+    bool isEnd = false,
+  }) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final totalMinutes = dt.hour * 60 + dt.minute;
+
+    int bestSection = 1;
+    int minDiff = 10000;
+
+    for (var entry in config.sectionStartTimes.entries) {
+      int sectionMin = entry.value;
+      if (isEnd) {
+        int duration = config.isEqualDuration
+            ? config.defaultDuration
+            : (config.sectionDurations[entry.key] ?? config.defaultDuration);
+        sectionMin += duration; // 用结束时间对比
+      }
+
+      int diff = (sectionMin - totalMinutes).abs();
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestSection = entry.key;
+      }
+    }
+    return bestSection;
   }
 
   /// 构建单天列 - 星期和课程分别作为独立container
@@ -396,8 +424,36 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
           ),
           const SizedBox(height: 8),
 
-          // 课程列表 - 每节课独立的 GlassContainer
-          ...dayCourses.map((course) => _buildCourseCard(course)),
+          // 课程列表 - 每节课独立的 GlassContainer，用 Stack 绝对定位对齐时间轴
+          SizedBox(
+            height: 720, // 12 * 60
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: dayCourses.map((course) {
+                final config = provider.currentConfig;
+                final startSec = _getSectionForTime(course.startTime, config);
+                final endSec = _getSectionForTime(
+                  course.endTime,
+                  config,
+                  isEnd: true,
+                );
+
+                final start = startSec > 0 ? startSec : 1;
+                final end = endSec >= start ? endSec : start;
+
+                final topOffset = (start - 1) * 60.0;
+                final courseHeight = (end - start + 1) * 60.0;
+
+                return Positioned(
+                  top: topOffset,
+                  left: 0,
+                  right: 0,
+                  height: courseHeight,
+                  child: _buildCourseCard(course),
+                );
+              }).toList(),
+            ),
+          ),
         ],
       ),
     );

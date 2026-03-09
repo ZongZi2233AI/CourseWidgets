@@ -196,8 +196,8 @@ class WindowsTrayService with TrayListener {
   void startCourseReminder(ScheduleProvider provider) {
     if (!Platform.isWindows) return;
 
-    final courses = provider.courses;
-    _notificationManager.startCourseCheck(courses);
+    // 传入 callback 使得定时器始终能拿到 provider 的最新 courses
+    _notificationManager.startCourseCheck(() => provider.courses);
 
     debugPrint('🔔 Windows 课程提醒已启动');
   }

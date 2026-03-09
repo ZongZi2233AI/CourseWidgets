@@ -271,12 +271,11 @@ class _MyAppState extends State<MyApp> {
                   titleLarge: TextStyle(fontWeight: FontWeight.bold),
                   titleMedium: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                // [v2.6.1] 恢复使用自定义的 PredictiveBack 以响应手势，通过 CustomPredictiveBackPageTransitionsBuilder
-                // 能够有效响应用户原生侧滑，并且内部缩小幅度已扩大。非Android仍按旧版运行。
+                // [v2.6.0.19] 清除安卓自定义预测手势导致双闪返回 Bug，强制回归原生的 ZoomPageTransitionsBuilder！
                 pageTransitionsTheme: const material.PageTransitionsTheme(
                   builders: {
                     material.TargetPlatform.android:
-                        CustomPredictiveBackPageTransitionsBuilder(),
+                        material.ZoomPageTransitionsBuilder(),
                     material.TargetPlatform.iOS:
                         SmoothSlideTransitionsBuilder(),
                     material.TargetPlatform.windows:

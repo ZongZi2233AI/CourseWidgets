@@ -5,10 +5,12 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import '../../constants/theme_constants.dart';
 import '../../models/course_event.dart';
+import '../../models/schedule_config.dart';
 import '../../providers/schedule_provider.dart';
 import '../screens/course_edit_screen.dart';
 import 'liquid_components.dart' as liquid;
 import '../transitions/smooth_slide_transitions.dart';
+import 'package:smooth_scroll_multiplatform/smooth_scroll_multiplatform.dart';
 
 /// 本周课程网格视图（平板模式）
 class WeeklyScheduleGrid extends StatefulWidget {
@@ -259,27 +261,87 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
     );
   }
 
+  /// 根据时间戳计算最接近的节次（用于绝对定位映射）
+  int _getSectionForTime(
+    int timestamp,
+    ScheduleConfigModel config, {
+    bool isEnd = false,
+  }) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final totalMinutes = dt.hour * 60 + dt.minute;
+
+    int bestSection = 1;
+    int minDiff = 10000;
+
+    for (var entry in config.sectionStartTimes.entries) {
+      int sectionMin = entry.value;
+      if (isEnd) {
+        int duration = config.isEqualDuration
+            ? config.defaultDuration
+            : (config.sectionDurations[entry.key] ?? config.defaultDuration);
+        sectionMin += duration;
+      }
+
+      int diff = (sectionMin - totalMinutes).abs();
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestSection = entry.key;
+      }
+    }
+    return bestSection;
+  }
+
   /// 7 天或 5 天课程网格 [v2.6.0] 支持双休隐藏
   Widget _buildWeekGrid(BuildContext context, ScheduleProvider provider) {
     final showWeekends = provider.currentConfig.showWeekends;
     final int daysCount = showWeekends ? 7 : 5;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: List.generate(daysCount, (dayIndex) {
-        final day = dayIndex + 1;
-        final courses = provider.getCoursesForDay(day);
-
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: dayIndex == 0 ? 0 : 4,
-              right: dayIndex == (daysCount - 1) ? 0 : 4,
+    return DynMouseScroll(
+      builder: (context, controller, physics) => SingleChildScrollView(
+        controller: controller,
+        physics: physics,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 添加左侧时间轴以对应课程节次
+            SizedBox(
+              width: 30,
+              child: Column(
+                children: [
+                  const SizedBox(height: 60), // 对应 DayColumn 顶部的星期日期高度
+                  ...List.generate(12, (i) {
+                    return Container(
+                      height: 60,
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${i + 1}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 12,
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ),
-            child: _buildDayColumn(context, day, courses, provider),
-          ),
-        );
-      }),
+            ...List.generate(daysCount, (dayIndex) {
+              final day = dayIndex + 1;
+              final courses = provider.getCoursesForDay(day);
+
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: dayIndex == 0 ? 4 : 4,
+                    right: dayIndex == (daysCount - 1) ? 4 : 4,
+                  ),
+                  child: _buildDayColumn(context, day, courses, provider),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 
@@ -305,6 +367,7 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
         children: [
           // 星期标题 + 日期
           Container(
+            height: 48,
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Column(
               children: [
@@ -330,32 +393,35 @@ class _WeeklyScheduleGridState extends State<WeeklyScheduleGrid> {
           const Divider(color: Colors.white12, height: 1),
           const SizedBox(height: 8),
 
-          // 课程列表
-          Expanded(
-            child: courses.isEmpty
-                ? Center(
-                    child: Text(
-                      '无课',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        fontSize: 12,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.zero,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    // [v2.2.8修复] 增加缓存范围，防止滚动时降级渲染
-                    cacheExtent: 100,
-                    itemCount: courses.length,
-                    itemBuilder: (context, index) {
-                      final course = courses[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: _buildCourseCard(context, course),
-                      );
-                    },
-                  ),
+          // 课程列表 - 使用绝对定位 Stack 来对齐时间轴
+          SizedBox(
+            height: 720, // 12节课 * 60.0高度
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: courses.map((course) {
+                final config = provider.currentConfig;
+                final start = _getSectionForTime(course.startTime, config);
+                final end = _getSectionForTime(
+                  course.endTime,
+                  config,
+                  isEnd: true,
+                );
+
+                final finalStart = start > 0 ? start : 1;
+                final finalEnd = end >= finalStart ? end : finalStart;
+
+                final topOffset = (finalStart - 1) * 60.0;
+                final courseHeight = (finalEnd - finalStart + 1) * 60.0;
+
+                return Positioned(
+                  top: topOffset,
+                  left: 0,
+                  right: 0,
+                  height: courseHeight,
+                  child: _buildCourseCard(context, course),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),

@@ -49,16 +49,14 @@ class IcsParser {
     List<CourseEvent> instances = [];
 
     // --- A. 提取基础信息 ---
-    // [v2.3.0修复] 清理换行符和额外空格
+    // [v2.6.0.19] 清理 \n, \r 等所有的转义换行符和额外空格
     final summary = (eventData['summary']?.toString() ?? '未知课程')
-        .replaceAll('\n', ' ')
-        .replaceAll('\r', ' ')
+        .replaceAll(RegExp(r'\\n|\n|\\r|\r'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
 
-    final location = (eventData['location']?.toString() ?? '未知地点')
-        .replaceAll('\n', ' ')
-        .replaceAll('\r', ' ')
+    String location = (eventData['location']?.toString() ?? '未知地点')
+        .replaceAll(RegExp(r'\\n|\n|\\r|\r'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
 
@@ -98,27 +96,42 @@ class IcsParser {
       }
     }
 
-    // 如果 CATEGORIES 没有，尝试从 DESCRIPTION 提取
+    // 从描述中提取老师，如果有类似于 "实1301 王梅" 这样的模式
     if (teacher.isEmpty) {
       final description = eventData['description']?.toString() ?? '';
       if (description.isNotEmpty) {
-        // 从描述中提取老师，通常是最后一部分
-        final parts = description
-            .split(' ')
-            .where((p) => p.isNotEmpty)
-            .toList();
+        final cleanDesc = description
+            .replaceAll(RegExp(r'\\n|\n|\\r|\r'), ' ')
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+        final parts = cleanDesc.split(' ').where((p) => p.isNotEmpty).toList();
         if (parts.isNotEmpty) {
           teacher = parts.last;
         }
       }
     }
 
-    // [v2.3.0修复] 清理教师字段的换行符和额外空格
+    // 针对用户提供的：把老师信息和教室内嵌的情况
+    // 教务系统 ICS 往往会把地点写得很长 例如“8节\n实1301室\n张三,李四”
+    // 所以再次强制清洗 teacher 字段
     teacher = teacher
-        .replaceAll('\n', ' ')
-        .replaceAll('\r', ' ')
+        .replaceAll(RegExp(r'\\n|\n|\\r|\r'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
+
+    // 如果 location 包含类似 teacher 的逗号名，或者含有未清理干净的斜杠，可以进一步切分
+    if (location.contains(',')) {
+      // 简单试探性修复如果包含逗号可能包含名字
+      final locParts = location.split(' ');
+      if (locParts.length > 1) {
+        String lastPart = locParts.last;
+        // 姓名可能在最后一部分被连带上
+        if (lastPart.contains(',') || lastPart.length < 5) {
+          if (teacher.isEmpty) teacher = lastPart;
+          location = location.replaceAll(lastPart, '').trim();
+        }
+      }
+    }
 
     // --- B. 处理时间 (UTC -> Local) ---
     final dtStartObj = eventData['dtstart'];

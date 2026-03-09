@@ -402,9 +402,11 @@ class ScheduleProvider with ChangeNotifier {
     final storage = StorageService();
     await storage.setString('schedule_config', jsonEncode(newConfig.toJson()));
 
-    // [v2.7.0] 如果开学日期或课时时间发生变化，重新计算所有课程时间戳
+    // [v2.7.0] 如果开学日期或课时时间或等长课程配置发生变化，重新计算所有课程时间戳
     final configChanged =
         oldConfig.semesterStartDate != newConfig.semesterStartDate ||
+        oldConfig.isEqualDuration != newConfig.isEqualDuration ||
+        oldConfig.defaultDuration != newConfig.defaultDuration ||
         _sectionTimesChanged(oldConfig, newConfig);
     if (configChanged && _courses.isNotEmpty) {
       await _recalculateAllTimestamps(oldConfig, newConfig);
