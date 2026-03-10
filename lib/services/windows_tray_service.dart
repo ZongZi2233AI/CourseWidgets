@@ -5,6 +5,7 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:path/path.dart' as path;
 import 'package:window_manager/window_manager.dart';
 import '../providers/schedule_provider.dart';
+import '../models/course_event.dart';
 import 'notification_manager.dart';
 
 /// [v2.2.8] Windows 系统托盘服务 - 使用 tray_manager
@@ -196,10 +197,13 @@ class WindowsTrayService with TrayListener {
   void startCourseReminder(ScheduleProvider provider) {
     if (!Platform.isWindows) return;
 
-    // 传入 callback 使得定时器始终能拿到 provider 的最新 courses
-    _notificationManager.startCourseCheck(() => provider.courses);
+    // [v2.8.0] 发送每日简报通知
+    _notificationManager.sendDailyBriefing(provider.courses);
 
-    debugPrint('🔔 Windows 课程提醒已启动');
+    // [v2.8.0] 使用增强版分级提醒（20/15/10/5 分钟）
+    _notificationManager.startEnhancedCourseCheck(() => provider.courses);
+
+    debugPrint('🔔 Windows 课程提醒已启动（含每日简报 + 分级倒计时）');
   }
 
   /// 停止课程提醒
@@ -209,12 +213,18 @@ class WindowsTrayService with TrayListener {
   }
 
   /// 进入后台模式（最小化到托盘）
-  Future<void> enterBackgroundMode() async {
+  Future<void> enterBackgroundMode({List<CourseEvent>? courses}) async {
     if (!Platform.isWindows) return;
 
     try {
       await windowManager.hide();
       _isBackgroundMode = true;
+
+      // [v2.8.0] 发送后台运行通知
+      if (courses != null) {
+        _notificationManager.sendBackgroundNotice(courses);
+      }
+
       debugPrint('🌙 已进入后台模式');
     } catch (e) {
       debugPrint('❌ 进入后台模式失败: $e');

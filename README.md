@@ -7,9 +7,9 @@
 **液态玻璃设计的大学课程表应用**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Flutter](https://img.shields.io/badge/Flutter-3.41.2+-02569B?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.41.3+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.11.0+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-2.6.0.21-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases/)
+[![Version](https://img.shields.io/badge/Version-2.6.0.beta22-FF9BAE)](https://github.com/ZongZi2233AI/CourseWidgets/releases/)
 
 [English](README_EN.md) | 简体中文
 
@@ -17,9 +17,9 @@
 
 > **声明**：本软件除开源代码外完全使用 AI 辅助开发。核心由 [MiMo-V2-Flash](https://github.com/XiaomiMiMo/MiMo-V2-Flash) 构建，Windows 部分使用 Claude Opus 4.6，部分复杂实现使用 Gemini 3.0 Pro，v2.4+ 版本由 Gemini 3.1 Pro 构建。
 
-### **提醒** 2.6.0版本移除了部分真实液态玻璃代码，因为存在部分未解决问题，为了优先完成构建，将在大约v2.6.0-beta8等版本恢复（目前已完成着色器重构和渲染管线优化以及渲染错误的修复）
+### **提醒** 教务系统暂未完善，请使用wakeup课程表导出ics文件使用或者通过Windows端教务提取EAMS（树维教务使用，其他教务我没有账号不知道如何调试）
 
-### 📦 最新版本：[v2.6.0](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0.21)
+### 📦 最新版本：[v2.6.0-beta21](https://github.com/ZongZi2233AI/CourseWidgets/releases/tag/v2.6.0.21)
 
 最新版本尚不稳定，正在加快调试
 
@@ -44,12 +44,6 @@
 | 智能识别 | 自动识别课程时间、地点、教师 |
 | 自定义时间 | 根据学校作息时间灵活调整 |
 
-### 🔔 智能提醒
-
-- **Android 16 Live Updates**：实时通知 + 计时器倒计时（非进度条）
-- **双次提醒**：课前 15 分钟 + 5 分钟
-- **系统托盘**：Windows 托盘常驻，关闭窗口后台运行
-- **通知交互**：点击通知直达课程详情
 
 ### 🎯 多平台支持
 
@@ -75,8 +69,8 @@
 ### 环境要求
 
 ```
-Flutter SDK    ≥ 3.38.7
-Dart SDK       ≥ 3.10.7
+Flutter SDK    ≥ 3.41.3
+Dart SDK       ≥ 3.11.0
 AGP            ≥ 9.0
 Kotlin         ≥ 2.3
 Java           21

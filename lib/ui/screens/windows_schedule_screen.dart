@@ -505,8 +505,8 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                   children: [
                     Text(
                       course.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3,
+                      overflow: TextOverflow.clip, // [v2.8.0] 允许自动提行
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.white,
@@ -518,8 +518,8 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                       const SizedBox(height: 4),
                       Text(
                         course.location,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 3, // [v2.8.0] 教室允许自动提行
+                        overflow: TextOverflow.clip,
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.white.withValues(alpha: 0.9),
@@ -530,8 +530,8 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
                       const SizedBox(height: 2),
                       Text(
                         course.teacher,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 3, // [v2.8.0] 老师允许自动提行
+                        overflow: TextOverflow.clip,
                         style: TextStyle(
                           fontSize: 10,
                           color: Colors.white.withValues(alpha: 0.7),

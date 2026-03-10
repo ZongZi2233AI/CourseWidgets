@@ -392,4 +392,160 @@ class NotificationManager {
   Future<void> setLiveActivitiesEnabled(bool enabled) async {
     await _storage.setBool(keyLiveActivitiesEnabled, enabled);
   }
+
+  // ==================== [v2.8.0] Windows 通知简报系统 ====================
+
+  /// [v2.8.0] 应用启动时发送每日课程简报
+  /// 显示今天（或明天）的课程概况
+  Future<void> sendDailyBriefing(List<CourseEvent> allCourses) async {
+    if (!Platform.isWindows) return;
+    if (!_isInitialized) await initialize();
+
+    try {
+      final now = DateTime.now();
+      final todayWeekday = now.weekday;
+
+      // 筛选今天的课程
+      final todayCourses = allCourses.where((c) {
+        if (c.weekday != todayWeekday) return false;
+        final courseTime = DateTime.fromMillisecondsSinceEpoch(c.startTime);
+        return courseTime.isAfter(now); // 只显示未来的课程
+      }).toList();
+
+      String title;
+      String body;
+
+      if (todayCourses.isNotEmpty) {
+        title = '欢迎使用 CourseWidgets ☀️';
+        final courseList = todayCourses
+            .map((c) {
+              final t = DateTime.fromMillisecondsSinceEpoch(c.startTime);
+              return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')} ${c.name}（${c.location}）';
+            })
+            .join('\n');
+        body = '你今天接下来还有 ${todayCourses.length} 节课：\n$courseList';
+      } else {
+        // 今天没课了，看看明天
+        final tomorrowWeekday = todayWeekday % 7 + 1;
+        final tomorrowCourses = allCourses
+            .where((c) => c.weekday == tomorrowWeekday)
+            .toList();
+        title = '欢迎使用 CourseWidgets 🌙';
+        if (tomorrowCourses.isNotEmpty) {
+          final courseList = tomorrowCourses
+              .map((c) {
+                final t = DateTime.fromMillisecondsSinceEpoch(c.startTime);
+                return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')} ${c.name}（${c.location}）';
+              })
+              .join('\n');
+          body = '今天没有更多课程啦！明天有 ${tomorrowCourses.length} 节课：\n$courseList';
+        } else {
+          body = '今天和明天都没有课程，好好休息吧！';
+        }
+      }
+
+      await _sendWindowsNotification(id: 99001, title: title, body: body);
+      debugPrint('📋 已发送每日简报通知');
+    } catch (e) {
+      debugPrint('❌ 每日简报通知失败: $e');
+    }
+  }
+
+  /// [v2.8.0] 进入后台时发送提示通知（含下节课倒计时）
+  Future<void> sendBackgroundNotice(List<CourseEvent> allCourses) async {
+    if (!Platform.isWindows) return;
+    if (!_isInitialized) await initialize();
+
+    try {
+      final now = DateTime.now();
+      // 找到下一节课
+      CourseEvent? nextCourse;
+      Duration? minDiff;
+      for (var c in allCourses) {
+        if (c.weekday != now.weekday) continue;
+        final courseTime = DateTime.fromMillisecondsSinceEpoch(c.startTime);
+        final diff = courseTime.difference(now);
+        if (diff.isNegative) continue;
+        if (minDiff == null || diff < minDiff) {
+          minDiff = diff;
+          nextCourse = c;
+        }
+      }
+
+      String body;
+      if (nextCourse != null && minDiff != null) {
+        final mins = minDiff.inMinutes;
+        body = '软件已在后台运行。下节课 ${nextCourse.name} 还有 $mins 分钟开始，届时将自动提醒您。';
+      } else {
+        body = '软件已在后台运行。今天没有更多课程，将在明天开课前提醒您。';
+      }
+
+      await _sendWindowsNotification(
+        id: 99002,
+        title: 'CourseWidgets 后台运行中 🔔',
+        body: body,
+      );
+      debugPrint('🔕 已发送后台通知');
+    } catch (e) {
+      debugPrint('❌ 后台通知失败: $e');
+    }
+  }
+
+  /// [v2.8.0] 增强版课程检查：20/15/10/5分钟分级提醒
+  void startEnhancedCourseCheck(List<CourseEvent> Function() getCourses) {
+    if (!isNotificationEnabled) return;
+    _checkTimer?.cancel();
+
+    _checkTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _enhancedCheckUpcomingCourses(getCourses());
+    });
+    // 立即检查一次
+    _enhancedCheckUpcomingCourses(getCourses());
+    debugPrint('🔔 增强型课程检查定时器已启动（20/15/10/5 分钟分级提醒）');
+  }
+
+  void _enhancedCheckUpcomingCourses(List<CourseEvent> courses) {
+    final now = DateTime.now();
+    // 提醒阈值（分钟）
+    const thresholds = [20, 15, 10, 5];
+
+    for (var course in courses) {
+      if (course.weekday != now.weekday) continue;
+      final courseTime = DateTime.fromMillisecondsSinceEpoch(course.startTime);
+      final diff = courseTime.difference(now);
+      if (diff.isNegative) continue;
+
+      final mins = diff.inMinutes;
+      final courseId = course.id ?? course.startTime;
+
+      for (var threshold in thresholds) {
+        if (mins >= threshold - 1 && mins <= threshold + 1) {
+          final notifKey = courseId + threshold * 10000;
+          if (!_notifiedCourses.contains(notifKey)) {
+            final timeStr =
+                '${courseTime.hour.toString().padLeft(2, '0')}:${courseTime.minute.toString().padLeft(2, '0')}';
+            final emoji = threshold <= 5
+                ? '🚨'
+                : threshold <= 10
+                ? '⚡'
+                : '⏰';
+            _sendWindowsNotification(
+              id: notifKey % 100000,
+              title: '$emoji 课程 $threshold 分钟后开始',
+              body:
+                  '${course.name}\n$timeStr · ${course.location}${course.teacher.isNotEmpty ? ' · ${course.teacher}' : ''}',
+            );
+            _notifiedCourses.add(notifKey);
+          }
+        }
+      }
+
+      // 清理过期记录
+      if (diff.inMinutes < -60) {
+        for (var t in thresholds) {
+          _notifiedCourses.remove(courseId + t * 10000);
+        }
+      }
+    }
+  }
 }

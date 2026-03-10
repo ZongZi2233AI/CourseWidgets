@@ -270,7 +270,9 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
 
     // 进入后台模式
     final tray = WindowsTrayService();
-    await tray.enterBackgroundMode();
+    // [v2.8.0] 传入课程列表以便发送后台通知
+    final provider = Provider.of<ScheduleProvider>(context, listen: false);
+    await tray.enterBackgroundMode(courses: provider.courses);
 
     debugPrint('🌙 窗口已最小化到托盘，进程继续运行');
   }
