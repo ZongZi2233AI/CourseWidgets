@@ -393,24 +393,27 @@ class _SettingsGeneralScreenState extends State<SettingsGeneralScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildSection('外观'),
-                _buildSwitchCard(
-                  '自适应深色模式',
-                  '跟随系统设置',
-                  _adaptiveDarkMode,
-                  _toggleAdaptiveMode,
-                ),
-                const SizedBox(height: 12),
-
-                IgnorePointer(
-                  ignoring: _adaptiveDarkMode,
-                  child: _buildSwitchCard(
-                    '强制深色模式',
-                    '手动覆盖系统设置',
-                    globalUseDarkMode,
-                    _toggleDarkMode,
-                    disabled: _adaptiveDarkMode,
+                // [v2.9.0] Windows 端未适配深色模式，隐藏相关设置
+                if (!Platform.isWindows) ...[
+                  _buildSwitchCard(
+                    '自适应深色模式',
+                    '跟随系统设置',
+                    _adaptiveDarkMode,
+                    _toggleAdaptiveMode,
                   ),
-                ),
+                  const SizedBox(height: 12),
+
+                  IgnorePointer(
+                    ignoring: _adaptiveDarkMode,
+                    child: _buildSwitchCard(
+                      '强制深色模式',
+                      '手动覆盖系统设置',
+                      globalUseDarkMode,
+                      _toggleDarkMode,
+                      disabled: _adaptiveDarkMode,
+                    ),
+                  ),
+                ],
 
                 const SizedBox(height: 20),
                 _buildSection('主题色'),

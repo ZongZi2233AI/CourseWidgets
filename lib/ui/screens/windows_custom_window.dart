@@ -331,13 +331,22 @@ class _WindowsCustomWindowState extends State<WindowsCustomWindow>
                       backgroundColor: Colors.transparent,
                       body: Row(
                         children: [
-                          SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight:
-                                    MediaQuery.of(context).size.height - 40,
+                          // [v2.9.2] 彻底拔除侧边栏的滚动条与滚动能力
+                          // 即使加了 NeverScrollableScrollPhysics，桌面端默认注入的 Scrollbar
+                          // 的滑块依然可能被鼠标强行拖动。使用 ScrollConfiguration 彻底隐藏。
+                          ScrollConfiguration(
+                            behavior: ScrollConfiguration.of(
+                              context,
+                            ).copyWith(scrollbars: false),
+                            child: SingleChildScrollView(
+                              physics: const NeverScrollableScrollPhysics(),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight:
+                                      MediaQuery.of(context).size.height - 40,
+                                ),
+                                child: IntrinsicHeight(child: _buildSidebar()),
                               ),
-                              child: IntrinsicHeight(child: _buildSidebar()),
                             ),
                           ),
                           Expanded(

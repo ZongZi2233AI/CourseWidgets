@@ -396,21 +396,22 @@ class NotificationManager {
   // ==================== [v2.8.0] Windows 通知简报系统 ====================
 
   /// [v2.8.0] 应用启动时发送每日课程简报
-  /// 显示今天（或明天）的课程概况
+  /// [v2.9.0修复] 用 year/month/day 精确匹配今天，而非 weekday（避免跨周课程重复计数）
   Future<void> sendDailyBriefing(List<CourseEvent> allCourses) async {
     if (!Platform.isWindows) return;
     if (!_isInitialized) await initialize();
 
     try {
       final now = DateTime.now();
-      final todayWeekday = now.weekday;
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final todayEnd = todayStart.add(const Duration(days: 1));
+      final tomorrowEnd = todayEnd.add(const Duration(days: 1));
 
-      // 筛选今天的课程
+      // 筛选今天剩余的课程（精确按日期）
       final todayCourses = allCourses.where((c) {
-        if (c.weekday != todayWeekday) return false;
         final courseTime = DateTime.fromMillisecondsSinceEpoch(c.startTime);
-        return courseTime.isAfter(now); // 只显示未来的课程
-      }).toList();
+        return courseTime.isAfter(now) && courseTime.isBefore(todayEnd);
+      }).toList()..sort((a, b) => a.startTime.compareTo(b.startTime));
 
       String title;
       String body;
@@ -426,10 +427,11 @@ class NotificationManager {
         body = '你今天接下来还有 ${todayCourses.length} 节课：\n$courseList';
       } else {
         // 今天没课了，看看明天
-        final tomorrowWeekday = todayWeekday % 7 + 1;
-        final tomorrowCourses = allCourses
-            .where((c) => c.weekday == tomorrowWeekday)
-            .toList();
+        final tomorrowCourses = allCourses.where((c) {
+          final courseTime = DateTime.fromMillisecondsSinceEpoch(c.startTime);
+          return courseTime.isAfter(todayEnd) &&
+              courseTime.isBefore(tomorrowEnd);
+        }).toList()..sort((a, b) => a.startTime.compareTo(b.startTime));
         title = '欢迎使用 CourseWidgets 🌙';
         if (tomorrowCourses.isNotEmpty) {
           final courseList = tomorrowCourses
@@ -452,20 +454,23 @@ class NotificationManager {
   }
 
   /// [v2.8.0] 进入后台时发送提示通知（含下节课倒计时）
+  /// [v2.9.0修复] 只在今天范围内查找下一节课
   Future<void> sendBackgroundNotice(List<CourseEvent> allCourses) async {
     if (!Platform.isWindows) return;
     if (!_isInitialized) await initialize();
 
     try {
       final now = DateTime.now();
-      // 找到下一节课
+      final todayEnd = DateTime(now.year, now.month, now.day + 1);
+
+      // 找到今天剩余的下一节课
       CourseEvent? nextCourse;
       Duration? minDiff;
       for (var c in allCourses) {
-        if (c.weekday != now.weekday) continue;
         final courseTime = DateTime.fromMillisecondsSinceEpoch(c.startTime);
+        // 只看今天的、还没开始的课
+        if (courseTime.isBefore(now) || courseTime.isAfter(todayEnd)) continue;
         final diff = courseTime.difference(now);
-        if (diff.isNegative) continue;
         if (minDiff == null || diff < minDiff) {
           minDiff = diff;
           nextCourse = c;

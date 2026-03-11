@@ -192,6 +192,8 @@ class _WindowsScheduleScreenState extends State<WindowsScheduleScreen> {
               Expanded(
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
+                  // [v2.9.1] Windows 禁止鼠标拖拽翻页，只允许滚轮滚动
+                  physics: const NeverScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   itemCount: weeks.length,
                   itemBuilder: (context, index) {

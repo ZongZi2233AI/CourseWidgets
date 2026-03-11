@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// 当前版本：[v2.6.0.beta22] 双弹核爆根绝, WebView正则修复, 课程卡提行, 通知简报系统
-const String appVersion = '2.6.0.beta22';
-const int buildNumber = 10008022;
+/// 当前版本：[v2.6.0.beta27] 完美解决安卓侧滑返回双弹及缺失模糊与进入动画问题，解决移动端教务导入卡加载循环问题
+const String appVersion = '2.6.0.beta27';
+const int buildNumber = 10008027;
 const String copyright = '© 2025-2026 CourseWidgets. All rights reserved.';
 
 // 全局状态
