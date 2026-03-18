@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// 当前版本：[v2.6.0.beta27] 完美解决安卓侧滑返回双弹及缺失模糊与进入动画问题，解决移动端教务导入卡加载循环问题
-const String appVersion = '2.6.0.beta27';
-const int buildNumber = 10008027;
+/// 当前版本：[v2.6.0.beta32] 全平台统一BackdropFilter修复安卓模糊不可见问题
+const String appVersion = '2.6.0.beta32';
+const int buildNumber = 10008032;
 const String copyright = '© 2025-2026 CourseWidgets. All rights reserved.';
 
 // 全局状态

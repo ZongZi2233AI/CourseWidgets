@@ -90,7 +90,7 @@ class LiquidCard extends StatelessWidget {
     final settings = glassColor != null
         ? LiquidGlassSettings(
             thickness: styleType == LiquidStyleType.micro ? 10.0 : 20.0,
-            blur: (styleType == LiquidStyleType.micro || isPanel) ? 0.0 : 15.0,
+            blur: (styleType == LiquidStyleType.micro || isPanel) ? 0.0 : 8.0,
             glassColor: glassColor!,
             refractiveIndex: 1.2,
             lightIntensity: 0.6,
@@ -326,7 +326,7 @@ Future<T?> showLiquidDialog<T>({
           FadeTransition(
             opacity: anim1,
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
                 color: Colors.black.withValues(alpha: 0.15),
               ), // [修复] 降低遮罩不透明度

@@ -34,7 +34,7 @@ class GlassSettingsHelper {
 
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: 12.0, // [v2.5.9] 降低模糊度使玻璃更通透
+      blur: 6.0, // [v2.9.5] 降低模糊度优化滑动性能
       thickness: 0.8,
     );
   }
@@ -70,7 +70,7 @@ class GlassSettingsHelper {
 
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: 15.0, // [v2.5.9] 降低模糊度使玻璃更通透
+      blur: 8.0, // [v2.9.5] 降低模糊度优化滑动性能
       thickness: 18.0,
     );
   }
@@ -96,7 +96,7 @@ class GlassSettingsHelper {
 
     return LiquidGlassSettings(
       glassColor: glassColor,
-      blur: 12,
+      blur: 6,
       thickness: 15,
     ); // [v2.5.9] 降低模糊度
   }

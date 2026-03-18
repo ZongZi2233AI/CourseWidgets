@@ -17,7 +17,7 @@ import 'services/onboarding_service.dart';
 import 'services/windows_tray_service.dart';
 import 'services/storage_service.dart';
 import 'services/background_task_service.dart'; // [v2.2.9] 后台任务服务
-import 'ui/transitions/custom_predictive_back_transitions.dart'; // [v2.9.3] 恢复自定义预测返回
+import 'ui/transitions/custom_predictive_back_transitions.dart'; // [v2.9.7] 恢复Android预测式返回
 import 'utils/glass_opacity_manager.dart'; // [v2.3.0] 玻璃透明度管理器
 import 'ui/screens/schedule_screen.dart';
 import 'ui/screens/android_liquid_glass_main.dart';
@@ -304,20 +304,16 @@ class _MyAppState extends State<MyApp> {
                   titleLarge: TextStyle(fontWeight: FontWeight.bold),
                   titleMedium: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                // [v2.9.3] 恢复 CustomPredictiveBackPageTransitionsBuilder
-                // 用户的核心诉求是：既要有 predictive back (侧滑跟手预览)，又要有
-                // 漂亮的进入动画(SmoothSlide)。原生 PredictiveBack 会丢失进入动画，
-                // 纯 SmoothSlide 会丢失 predictive back。
-                // 我们在 custom 文件里其实已经用 SmoothSlide 当底层 fallback 了，
-                // 现在重新挂载上去。
-                pageTransitionsTheme: const material.PageTransitionsTheme(
+                // [v2.9.7] Android 使用 CustomPredictiveBackPageTransitionsBuilder
+                // 保留预测式返回手势，内部统一调用 SmoothSlideTransitionsBuilder
+                pageTransitionsTheme: material.PageTransitionsTheme(
                   builders: {
                     material.TargetPlatform.android:
-                        CustomPredictiveBackPageTransitionsBuilder(),
+                        const CustomPredictiveBackPageTransitionsBuilder(),
                     material.TargetPlatform.iOS:
-                        SmoothSlideTransitionsBuilder(),
+                        const SmoothSlideTransitionsBuilder(),
                     material.TargetPlatform.windows:
-                        SmoothSlideTransitionsBuilder(),
+                        const SmoothSlideTransitionsBuilder(),
                   },
                 ),
               ),
